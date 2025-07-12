@@ -82,7 +82,7 @@ const subjectCards = [
   },
 ];
 
-const API_URL = 'https://therapy-0gme.onrender.com';
+const API_URL = 'https://therapy-3.onrender.com';
 
 const WELLNESS_POSTS = [
   {
@@ -233,7 +233,7 @@ export default function UnifiedIndexScreen() {
   // Helper to update only the profile image
   const handleSaveProfileImage = async (img: string) => {
     try {
-      await fetch('https://therapy-0gme.onrender.com/user/me', {
+      await fetch('https://therapy-3.onrender.com/user/me', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

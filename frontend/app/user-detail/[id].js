@@ -30,7 +30,7 @@ export default function UserDetail() {
       setError('');
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await fetch(`http://192.168.130.1:5000/user/${id}`, {
+        const res = await fetch(`https://therapy-3.onrender.com/user/${id}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         const data = await res.json();
@@ -48,7 +48,7 @@ export default function UserDetail() {
     setError('');
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await fetch(`http://192.168.130.1:5000/user/${id}/role`, {
+      const res = await fetch(`https://therapy-3.onrender.com/user/${id}/role`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

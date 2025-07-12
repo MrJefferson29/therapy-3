@@ -24,7 +24,7 @@ import { useLoader } from '../../components/LoaderProvider';
 
 const { width } = Dimensions.get('window');
 
-const API_BASE_URL = 'https://therapy-0gme.onrender.com'; // Use your backend URL
+const API_BASE_URL = 'https://therapy-3.onrender.com'; // Use your backend URL
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080';
 const FEATURED_IMAGE = 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=1080';

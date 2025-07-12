@@ -368,7 +368,7 @@ export default function Profile() {
     if (!authorId) return;
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await fetch(`https://therapy-0gme.onrender.com/mood/author/${authorId}`, {
+      const res = await fetch(`https://therapy-3.onrender.com/mood/author/${authorId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
@@ -390,7 +390,7 @@ export default function Profile() {
     if (!authorId) return;
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await fetch(`https://therapy-0gme.onrender.com/journal/author/${authorId}`, {
+      const res = await fetch(`https://therapy-3.onrender.com/journal/author/${authorId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
@@ -417,7 +417,7 @@ export default function Profile() {
     setAppointmentsLoading(true);
     setAppointmentsError('');
     try {
-      const res = await fetch('https://therapy-0gme.onrender.com/appointment/my', {
+      const res = await fetch('https://therapy-3.onrender.com/appointment/my', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
@@ -546,7 +546,7 @@ export default function Profile() {
         await uploadProfileImage();
       }
       
-      const res = await fetch('https://therapy-0gme.onrender.com/user/me', {
+      const res = await fetch('https://therapy-3.onrender.com/user/me', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -615,7 +615,7 @@ export default function Profile() {
         name: 'profile.jpg',
         type: 'image/jpeg',
       });
-      const res = await fetch('https://therapy-0gme.onrender.com/user/me/upload-profile-image', {
+      const res = await fetch('https://therapy-3.onrender.com/user/me/upload-profile-image', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

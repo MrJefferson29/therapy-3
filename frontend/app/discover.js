@@ -152,7 +152,7 @@ export default function DiscoverScreen() {
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const res = await fetch('https://therapy-0gme.onrender.com/article');
+      const res = await fetch('https://therapy-3.onrender.com/article');
       const data = await res.json();
       setArticles(Array.isArray(data) ? data : []);
     } catch (e) {
