@@ -23,7 +23,7 @@ import Slider from "@react-native-community/slider";
 import moment from "moment";
 import { useRouter } from "expo-router";
 
-const API_BASE_URL = "http://192.168.130.1:5000";
+const API_BASE_URL = "https://therapy-3.onrender.com";
 const CHAT_HISTORY_KEY = "ai_chat_history";
 const SESSION_ID_KEY = "ai_session_id";
 const TOKEN_KEY = "token";

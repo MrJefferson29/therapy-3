@@ -38,7 +38,7 @@ export default function AllUsers() {
       setError('');
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await fetch('http://192.168.130.1:5000/user', {
+        const res = await fetch('https://therapy-3.onrender.com/user', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         const data = await res.json();
