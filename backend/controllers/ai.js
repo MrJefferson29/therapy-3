@@ -3,6 +3,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Ai = require("../models/ai");
 const Session = require("../models/session");
 const intents = require('../intents.json');
+const User = require("../models/user");
+const Appointment = require("../models/appointment");
+const sendEmail = require("../utils/sendEmail");
 
 // Initialize the AI model
 const genAI = new GoogleGenerativeAI("AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
@@ -240,7 +243,54 @@ const generateContent = async (req, res) => {
         session: sessionId,
       });
       await newAiEntry.save();
-      return res.json({ text: crisisResponse, sessionId });
+
+      // Find a therapist (first available)
+      const therapist = await User.findOne({ role: 'therapist' });
+      let appointment = null;
+      let appointmentError = null;
+      if (therapist) {
+        try {
+          // Book appointment for ASAP (next hour)
+          const now = new Date();
+          const soon = new Date(now.getTime() + 60 * 60 * 1000);
+          appointment = new Appointment({
+            title: 'Urgent Mental Health Support',
+            description: 'Auto-booked due to detected crisis in chat. Please reach out to the user as soon as possible.',
+            scheduledTime: soon,
+            therapist: therapist._id,
+            client: req.userId,
+            status: 'pending',
+          });
+          await appointment.save();
+
+          // Email notification to therapist
+          if (therapist.email) {
+            await sendEmail({
+              to: therapist.email,
+              subject: 'Urgent: Crisis Detected - Appointment Auto-Booked',
+              text: `A user in crisis has been detected by the AI. An urgent appointment has been auto-booked. Please check the platform and reach out to the user as soon as possible.`,
+            });
+          }
+        } catch (err) {
+          appointmentError = err.message;
+        }
+      }
+
+      // Optionally, notify admin as well (add admin email if desired)
+      // await sendEmail({ ... });
+
+      return res.json({
+        text: crisisResponse,
+        sessionId,
+        danger: true,
+        reason: 'crisis',
+        appointment: appointment ? {
+          id: appointment._id,
+          therapist: therapist ? therapist._id : null,
+          scheduledTime: appointment.scheduledTime,
+        } : null,
+        appointmentError,
+      });
     }
 
     // Check if this is a vague response
