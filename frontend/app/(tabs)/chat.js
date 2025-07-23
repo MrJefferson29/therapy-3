@@ -23,7 +23,7 @@ import Slider from "@react-native-community/slider";
 import moment from "moment";
 import { useRouter } from "expo-router";
 
-const API_BASE_URL = "https://therapy-3.onrender.com";
+const API_BASE_URL = "http://192.168.1.170:5000";
 const CHAT_HISTORY_KEY = "ai_chat_history";
 const SESSION_ID_KEY = "ai_session_id";
 const TOKEN_KEY = "token";
@@ -184,6 +184,25 @@ export default function Chat() {
         { text: data.text, sender: "bot", time: new Date().toISOString() },
       ]);
       await AsyncStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(updated));
+
+      // Danger handling: if AI detects crisis, redirect to therapist selection
+      if (data.danger) {
+        let alertMsg = "We detected you may need urgent support. Redirecting you to a therapist.";
+        if (data.appointment && data.appointment.scheduledTime) {
+          alertMsg = `We detected you may need urgent support. An appointment has been auto-booked for you with a therapist at ${new Date(data.appointment.scheduledTime).toLocaleString()}.`;
+        }
+        Alert.alert(
+          "Urgent Support",
+          alertMsg,
+          [
+            {
+              text: "OK",
+              onPress: () => router.push("/MyTherapist"),
+            },
+          ],
+          { cancelable: false }
+        );
+      }
     } catch (e) {
       console.error(e);
       setMessages((prev) => [
