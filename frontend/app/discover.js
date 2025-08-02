@@ -21,6 +21,7 @@ import { Video } from 'expo-av';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TapGestureHandler, State } from 'react-native-gesture-handler';
+import { DiscoverSkeleton } from '@/components/DiscoverSkeleton';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = width / 2 - 2;
@@ -533,9 +534,7 @@ export default function DiscoverScreen() {
   return (
     <ThemedView style={styles.container}>
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#388E3C" />
-        </View>
+        <DiscoverSkeleton />
       ) : (
         <ScrollView
           refreshControl={

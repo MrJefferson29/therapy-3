@@ -21,6 +21,7 @@ import { BlurView } from 'expo-blur';
 import DiscoverScreen from '@/app/discover';
 import { useAuth } from '../../hooks/useAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TherapistSectionSkeleton } from '@/components/TherapistSkeleton';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = (screenWidth - 40 - 24) / 3;
@@ -216,6 +217,7 @@ export default function UnifiedIndexScreen() {
   const [quote] = useState(getRandomQuote());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [therapists, setTherapists] = useState<Therapist[]>([]);
+  const [therapistsLoading, setTherapistsLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [appointmentsError, setAppointmentsError] = useState('');
@@ -249,6 +251,7 @@ export default function UnifiedIndexScreen() {
 
 
   const fetchTherapists = useCallback(async () => {
+    setTherapistsLoading(true);
     try {
       const res = await fetch(`${API_URL}/user/therapists`);
       const data = await res.json();
@@ -256,6 +259,8 @@ export default function UnifiedIndexScreen() {
     } catch (err) {
       console.error('Failed to fetch therapists', err);
       setTherapists([]); // fallback to empty array on error
+    } finally {
+      setTherapistsLoading(false);
     }
   }, []);
 
@@ -287,6 +292,7 @@ export default function UnifiedIndexScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    setTherapistsLoading(true);
     try {
       await Promise.all([
         fetchTherapists(),
@@ -327,6 +333,11 @@ export default function UnifiedIndexScreen() {
   // MyTherapist Section
   const renderMyTherapist = () => {
     const upcomingAppointment = getUpcomingAppointment(appointments);
+
+    // Show skeleton while loading therapists
+    if (therapistsLoading || (therapists.length === 0 && !appointmentsLoading)) {
+      return <TherapistSectionSkeleton />;
+    }
 
     return (
       <View style={styles.sectionCard}>

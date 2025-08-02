@@ -252,9 +252,9 @@
           "I feel worried"
         ],
         "responses": [
-          "I hear that you're feeling stressed. Stress can be really challenging to deal with. Can you tell me more about what's been causing you stress lately? Understanding the specific sources can help us find better ways to manage it.",
-          "Stress can feel overwhelming, and it's completely normal to experience it. To help you better, could you share what specific situations or circumstances have been contributing to your stress?",
-          "I understand stress can be really difficult. It often helps to break it down into smaller pieces. What would you say is the biggest stressor in your life right now?"
+          "I hear that you're feeling stressed, and that's completely valid. Stress can be really challenging to deal with. Let's take a moment to breathe together - can you try taking 3 deep breaths with me? Inhale for 4 counts, hold for 4, exhale for 6. Now, can you tell me more about what's been causing you stress lately? Understanding the specific sources can help us find better ways to manage it.",
+          "Stress can feel overwhelming, and it's completely normal to experience it. Sometimes when we're stressed, our thoughts can become scattered. Let's try a quick grounding exercise: Name 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, and 1 thing you can taste. How did that feel? Now, could you share what specific situations have been contributing to your stress?",
+          "I understand stress can be really difficult, and it often affects us both mentally and physically. Let's break this down together. What would you say is the biggest stressor in your life right now? And how has this stress been showing up in your body - tension, sleep issues, appetite changes?"
         ]
       },
       {
@@ -277,6 +277,80 @@
           "I understand it can be hard to pinpoint exactly what's bothering you. Sometimes when we say 'everything' or 'I don't know,' it's because there's so much going on that it feels overwhelming. Let's take it one step at a time. What's the most pressing concern on your mind right now?",
           "It's okay if you're not sure exactly what's causing your stress. Sometimes our feelings can be complex. Can you think of one specific thing that happened today or this week that made you feel particularly stressed or upset?",
           "When things feel overwhelming, it's common to have trouble identifying the specific causes. Let's start with something simple - what's one thing that's been on your mind lately that you wish was different?"
+        ]
+      },
+      {
+        "tag": "anxiety-specific",
+        "patterns": [
+          "panic attack",
+          "anxiety attack",
+          "I'm having a panic attack",
+          "I can't breathe",
+          "I feel like I'm dying",
+          "I'm going crazy",
+          "I'm losing control",
+          "my heart is racing",
+          "I'm hyperventilating",
+          "I feel like I'm having a heart attack"
+        ],
+        "responses": [
+          "I hear you're experiencing intense anxiety right now. Let's work through this together. First, let's try the 5-4-3-2-1 grounding technique: Look around and name 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, and 1 thing you can taste. Take your time with each one. How does that feel?",
+          "What you're experiencing sounds like a panic attack, and it's incredibly frightening. Let's focus on your breathing together. Try this: Breathe in slowly for 4 counts, hold for 4, then exhale slowly for 6 counts. Repeat this 3 times. Remember, this feeling will pass. You're safe, and you're not alone.",
+          "I understand how terrifying this feels right now. Panic attacks can make you feel like you're in real danger, but you're actually safe. Let's try progressive muscle relaxation: Tense your toes for 5 seconds, then release. Do the same with your calves, thighs, stomach, arms, and shoulders. How does that feel?"
+        ]
+      },
+      {
+        "tag": "depression-support",
+        "patterns": [
+          "I'm depressed",
+          "I feel depressed",
+          "I'm sad all the time",
+          "I can't get out of bed",
+          "I don't want to do anything",
+          "I feel hopeless",
+          "I feel worthless",
+          "I can't stop crying",
+          "I don't see the point",
+          "I'm tired all the time"
+        ],
+        "responses": [
+          "I hear how difficult this is for you, and I want you to know that depression is a real and treatable condition. You're not alone in this struggle. Let's start small - what's one tiny thing you could do today that might help you feel even slightly better? Maybe taking a shower, eating something, or just sitting outside for 5 minutes?",
+          "Depression can make everything feel overwhelming and pointless. I want you to know that these feelings are symptoms of depression, not a reflection of your worth. You matter, and your life has value. Can you tell me about a time when you felt even slightly better? What was different then?",
+          "I understand how exhausting depression can be. It's like carrying a heavy weight all the time. Let's try something simple together - can you name 3 things you're grateful for, no matter how small? Even something like 'I have a roof over my head' or 'I'm talking to someone who cares' counts."
+        ]
+      },
+      {
+        "tag": "sleep-issues",
+        "patterns": [
+          "I can't sleep",
+          "I'm having trouble sleeping",
+          "I can't fall asleep",
+          "I wake up in the middle of the night",
+          "I'm tired but can't sleep",
+          "I have insomnia",
+          "my mind won't stop racing",
+          "I'm worried about not sleeping"
+        ],
+        "responses": [
+          "Sleep issues can be incredibly frustrating and can affect every aspect of your life. Let's talk about your sleep routine. What time do you usually go to bed, and what do you do in the hour before bed? Sometimes small changes can make a big difference.",
+          "I understand how difficult it is when your mind won't stop racing at night. Let's try a simple technique: When you're in bed, try counting backwards from 100 by 3s (100, 97, 94, etc.). This gives your mind something to focus on without being too engaging. How does that sound?",
+          "Sleep problems often go hand in hand with stress and anxiety. Let's try a bedtime relaxation exercise: Lie in bed and imagine you're in a peaceful place. What does it look like, sound like, feel like? Take 10 slow, deep breaths while you imagine this place. How does that feel?"
+        ]
+      },
+      {
+        "tag": "self-care-encouragement",
+        "patterns": [
+          "I don't take care of myself",
+          "I don't have time for self-care",
+          "I feel guilty taking time for myself",
+          "I don't know how to take care of myself",
+          "I'm too busy for self-care",
+          "self-care feels selfish"
+        ],
+        "responses": [
+          "I hear that you're struggling with self-care, and that's actually very common. Self-care isn't selfish - it's essential. Think of it like putting on your oxygen mask first on an airplane. You can't help others if you're running on empty. What's one small thing you could do for yourself today, even if it's just 5 minutes?",
+          "It sounds like you're putting everyone else's needs before your own. That's a sign of a caring person, but you deserve care too. Self-care doesn't have to be expensive or time-consuming. It could be as simple as taking 5 deep breaths, drinking a glass of water, or stepping outside for fresh air. What feels manageable to you?",
+          "I understand feeling guilty about taking time for yourself, but you matter too. Self-care is actually a form of self-respect. Let's start small - what's one thing you enjoy doing, even if it's just for a few minutes? Reading, listening to music, taking a walk, or even just sitting quietly?"
         ]
       },
       {
