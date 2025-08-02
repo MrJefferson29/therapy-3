@@ -22,10 +22,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Slider from "@react-native-community/slider";
 import moment from "moment";
 import { useRouter } from "expo-router";
+import { useAuth } from "../../hooks/useAuth";
 
-const API_BASE_URL = "http://192.168.1.170:5000";
-const CHAT_HISTORY_KEY = "ai_chat_history";
-const SESSION_ID_KEY = "ai_session_id";
+const API_BASE_URL = "https://therapy-3.onrender.com";
 const TOKEN_KEY = "token";
 const { width } = Dimensions.get("window");
 const moodEmojis = ["😢", "😞", "😕", "😐", "🙂", "😊", "😃", "😁", "🤩", "😍"];
@@ -49,11 +48,11 @@ const getWelcomeMessage = (mood) => {
 export default function Chat() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { token, user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
-  const [token, setToken] = useState(null);
   const [showMoodModal, setShowMoodModal] = useState(false);
   const [mood, setMood] = useState(5);
   const [isResetting, setIsResetting] = useState(false);
@@ -61,6 +60,21 @@ export default function Chat() {
   const [isTypingEffect, setIsTypingEffect] = useState(false);
   const [inputBarHeight, setInputBarHeight] = useState(0);
   const [hasWelcomeMessage, setHasWelcomeMessage] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  // User-specific storage keys
+  const getChatHistoryKey = () => {
+    const userId = user?.id || user?._id || 'anonymous';
+    const key = `ai_chat_history_${userId}`;
+    console.log('Using chat history key:', key, 'for user:', userId);
+    return key;
+  };
+  const getSessionIdKey = () => {
+    const userId = user?.id || user?._id || 'anonymous';
+    const key = `ai_session_id_${userId}`;
+    console.log('Using session ID key:', key, 'for user:', userId);
+    return key;
+  };
   
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -69,24 +83,47 @@ export default function Chat() {
   const keyboardHeight = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // load data
-    (async () => {
-      try {
-        const savedMessages = await AsyncStorage.getItem(CHAT_HISTORY_KEY);
-        const savedSession = await AsyncStorage.getItem(SESSION_ID_KEY);
-        const savedToken = await AsyncStorage.getItem(TOKEN_KEY);
-        if (savedMessages) {
-          const parsedMessages = JSON.parse(savedMessages);
-          setMessages(parsedMessages);
-          setHasWelcomeMessage(parsedMessages.length > 0);
+    // Check if user is authenticated
+    if (!token) {
+      setIsAuthChecking(false);
+      Alert.alert(
+        "Authentication Required",
+        "Please log in to use the chat feature.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.push("/LoginScreen"),
+          },
+        ],
+        { cancelable: false }
+      );
+      return;
+    }
+
+    setIsAuthChecking(false);
+    
+    // Only load data if user is available
+    if (user) {
+      (async () => {
+        try {
+          // Clean up old global storage keys to prevent data leakage
+          await AsyncStorage.removeItem("ai_chat_history");
+          await AsyncStorage.removeItem("ai_session_id");
+          
+          const savedMessages = await AsyncStorage.getItem(getChatHistoryKey());
+          const savedSession = await AsyncStorage.getItem(getSessionIdKey());
+          if (savedMessages) {
+            const parsedMessages = JSON.parse(savedMessages);
+            setMessages(parsedMessages);
+            setHasWelcomeMessage(parsedMessages.length > 0);
+          }
+          if (savedSession) setSessionId(savedSession);
+          else setShowMoodModal(true);
+        } catch (e) {
+          console.error(e);
         }
-        if (savedSession) setSessionId(savedSession);
-        else setShowMoodModal(true);
-        if (savedToken) setToken(savedToken);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
+      })();
+    }
 
     // keyboard listeners
     const showEvt =
@@ -120,7 +157,7 @@ export default function Chat() {
       subShow.remove();
       subHide.remove();
     };
-  }, []);
+  }, [token, router, user]);
 
   // fade in new messages
   useEffect(() => {
@@ -158,7 +195,12 @@ export default function Chat() {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || !sessionId || !token) return;
+    if (!inputMessage.trim() || !sessionId || !token || !user) {
+      if (!token || !user) {
+        Alert.alert("Authentication Required", "Please log in to use the chat feature.");
+      }
+      return;
+    }
     const userMsg = {
       text: inputMessage,
       sender: "user",
@@ -169,6 +211,7 @@ export default function Chat() {
     setInputMessage("");
     setIsLoading(true);
     try {
+      console.log('Sending request with token:', token);
       const res = await fetch(`${API_BASE_URL}/ai/session-generate`, {
         method: "POST",
         headers: {
@@ -183,7 +226,7 @@ export default function Chat() {
         ...prev,
         { text: data.text, sender: "bot", time: new Date().toISOString() },
       ]);
-      await AsyncStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(updated));
+      await AsyncStorage.setItem(getChatHistoryKey(), JSON.stringify(updated));
 
       // Danger handling: if AI detects crisis, redirect to therapist selection
       if (data.danger) {
@@ -220,8 +263,13 @@ export default function Chat() {
   };
 
   const handleStartSession = async () => {
+    if (!token || !user) {
+      Alert.alert("Authentication Required", "Please log in to use the chat feature.");
+      return;
+    }
     setShowMoodModal(false);
     try {
+      console.log('Starting session with token:', token);
       const res = await fetch(`${API_BASE_URL}/ai/start-session`, {
         method: "POST",
         headers: {
@@ -233,7 +281,7 @@ export default function Chat() {
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "start error");
       setSessionId(d.sessionId);
-      await AsyncStorage.setItem(SESSION_ID_KEY, d.sessionId);
+      await AsyncStorage.setItem(getSessionIdKey(), d.sessionId);
       
       // Add welcome message based on mood
       const welcomeMessage = getWelcomeMessage(mood);
@@ -244,7 +292,7 @@ export default function Chat() {
       };
       setMessages([welcomeMsg]);
       setHasWelcomeMessage(true);
-      await AsyncStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify([welcomeMsg]));
+      await AsyncStorage.setItem(getChatHistoryKey(), JSON.stringify([welcomeMsg]));
     } catch (e) {
       console.error(e);
       Alert.alert("Error", "Could not start session.");
@@ -252,6 +300,10 @@ export default function Chat() {
   };
 
   const startNewChat = async () => {
+    if (!token || !user) {
+      Alert.alert("Authentication Required", "Please log in to use the chat feature.");
+      return;
+    }
     setIsResetting(true);
     try {
       if (sessionId) {
@@ -266,7 +318,7 @@ export default function Chat() {
       }
       setMessages([]);
       setHasWelcomeMessage(false);
-      await AsyncStorage.removeItem(CHAT_HISTORY_KEY);
+      await AsyncStorage.removeItem(getChatHistoryKey());
       setShowMoodModal(true);
     } catch (e) {
       console.error(e);
@@ -274,6 +326,20 @@ export default function Chat() {
       setIsResetting(false);
     }
   };
+
+  // Show loading screen while checking authentication
+  if (isAuthChecking) {
+    return (
+      <View style={styles.container}>
+        <LinearGradient colors={["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1B4332" />
+            <Text style={styles.loadingText}>Loading chat...</Text>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -557,5 +623,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 17,
     letterSpacing: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#1B4332",
+    fontWeight: "500",
   },
 });

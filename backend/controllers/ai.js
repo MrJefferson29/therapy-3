@@ -11,37 +11,61 @@ const sendEmail = require("../utils/sendEmail");
 const genAI = new GoogleGenerativeAI("AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// Enhanced therapist system prompt with better conversation handling
+// Enhanced therapist system prompt with specialized therapeutic training
 const THERAPIST_SYSTEM_PROMPT = `
-You are a professional, licensed therapist AI assistant. Your role is to provide supportive, therapeutic conversations while maintaining appropriate boundaries.
+You are Zensui AI, a compassionate therapy assistant designed to provide supportive, evidence-based therapeutic conversations. You specialize in cognitive behavioral therapy (CBT), trauma-informed care, and mindfulness-based interventions.
+
+THERAPEUTIC APPROACH:
+- Use Cognitive Behavioral Therapy (CBT) techniques to help identify thought patterns
+- Apply trauma-informed principles with sensitivity and care
+- Incorporate mindfulness and grounding techniques when appropriate
+- Use solution-focused brief therapy for practical problem-solving
+- Apply dialectical behavior therapy (DBT) skills for emotional regulation
 
 CONVERSATION GUIDELINES:
-- Be empathetic, supportive, and non-judgmental
-- Ask thoughtful follow-up questions to understand the person better
-- When someone gives vague answers (like "everything" or "I don't know"), help them explore more specifically
-- Use active listening techniques and reflect back what you understand
-- Provide practical coping strategies when appropriate
-- Maintain professional boundaries - you are a therapeutic assistant, not a replacement for professional therapy
+- Practice active listening and reflective responses
+- Use "I hear you" and "It sounds like" to validate feelings
+- Ask open-ended questions that encourage self-reflection
+- Help clients identify cognitive distortions (all-or-nothing thinking, catastrophizing, etc.)
+- Guide clients toward self-compassion and self-acceptance
+- Use the "5-4-3-2-1" grounding technique for anxiety/panic
+- Apply the "STOP" technique (Stop, Take a breath, Observe, Proceed mindfully)
+
+SPECIALIZED INTERVENTIONS:
+- For anxiety: Progressive muscle relaxation, breathing exercises, thought challenging
+- For depression: Behavioral activation, cognitive restructuring, self-care planning
+- For trauma: Psychoeducation, grounding techniques, safety planning
+- For relationships: Communication skills, boundary setting, attachment theory insights
+- For self-esteem: Self-compassion exercises, positive self-talk, achievement recognition
 
 RESPONSE STYLE:
-- Keep responses conversational and natural
-- Ask one or two thoughtful questions at a time
-- Avoid repetitive or generic responses
-- When someone mentions stress, anxiety, or emotional difficulties, explore the specific causes and triggers
-- Help people identify patterns in their thoughts and behaviors
-- Offer validation and normalization of feelings
+- Warm, professional, and non-judgmental tone
+- Use therapeutic language that normalizes experiences
+- Provide specific, actionable coping strategies
+- Balance validation with gentle challenge of unhelpful patterns
+- Keep responses conversational but clinically informed
 
 SAFETY PROTOCOLS:
 - If someone appears to be in crisis, suicidal, or homicidal, respond with:
-  "I'm very concerned about your safety. Please contact a crisis helpline immediately or speak with a mental health professional. You can call 988 (Suicide & Crisis Lifeline) or 911 for immediate help."
-- Never provide medical, legal, or financial advice
-- Always respond as a therapeutic assistant
+  "I'm very concerned about your safety. Please contact a crisis therapist immediately or speak with a mental health professional. You can call 0800 800 2000 (Suicide & Crisis Lifeline) or 112 for immediate help."
+- For domestic violence: Provide safety planning and local resources
+- For substance abuse: Offer harm reduction strategies and treatment referrals
+- Never provide medical diagnosis or medication advice
+- Always maintain professional boundaries
 
 CONVERSATION FLOW:
-- Build on previous context when available
-- Don't ask the same question repeatedly
-- If someone gives a vague answer, help them be more specific
-- Use the conversation history to provide more personalized responses`;
+- Build therapeutic alliance through consistent, caring responses
+- Use the conversation history to track progress and patterns
+- Don't ask the same question repeatedly - adapt based on previous responses
+- Help clients move from problem-focused to solution-focused thinking
+- Encourage self-reflection and personal growth
+
+EVIDENCE-BASED TECHNIQUES:
+- Socratic questioning for cognitive restructuring
+- Behavioral experiments for testing assumptions
+- Mindfulness exercises for present-moment awareness
+- Gratitude practices for positive psychology
+- Values clarification for meaningful goal-setting`;
 
 function normalize(text) {
   return text
@@ -151,13 +175,26 @@ function buildContextualPrompt(historyPrompt, userPrompt, isVague = false) {
     }
   }
   
+  // Add therapeutic intervention guidance based on conversation context
+  contextPrompt += `\n\nTHERAPEUTIC INTERVENTION GUIDANCE:`;
+  contextPrompt += `\n- If the user mentions anxiety: Offer grounding techniques (5-4-3-2-1, deep breathing)`;
+  contextPrompt += `\n- If the user mentions depression: Focus on behavioral activation and self-care`;
+  contextPrompt += `\n- If the user mentions relationship issues: Help with communication skills and boundary setting`;
+  contextPrompt += `\n- If the user mentions trauma: Use trauma-informed language and grounding techniques`;
+  contextPrompt += `\n- If the user mentions self-esteem: Guide toward self-compassion and positive self-talk`;
+  contextPrompt += `\n- If the user mentions stress: Offer stress management and coping strategies`;
+  contextPrompt += `\n- If the user mentions anger: Help with anger management and emotional regulation`;
+  contextPrompt += `\n- If the user mentions grief: Provide grief support and normalization`;
+  
   // Add conversation flow guidance
-  contextPrompt += `\n\nCONVERSATION GUIDANCE:`;
+  contextPrompt += `\n\nCONVERSATION FLOW:`;
   contextPrompt += `\n- If this is a follow-up to a previous question, build on that context`;
   contextPrompt += `\n- If the user seems stuck or overwhelmed, offer support and help them break things down`;
   contextPrompt += `\n- If they're sharing something difficult, validate their feelings and offer gentle encouragement`;
-  contextPrompt += `\n- Keep responses conversational and avoid being too clinical or robotic`;
+  contextPrompt += `\n- Keep responses conversational but clinically informed`;
   contextPrompt += `\n- If the user seems frustrated or stuck, offer practical coping strategies or validation`;
+  contextPrompt += `\n- Use Socratic questioning to help them arrive at their own insights`;
+  contextPrompt += `\n- Balance validation with gentle challenge of unhelpful patterns`;
   
   contextPrompt += `\n\nUser: ${userPrompt}\nAI:`;
   
@@ -165,18 +202,250 @@ function buildContextualPrompt(historyPrompt, userPrompt, isVague = false) {
 }
 
 function isSeverelyUnstable(input) {
-  const crisisKeywords = [
-    'suicide', 'kill myself', 'end my life', 'hurt myself', 'self-harm', 
-    "can't go on", 'want to die', 'homicide', 'kill someone', 'hurt others', 
-    'take my life', 'ending it all', 'no reason to live', 'give up on life', 
-    'ending my life', 'wish I was dead', 'wish to die', 'wish to end it all', 
-    'overdose', 'cut myself', 'jump off', 'hang myself', 'shoot myself', 
-    'stab myself', 'die', 'depressed to death', 'life is pointless', 
-    'life is meaningless', 'worthless', 'hopeless', 'helpless', 'crisis', 
-    'emergency', 'can\'t cope', 'can\'t handle', 'can\'t take it anymore'
-  ];
   const normalized = input.toLowerCase();
-  return crisisKeywords.some(word => normalized.includes(word));
+  
+  // Define context patterns that indicate harmless usage
+  const harmlessPatterns = [
+    // Laughter and humor
+    /died (laughing|of laughter|when|from)/i,
+    /dying (laughing|of laughter|from|when)/i,
+    /killed (me|us|it)/i,
+    /killing (me|us|it)/i,
+    
+    // Exaggeration and hyperbole
+    /died (of|from) (boredom|embarrassment|shame|excitement)/i,
+    /dying (of|from) (boredom|embarrassment|shame|excitement)/i,
+    /want to die (of|from)/i,
+    
+    // Gaming and entertainment
+    /died (in|at|during) (game|level|battle|fight)/i,
+    /killed (in|at|during) (game|level|battle|fight)/i,
+    
+    // Physical activities
+    /died (during|in|at) (workout|exercise|running|gym)/i,
+    /killing (it|them) (at|in|during)/i,
+    
+    // Success and achievement
+    /killed (it|them|that)/i,
+    /killing (it|them|that)/i,
+    
+    // Food and eating
+    /died (for|over) (food|pizza|chocolate)/i,
+    /dying (for|over) (food|pizza|chocolate)/i,
+    
+    // Social media and internet
+    /died (on|at|from) (social media|internet|tiktok)/i,
+    /dying (on|at|from) (social media|internet|tiktok)/i,
+    
+    // Common harmless expressions
+    /(almost|nearly) died/i,
+    /(almost|nearly) killed/i,
+    /thought i was going to die/i,
+    /felt like i was dying/i,
+    
+    // Past tense harmless usage
+    /i died (when|after|because)/i,
+    /i killed (it|them|that)/i,
+    
+    // Metaphorical usage
+    /(my|the) phone died/i,
+    /(my|the) battery died/i,
+    /(my|the) car died/i,
+    /(my|the) wifi died/i,
+    
+    // Time expressions
+    /died (yesterday|today|last week|this morning)/i,
+    /killed (yesterday|today|last week|this morning)/i
+  ];
+  
+  // Check for harmless patterns first
+  for (const pattern of harmlessPatterns) {
+    if (pattern.test(normalized)) {
+      return false; // This is harmless usage
+    }
+  }
+  
+  // Define high-risk crisis patterns with context
+  const crisisPatterns = [
+    // Suicidal ideation - specific and direct
+    /i want to die/i,
+    /i want to kill myself/i,
+    /i want to end my life/i,
+    /i want to end it all/i,
+    /i wish i was dead/i,
+    /i wish to die/i,
+    /i wish to end it all/i,
+    /i'm going to kill myself/i,
+    /i'm going to end my life/i,
+    /i'm going to end it all/i,
+    /i plan to kill myself/i,
+    /i plan to end my life/i,
+    /i have a plan to kill myself/i,
+    /i have a plan to end my life/i,
+    /i know how i would do it/i,
+    /i have the means to kill myself/i,
+    /i have the means to end my life/i,
+    /i'm better off dead/i,
+    /everyone would be better off without me/i,
+    /no one would miss me/i,
+    /i have no reason to live/i,
+    /life is pointless/i,
+    /life is meaningless/i,
+    /i can't take it anymore/i,
+    /i can't handle this anymore/i,
+    /i give up on life/i,
+    /i'm giving up/i,
+    
+    // Self-harm - specific and direct
+    /i want to hurt myself/i,
+    /i want to cut myself/i,
+    /i want to harm myself/i,
+    /i'm going to hurt myself/i,
+    /i'm going to cut myself/i,
+    /i'm going to harm myself/i,
+    /i plan to hurt myself/i,
+    /i plan to cut myself/i,
+    /i plan to harm myself/i,
+    
+    // Homicidal ideation - specific and direct
+    /i want to kill someone/i,
+    /i want to hurt someone/i,
+    /i want to harm someone/i,
+    /i want to attack someone/i,
+    /i'm going to kill someone/i,
+    /i'm going to hurt someone/i,
+    /i'm going to harm someone/i,
+    /i'm going to attack someone/i,
+    /i plan to kill someone/i,
+    /i plan to hurt someone/i,
+    /i plan to harm someone/i,
+    /i plan to attack someone/i,
+    
+    // Domestic violence - specific and direct
+    /my partner hits me/i,
+    /my partner hurts me/i,
+    /my partner threatens me/i,
+    /my partner controls me/i,
+    /my partner isolates me/i,
+    /my partner stalks me/i,
+    /my partner sexually assaults me/i,
+    /my partner rapes me/i,
+    /my boyfriend hits me/i,
+    /my girlfriend hits me/i,
+    /my husband hits me/i,
+    /my wife hits me/i,
+    /my spouse hits me/i,
+    /my significant other hits me/i,
+    
+    // Substance abuse - specific and direct
+    /i can't stop drinking/i,
+    /i can't stop using drugs/i,
+    /i can't stop using/i,
+    /i need help with drugs/i,
+    /i need help with alcohol/i,
+    /i'm addicted to drugs/i,
+    /i'm addicted to alcohol/i,
+    /i can't quit drugs/i,
+    /i can't quit alcohol/i,
+    /i can't quit drinking/i,
+    /i'm overdosing/i,
+    /i'm going to overdose/i,
+    /i plan to overdose/i,
+    
+    // Acute mental health crisis - specific and direct
+    /i'm hearing voices/i,
+    /i'm seeing things/i,
+    /i'm paranoid/i,
+    /i'm delusional/i,
+    /i'm having a manic episode/i,
+    /i'm severely depressed/i,
+    /i'm catatonic/i,
+    /i'm dissociative/i,
+    /i have multiple personalities/i,
+    /i have split personality/i,
+    /i'm having a borderline episode/i,
+    /i'm psychotic/i,
+    
+    // Acute anxiety and panic - specific and direct
+    /i'm having a panic attack/i,
+    /i'm having an anxiety attack/i,
+    /i can't breathe/i,
+    /i feel like i'm having a heart attack/i,
+    /i can't calm down/i,
+    /i'm hyperventilating/i,
+    /i feel like i'm dying/i,
+    /i'm going crazy/i,
+    /i'm losing control/i,
+    
+    // Eating disorders - specific and direct
+    /i haven't eaten in days/i,
+    /i can't stop eating/i,
+    /i make myself throw up/i,
+    /i'm obsessed with my weight/i,
+    /i hate my body/i,
+    /i want to disappear/i,
+    /i'm anorexic/i,
+    /i'm bulimic/i,
+    /i'm binge eating/i,
+    /i'm purging/i,
+    /i'm restricting food/i,
+    
+    // Trauma and PTSD - specific and direct
+    /i was raped/i,
+    /i was assaulted/i,
+    /i was molested/i,
+    /i was abused/i,
+    /i was in an accident/i,
+    /i was in combat/i,
+    /i was in a disaster/i,
+    /i'm having flashbacks/i,
+    /i'm having nightmares/i,
+    /i have ptsd/i,
+    /i have post traumatic stress/i,
+    
+    // Crisis and emergency - specific and direct
+    /i'm in crisis/i,
+    /i'm having an emergency/i,
+    /i need immediate help/i,
+    /i need urgent help/i,
+    /i need help now/i,
+    /i can't cope anymore/i,
+    /i can't handle this anymore/i,
+    /i'm helpless/i,
+    /i'm hopeless/i,
+    /i'm worthless/i,
+    /i'm depressed to death/i
+  ];
+  
+  // Check for crisis patterns
+  for (const pattern of crisisPatterns) {
+    if (pattern.test(normalized)) {
+      return true; // This is a genuine crisis
+    }
+  }
+  
+  // Additional context check for ambiguous words
+  const ambiguousWords = ['die', 'died', 'dying', 'kill', 'killed', 'killing', 'suicide', 'overdose'];
+  const foundAmbiguous = ambiguousWords.filter(word => normalized.includes(word));
+  
+  if (foundAmbiguous.length > 0) {
+    // Check if these words are used in a concerning context
+    const concerningContexts = [
+      /i (want|wish|plan|going to) (die|kill)/i,
+      /i (want|wish|plan|going to) (myself|my life)/i,
+      /(die|kill) (myself|my life)/i,
+      /(suicide|overdose) (attempt|plan|thought)/i,
+      /(attempt|plan|thought) (suicide|overdose)/i
+    ];
+    
+    for (const context of concerningContexts) {
+      if (context.test(normalized)) {
+        return true; // This is concerning
+      }
+    }
+  }
+  
+  return false; // No crisis detected
 }
 
 const startSession = async (req, res) => {
@@ -236,7 +505,20 @@ const generateContent = async (req, res) => {
 
     // Check for severe instability first
     if (isSeverelyUnstable(prompt)) {
-      const crisisResponse = "I'm very concerned about your safety. Please contact a crisis helpline immediately or speak with a mental health professional. You can call 988 (Suicide & Crisis Lifeline) or 911 for immediate help.";
+      const crisisResponse = `I'm very concerned about your safety and I want you to know that you're not alone. What you're experiencing sounds incredibly difficult, and it's important that you get immediate support from a mental health professional.
+
+**Immediate Crisis Resources:**
+• **Crisis Helpline:** 0800 800 2000 (24/7)
+• **Emergency Services:** 112 (immediate help)
+• **Text Crisis Support:** Text HOME to 741741
+
+**What to do right now:**
+1. If you're having thoughts of harming yourself or others, please call 112 immediately
+2. Reach out to someone you trust - a friend, family member, or mental health professional
+3. If you're in immediate danger, go to your nearest emergency room
+4. Remember: these feelings are temporary and help is available
+
+**You matter, and your life has value.** Professional help can make a real difference in how you're feeling. Would you be willing to reach out to one of these resources right now?`;
       const newAiEntry = new Ai({
         prompt: prompt,
         response: crisisResponse,

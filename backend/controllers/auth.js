@@ -4,7 +4,7 @@ const User = require('../models/user'); // Adjust path based on your project str
 const dotenv = require('dotenv');
 
 dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET; // Store in .env in real apps
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key'; // Store in .env in real apps
 
 exports.register = async (req, res) => {
     try {
