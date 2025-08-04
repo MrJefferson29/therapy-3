@@ -1,10 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../hooks/useTheme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const SkeletonLoader = ({ width, height, borderRadius = 8, style, variant = 'default' }) => {
+  const { colors, isDark = false } = useTheme();
+  
   // Convert percentage strings to numbers or keep as is
   const getWidth = () => {
     if (typeof width === 'string' && width.includes('%')) {
@@ -77,15 +80,28 @@ const SkeletonLoader = ({ width, height, borderRadius = 8, style, variant = 'def
   });
 
   const getBackgroundColor = () => {
-    switch (variant) {
-      case 'dark':
-        return '#2C2C2C';
-      case 'light':
-        return '#F5F5F5';
-      case 'pulse':
-        return '#E8E8E8';
-      default:
-        return '#E0E0E0';
+    if (isDark) {
+      switch (variant) {
+        case 'dark':
+          return colors.skeletonDark;
+        case 'light':
+          return colors.skeletonLight;
+        case 'pulse':
+          return colors.skeletonPulse;
+        default:
+          return colors.skeleton;
+      }
+    } else {
+      switch (variant) {
+        case 'dark':
+          return '#2C2C2C';
+        case 'light':
+          return '#F5F5F5';
+        case 'pulse':
+          return '#E8E8E8';
+        default:
+          return '#E0E0E0';
+      }
     }
   };
 
@@ -161,18 +177,26 @@ export const AvatarSkeleton = ({ size = 40, variant = 'default' }) => (
   />
 );
 
-export const CardSkeleton = ({ width = '100%', height = 120, borderRadius = 12 }) => (
-  <View style={[styles.cardContainer, { width, height, borderRadius }]}>
-    <SkeletonLoader width="100%" height="60%" borderRadius={borderRadius} />
-    <View style={styles.cardContent}>
-      <TextSkeleton lines={2} lineHeight={14} spacing={6} />
-      <View style={styles.cardMeta}>
-        <SkeletonLoader width={60} height={12} borderRadius={6} />
-        <SkeletonLoader width={40} height={12} borderRadius={6} />
+export const CardSkeleton = ({ width = '100%', height = 120, borderRadius = 12 }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.cardContainer, { 
+      width, 
+      height, 
+      borderRadius,
+      backgroundColor: colors.card 
+    }]}>
+      <SkeletonLoader width="100%" height="60%" borderRadius={borderRadius} />
+      <View style={styles.cardContent}>
+        <TextSkeleton lines={2} lineHeight={14} spacing={6} />
+        <View style={styles.cardMeta}>
+          <SkeletonLoader width={60} height={12} borderRadius={6} />
+          <SkeletonLoader width={40} height={12} borderRadius={6} />
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 export const ButtonSkeleton = ({ width = 100, height = 40, borderRadius = 20 }) => (
   <SkeletonLoader
@@ -185,7 +209,6 @@ export const ButtonSkeleton = ({ width = 100, height = 40, borderRadius = 20 }) 
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

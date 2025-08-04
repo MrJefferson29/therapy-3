@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -50,12 +51,12 @@ const MOODS = [
   { key: 'overwhelmed', label: 'Overwhelmed', icon: 'cloud-outline', color: '#90CAF9' },
 ];
 
-function getInstagramProfileStyles({ accent, textColor, errorColor }) {
+function getInstagramProfileStyles({ accent, textColor, errorColor, isDark }) {
   const { width } = Dimensions.get('window');
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: isDark ? '#1A1A1A' : '#fff',
     },
     header: {
       flexDirection: 'row',
@@ -322,6 +323,54 @@ function getInstagramProfileStyles({ accent, textColor, errorColor }) {
       fontWeight: '600',
       color: '#666',
     },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingTop: Platform.OS === 'ios' ? 8 : 12,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+    },
+    headerTitle: {
+      fontSize: 22,
+      fontWeight: '800',
+      flex: 1,
+      textAlign: 'center',
+    },
+    headerButtonsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    headerButton: {
+      padding: 8,
+      borderRadius: 20,
+      marginLeft: 8,
+    },
+    bioContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginHorizontal: 18,
+      marginTop: 2,
+      marginBottom: 10,
+      paddingVertical: 12,
+      paddingHorizontal: 18,
+      borderRadius: 12,
+    },
+    chatButton: {
+      borderRadius: 18,
+      paddingVertical: 8,
+      paddingHorizontal: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+    },
+    chatButtonText: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 15,
+    },
   });
 }
 
@@ -333,10 +382,11 @@ const formatMoodDate = (dateString) => {
 
 export default function Profile() {
   const colorScheme = useColorScheme();
+  const { colors, isDark = false } = useTheme();
   const accent = '#388E3C';
-  const textColor = '#222';
+  const textColor = isDark ? '#E8E8E8' : '#222';
   const errorColor = '#D32F2F';
-  const styles = getInstagramProfileStyles({ accent, textColor, errorColor });
+  const styles = getInstagramProfileStyles({ accent, textColor, errorColor, isDark });
   const router = useRouter();
   const { user, getProfile, loading, logout, token } = useAuth();
   console.log('DEBUG: user object in Profile screen:', user);
@@ -476,7 +526,7 @@ export default function Profile() {
         {mergedMoods.map((mood, idx) => {
           let moodObj = MOODS.find(m => m.key === mood.mood) || MOODS.find(m => m.value === mood.mood) || MOODS.find(m => m.label.toLowerCase() === (mood.mood || '').toLowerCase());
           if (!moodObj && typeof mood.mood === 'number') moodObj = MOODS.find(m => m.value === mood.mood);
-          const bgColor = moodObj?.color ? moodObj.color + '33' : '#F1F3F4';
+          const bgColor = moodObj?.color ? moodObj.color + '33' : (isDark ? '#353535' : '#F1F3F4');
           const isLarge = idx % 5 === 0;
           return (
             <View
@@ -490,17 +540,19 @@ export default function Profile() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 elevation: 3,
-                shadowColor: moodObj?.color || '#888',
+                shadowColor: moodObj?.color || (isDark ? '#666' : '#888'),
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.10,
+                shadowOpacity: isDark ? 0.2 : 0.10,
                 shadowRadius: 8,
                 padding: isLarge ? 10 : 6,
+                borderWidth: isDark ? 1 : 0,
+                borderColor: isDark ? '#454545' : 'transparent',
               }}
             >
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                <Ionicons name={moodObj?.icon || 'happy-outline'} size={isLarge ? 54 : 38} color={moodObj?.color || '#888'} style={{ marginBottom: isLarge ? 8 : 4 }} />
-                <ThemedText style={{ fontWeight: '800', color: '#333', fontSize: isLarge ? 20 : 14, marginBottom: 2, textAlign: 'center' }}>{moodObj?.label || mood.mood}</ThemedText>
-                {mood.createdAt && <ThemedText style={{ color: '#555', fontSize: isLarge ? 13 : 10, opacity: 0.85, textAlign: 'center' }}>{formatMoodDate(mood.createdAt)}</ThemedText>}
+                <Ionicons name={moodObj?.icon || 'happy-outline'} size={isLarge ? 54 : 38} color={moodObj?.color || (isDark ? '#B0B0B0' : '#888')} style={{ marginBottom: isLarge ? 8 : 4 }} />
+                <ThemedText style={{ fontWeight: '800', color: isDark ? '#E8E8E8' : '#333', fontSize: isLarge ? 20 : 14, marginBottom: 2, textAlign: 'center' }}>{moodObj?.label || mood.mood}</ThemedText>
+                {mood.createdAt && <ThemedText style={{ color: isDark ? '#B0B0B0' : '#555', fontSize: isLarge ? 13 : 10, opacity: 0.85, textAlign: 'center' }}>{formatMoodDate(mood.createdAt)}</ThemedText>}
               </View>
             </View>
           );
@@ -634,10 +686,10 @@ export default function Profile() {
 
   // --- Render ---
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#1A1A1A' : '#fff' }} edges={['top', 'bottom']}>
       <ThemedView style={styles.container}>
         {/* Header Row: Go Back, Title, Add Article (admin/therapist), All Users (admin only), Logout */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 18, paddingBottom: 8 }}>
+        <View style={[styles.headerContainer, { backgroundColor: isDark ? '#2A2A2A' : '#fff', borderBottomColor: isDark ? '#454545' : '#F0F0F0' }]}>
           {/* Go Back Button */}
           <TouchableOpacity
             onPress={() => {
@@ -653,176 +705,201 @@ export default function Profile() {
                 router.replace('/');
               }
             }}
-            style={{ padding: 6, borderRadius: 18, backgroundColor: 'rgba(56,142,60,0.08)', marginRight: 6 }}
+            style={[styles.headerButton, { backgroundColor: isDark ? 'rgba(75,190,138,0.15)' : 'rgba(56,142,60,0.08)' }]}
           >
             <Ionicons name="arrow-back" size={24} color={accent} />
           </TouchableOpacity>
           {/* Title */}
-          <ThemedText style={{ fontSize: 22, fontWeight: '800', color: accent, flex: 1, textAlign: 'center', marginLeft: -30 }}>Profile</ThemedText>
-          {/* Add Article Button (admin/therapist only) */}
-          {(user.role === 'admin' || user.role === 'therapist') && (
-            <TouchableOpacity
-              style={{ padding: 6, borderRadius: 18, backgroundColor: 'rgba(56,142,60,0.08)', marginLeft: 6 }}
-              onPress={() => router.push('/createArticle')}
-              activeOpacity={0.85}
+          <ThemedText style={[styles.headerTitle, { color: isDark ? '#E8E8E8' : accent }]}>Profile</ThemedText>
+          {/* Right side buttons container */}
+          <View style={styles.headerButtonsContainer}>
+            {/* Add Article Button (admin/therapist only) */}
+            {(user.role === 'admin' || user.role === 'therapist') && (
+              <TouchableOpacity
+                style={[styles.headerButton, { backgroundColor: isDark ? 'rgba(75,190,138,0.15)' : 'rgba(56,142,60,0.08)' }]}
+                onPress={() => router.push('/createArticle')}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="add" size={24} color={accent} />
+              </TouchableOpacity>
+            )}
+            {/* All Users Button (admin only) */}
+            {user.role === 'admin' && (
+              <TouchableOpacity
+                style={[styles.headerButton, { backgroundColor: isDark ? 'rgba(75,190,138,0.15)' : 'rgba(56,142,60,0.08)' }]}
+                onPress={() => router.push('/all-users')}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="people-outline" size={24} color={accent} />
+              </TouchableOpacity>
+            )}
+            {/* Logout Button */}
+            <TouchableOpacity 
+              onPress={handleLogout} 
+              style={[styles.headerButton, { backgroundColor: isDark ? 'rgba(244,67,54,0.15)' : 'rgba(56,142,60,0.08)' }]}
             >
-              <Ionicons name="add" size={24} color={accent} />
+              <Ionicons name="log-out-outline" size={24} color={isDark ? '#F44336' : accent} />
             </TouchableOpacity>
-          )}
-          {/* All Users Button (admin only) */}
-          {user.role === 'admin' && (
-            <TouchableOpacity
-              style={{ padding: 6, borderRadius: 18, backgroundColor: 'rgba(56,142,60,0.08)', marginLeft: 6 }}
-              onPress={() => router.push('/all-users')}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="people-outline" size={24} color={accent} />
-            </TouchableOpacity>
-          )}
-          {/* Logout Button */}
-          <TouchableOpacity onPress={handleLogout} style={{ padding: 6, borderRadius: 18, backgroundColor: 'rgba(56,142,60,0.08)', marginLeft: 6 }}>
-            <Ionicons name="log-out-outline" size={24} color={accent} />
-          </TouchableOpacity>
+          </View>
         </View>
         {/* Profile Row */}
-        <View style={styles.profileRow}>
-          <Image source={{ uri: user.profileImage || user.images?.[0] }} style={styles.avatar} />
+        <View style={[styles.profileRow, { backgroundColor: isDark ? '#353535' : '#fff', borderBottomColor: isDark ? '#454545' : '#F0F0F0' }]}>
+          <Image source={{ uri: user.profileImage || user.images?.[0] }} style={[styles.avatar, { borderColor: isDark ? '#4BBE8A' : accent }]} />
           <View style={styles.profileInfo}>
             <View style={styles.usernameRow}>
-              <ThemedText style={styles.username}>{user.username}</ThemedText>
-              <TouchableOpacity style={styles.editBtn} onPress={openEditModal}>
+              <ThemedText style={[styles.username, { color: isDark ? '#E8E8E8' : textColor }]}>{user.username}</ThemedText>
+              <TouchableOpacity style={[styles.editBtn, { backgroundColor: isDark ? '#4BBE8A' : accent }]} onPress={openEditModal}>
                 <ThemedText style={styles.editBtnText}>Edit Profile</ThemedText>
               </TouchableOpacity>
             </View>
             <View style={styles.statsRow}>
               {stats.map((stat) => (
                 <View key={stat.label} style={styles.statBlock}>
-                  <ThemedText style={styles.statNumber}>{stat.value}</ThemedText>
-                  <ThemedText style={styles.statLabel}>{stat.label}</ThemedText>
+                  <ThemedText style={[styles.statNumber, { color: isDark ? '#E8E8E8' : textColor }]}>{stat.value}</ThemedText>
+                  <ThemedText style={[styles.statLabel, { color: isDark ? '#B0B0B0' : '#888' }]}>{stat.label}</ThemedText>
                 </View>
               ))}
             </View>
           </View>
         </View>
         {/* Role/Bio and My Chats or Quote Row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 18, marginTop: 2, marginBottom: 10 }}>
-          <ThemedText style={styles.bio}>{user.role || 'Farmer, Dreamer, Grower'}</ThemedText>
+        <View style={[styles.bioContainer, { backgroundColor: isDark ? '#2A2A2A' : '#fff', borderBottomColor: isDark ? '#454545' : '#F0F0F0' }]}>
+          <ThemedText style={[styles.bio, { color: isDark ? '#E8E8E8' : textColor }]}>{user.role || 'Farmer, Dreamer, Grower'}</ThemedText>
           {user.role === 'therapist' ? (
             <TouchableOpacity
-              style={{
-                backgroundColor: accent,
-                borderRadius: 18,
-                paddingVertical: 8,
-                paddingHorizontal: 18,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-              }}
+              style={[styles.chatButton, { backgroundColor: isDark ? '#4BBE8A' : accent }]}
               onPress={() => router.push('/therapist-chats')}
             >
               <Ionicons name="chatbubbles-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-              <ThemedText style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>My Chats</ThemedText>
+              <ThemedText style={styles.chatButtonText}>My Chats</ThemedText>
             </TouchableOpacity>
           ) : user.role === 'user' ? (
             <TouchableOpacity
-              style={{
-                backgroundColor: accent,
-                borderRadius: 18,
-                paddingVertical: 8,
-                paddingHorizontal: 18,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-              }}
+              style={[styles.chatButton, { backgroundColor: isDark ? '#4BBE8A' : accent }]}
               onPress={() => router.push('/user-chats')}
             >
               <Ionicons name="chatbubbles-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-              <ThemedText style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>My Chats</ThemedText>
+              <ThemedText style={styles.chatButtonText}>My Chats</ThemedText>
             </TouchableOpacity>
           ) : null}
         </View>
         {/* Tabs */}
-        <View style={styles.tabRow}>
+        <View style={[styles.tabRow, { backgroundColor: isDark ? '#2A2A2A' : '#fff', borderBottomColor: isDark ? '#454545' : '#F0F0F0' }]}>
           <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'journal' && styles.tabBtnActive]}
+            style={[
+              styles.tabBtn, 
+              activeTab === 'journal' && [styles.tabBtnActive, { borderBottomColor: isDark ? '#4BBE8A' : accent }]
+            ]}
             onPress={() => setActiveTab('journal')}
           >
-            <ThemedText style={[styles.tabBtnText, activeTab === 'journal' && styles.tabBtnTextActive]}>Journal</ThemedText>
+            <ThemedText style={[
+              styles.tabBtnText, 
+              { color: isDark ? '#B0B0B0' : '#888' },
+              activeTab === 'journal' && { color: isDark ? '#4BBE8A' : accent }
+            ]}>Journal</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'appointments' && styles.tabBtnActive]}
+            style={[
+              styles.tabBtn, 
+              activeTab === 'appointments' && [styles.tabBtnActive, { borderBottomColor: isDark ? '#4BBE8A' : accent }]
+            ]}
             onPress={() => setActiveTab('appointments')}
           >
-            <ThemedText style={[styles.tabBtnText, activeTab === 'appointments' && styles.tabBtnTextActive]}>Appointments</ThemedText>
+            <ThemedText style={[
+              styles.tabBtnText, 
+              { color: isDark ? '#B0B0B0' : '#888' },
+              activeTab === 'appointments' && { color: isDark ? '#4BBE8A' : accent }
+            ]}>Appointments</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'mood' && styles.tabBtnActive]}
+            style={[
+              styles.tabBtn, 
+              activeTab === 'mood' && [styles.tabBtnActive, { borderBottomColor: isDark ? '#4BBE8A' : accent }]
+            ]}
             onPress={() => setActiveTab('mood')}
           >
-            <ThemedText style={[styles.tabBtnText, activeTab === 'mood' && styles.tabBtnTextActive]}>Mood</ThemedText>
+            <ThemedText style={[
+              styles.tabBtnText, 
+              { color: isDark ? '#B0B0B0' : '#888' },
+              activeTab === 'mood' && { color: isDark ? '#4BBE8A' : accent }
+            ]}>Mood</ThemedText>
           </TouchableOpacity>
         </View>
         {/* Tab Content */}
-        <View style={styles.tabContent}>
+        <View style={[styles.tabContent, { backgroundColor: isDark ? '#1A1A1A' : '#fff' }]}>
           {activeTab === 'journal' && (
             user.journals && user.journals.length > 0 ? (
               <ScrollView style={{ width: '110%' }}>
                 {user.journals.map(journal => {
                   const mood = getMood(journal.mood);
                   return (
-                    <View key={journal._id || journal.title + journal.createdAt} style={{ marginBottom: 18, backgroundColor: '#FAFAF7', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#eee' }}>
+                    <View key={journal._id || journal.title + journal.createdAt} style={{ 
+                      marginBottom: 18, 
+                      backgroundColor: isDark ? '#2A2A2A' : '#FAFAF7', 
+                      borderRadius: 14, 
+                      padding: 16, 
+                      borderWidth: 1, 
+                      borderColor: isDark ? '#454545' : '#eee' 
+                    }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                         <Ionicons name={mood.icon} size={18} color={mood.color} style={{ marginRight: 8 }} />
-                        <ThemedText style={{ fontWeight: '700', fontSize: 16 }}>{journal.title}</ThemedText>
+                        <ThemedText style={{ fontWeight: '700', fontSize: 16, color: isDark ? '#E8E8E8' : '#222' }}>{journal.title}</ThemedText>
                       </View>
-                      <ThemedText style={{ color: '#888', fontSize: 13, marginBottom: 6 }}>{mood.label}</ThemedText>
-                      <ThemedText style={{ fontSize: 15 }}>{journal.note}</ThemedText>
+                      <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888', fontSize: 13, marginBottom: 6 }}>{mood.label}</ThemedText>
+                      <ThemedText style={{ fontSize: 15, color: isDark ? '#E8E8E8' : '#222' }}>{journal.note}</ThemedText>
                     </View>
                   );
                 })}
               </ScrollView>
             ) : (
-              <ThemedText style={{ color: '#888' }}>No journal entries yet.</ThemedText>
+              <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888' }}>No journal entries yet.</ThemedText>
             )
           )}
-          {activeTab === 'fields' && <ThemedText>Appointments managed will appear here.</ThemedText>}
+          {activeTab === 'fields' && <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888' }}>Appointments managed will appear here.</ThemedText>}
           {activeTab === 'mood' && (
             userMoods.length > 0 ? (
               <ScrollView style={{ width: '110%' }}>
                 {renderUserMoodsGrid()}
               </ScrollView>
             ) : (
-              <ThemedText style={{ color: '#888' }}>No mood logs yet.</ThemedText>
+              <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888' }}>No mood logs yet.</ThemedText>
             )
           )}
           {activeTab === 'appointments' && (
             appointmentsLoading ? (
-              <ActivityIndicator size="large" color={accent} />
+              <ActivityIndicator size="large" color={isDark ? '#4BBE8A' : accent} />
             ) : appointmentsError ? (
-              <ThemedText style={{ color: errorColor }}>{appointmentsError}</ThemedText>
+              <ThemedText style={{ color: isDark ? '#F44336' : errorColor }}>{appointmentsError}</ThemedText>
             ) : appointments.length > 0 ? (
               <ScrollView style={{ width: '110%' }}>
                 {appointments.map(app => (
-                  <View key={app._id} style={{ marginBottom: 18, backgroundColor: '#FAFAF7', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#eee' }}>
+                  <View key={app._id} style={{ 
+                    marginBottom: 18, 
+                    backgroundColor: isDark ? '#2A2A2A' : '#FAFAF7', 
+                    borderRadius: 14, 
+                    padding: 16, 
+                    borderWidth: 1, 
+                    borderColor: isDark ? '#454545' : '#eee' 
+                  }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                      <Ionicons name="calendar-outline" size={18} color={accent} style={{ marginRight: 8 }} />
-                      <ThemedText style={{ fontWeight: '700', fontSize: 16 }}>{app.title}</ThemedText>
+                      <Ionicons name="calendar-outline" size={18} color={isDark ? '#4BBE8A' : accent} style={{ marginRight: 8 }} />
+                      <ThemedText style={{ fontWeight: '700', fontSize: 16, color: isDark ? '#E8E8E8' : '#222' }}>{app.title}</ThemedText>
                     </View>
-                    <ThemedText style={{ color: '#888', fontSize: 13, marginBottom: 6 }}>{app.status ? app.status.charAt(0).toUpperCase() + app.status.slice(1) : ''}</ThemedText>
-                    <ThemedText style={{ fontSize: 15, marginBottom: 6 }}>{app.description}</ThemedText>
+                    <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888', fontSize: 13, marginBottom: 6 }}>{app.status ? app.status.charAt(0).toUpperCase() + app.status.slice(1) : ''}</ThemedText>
+                    <ThemedText style={{ fontSize: 15, marginBottom: 6, color: isDark ? '#E8E8E8' : '#222' }}>{app.description}</ThemedText>
                     {app.scheduledTime && (
-                      <ThemedText style={{ color: '#555', fontSize: 13 }}>
+                      <ThemedText style={{ color: isDark ? '#B0B0B0' : '#555', fontSize: 13 }}>
                         Scheduled: {new Date(app.scheduledTime).toLocaleString()}
                       </ThemedText>
                     )}
-                    <ThemedText style={{ color: '#555', fontSize: 13, marginTop: 2 }}>
+                    <ThemedText style={{ color: isDark ? '#B0B0B0' : '#555', fontSize: 13, marginTop: 2 }}>
                       Therapist: {app.therapist?.username || ''} | Client: {app.client?.username || ''}
                     </ThemedText>
                   </View>
                 ))}
               </ScrollView>
             ) : (
-              <ThemedText style={{ color: '#888' }}>No appointments yet.</ThemedText>
+              <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888' }}>No appointments yet.</ThemedText>
             )
           )}
         </View>
@@ -833,18 +910,18 @@ export default function Profile() {
           transparent={true}
           onRequestClose={() => setEditModalVisible(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ThemedText style={styles.modalTitle}>Edit Profile</ThemedText>
+          <View style={[styles.modalOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.3)' }]}>
+            <View style={[styles.modalContent, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
+              <ThemedText style={[styles.modalTitle, { color: isDark ? '#E8E8E8' : textColor }]}>Edit Profile</ThemedText>
               
               {/* Profile Image Section */}
               <View style={styles.imageSection}>
                 <Image
                   source={{ uri: editProfileImage || user.profileImage }}
-                  style={styles.previewImage}
+                  style={[styles.previewImage, { borderColor: isDark ? '#4BBE8A' : accent }]}
                 />
                 <TouchableOpacity 
-                  style={styles.changeImageBtn} 
+                  style={[styles.changeImageBtn, { backgroundColor: isDark ? '#4BBE8A' : accent }]} 
                   onPress={openImageSelection}
                   disabled={uploading}
                 >
@@ -854,32 +931,40 @@ export default function Profile() {
               </View>
 
               {/* Form Fields */}
-              <ThemedText style={styles.modalLabel}>Username</ThemedText>
+              <ThemedText style={[styles.modalLabel, { color: isDark ? '#E8E8E8' : textColor }]}>Username</ThemedText>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { 
+                  backgroundColor: isDark ? '#353535' : '#f8f8f8',
+                  color: isDark ? '#E8E8E8' : textColor,
+                  borderColor: isDark ? '#454545' : '#eee'
+                }]}
                 value={editUsername}
                 onChangeText={setEditUsername}
                 placeholder="Enter your username"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={isDark ? '#B0B0B0' : "#bbb"}
               />
               
-              <ThemedText style={styles.modalLabel}>Email</ThemedText>
+              <ThemedText style={[styles.modalLabel, { color: isDark ? '#E8E8E8' : textColor }]}>Email</ThemedText>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { 
+                  backgroundColor: isDark ? '#353535' : '#f8f8f8',
+                  color: isDark ? '#E8E8E8' : textColor,
+                  borderColor: isDark ? '#454545' : '#eee'
+                }]}
                 value={editEmail}
                 onChangeText={setEditEmail}
                 placeholder="Enter your email"
-                placeholderTextColor="#bbb"
+                placeholderTextColor={isDark ? '#B0B0B0' : "#bbb"}
                 keyboardType="email-address"
               />
               
-              {error ? <ThemedText style={styles.errorText}>{error}</ThemedText> : null}
+              {error ? <ThemedText style={[styles.errorText, { color: isDark ? '#F44336' : errorColor }]}>{error}</ThemedText> : null}
               
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
-                <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#eee' }]} onPress={() => setEditModalVisible(false)}>
-                  <ThemedText style={[styles.modalButtonText, { color: textColor }]}>Cancel</ThemedText>
+                <TouchableOpacity style={[styles.modalButton, { backgroundColor: isDark ? '#353535' : '#eee' }]} onPress={() => setEditModalVisible(false)}>
+                  <ThemedText style={[styles.modalButtonText, { color: isDark ? '#E8E8E8' : textColor }]}>Cancel</ThemedText>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalButton, { backgroundColor: accent }]} onPress={handleSaveProfile} disabled={saving}>
+                <TouchableOpacity style={[styles.modalButton, { backgroundColor: isDark ? '#4BBE8A' : accent }]} onPress={handleSaveProfile} disabled={saving}>
                   {saving ? <ActivityIndicator color="#fff" /> : <ThemedText style={[styles.modalButtonText, { color: '#fff' }]}>Save</ThemedText>}
                 </TouchableOpacity>
               </View>
@@ -894,46 +979,46 @@ export default function Profile() {
           transparent={true}
           onRequestClose={() => setImageSelectionModal(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.imageSelectionContent}>
-              <ThemedText style={styles.modalTitle}>Choose Photo</ThemedText>
-              <ThemedText style={styles.modalSubtitle}>Select how you'd like to add a profile photo</ThemedText>
+          <View style={[styles.modalOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.3)' }]}>
+            <View style={[styles.imageSelectionContent, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
+              <ThemedText style={[styles.modalTitle, { color: isDark ? '#E8E8E8' : textColor }]}>Choose Photo</ThemedText>
+              <ThemedText style={[styles.modalSubtitle, { color: isDark ? '#B0B0B0' : '#666' }]}>Select how you'd like to add a profile photo</ThemedText>
               
               <TouchableOpacity 
-                style={styles.imageOption} 
+                style={[styles.imageOption, { backgroundColor: isDark ? '#353535' : '#f8f8f8' }]} 
                 onPress={takePhotoWithCamera}
                 disabled={uploading}
               >
-                <View style={styles.imageOptionIcon}>
-                  <Ionicons name="camera" size={32} color={accent} />
+                <View style={[styles.imageOptionIcon, { backgroundColor: isDark ? 'rgba(75,190,138,0.15)' : 'rgba(56,142,60,0.1)' }]}>
+                  <Ionicons name="camera" size={32} color={isDark ? '#4BBE8A' : accent} />
                 </View>
                 <View style={styles.imageOptionText}>
-                  <ThemedText style={styles.imageOptionTitle}>Take Photo</ThemedText>
-                  <ThemedText style={styles.imageOptionSubtitle}>Use your camera to take a new photo</ThemedText>
+                  <ThemedText style={[styles.imageOptionTitle, { color: isDark ? '#E8E8E8' : textColor }]}>Take Photo</ThemedText>
+                  <ThemedText style={[styles.imageOptionSubtitle, { color: isDark ? '#B0B0B0' : '#666' }]}>Use your camera to take a new photo</ThemedText>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                <Ionicons name="chevron-forward" size={20} color={isDark ? '#666' : "#ccc"} />
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={styles.imageOption} 
+                style={[styles.imageOption, { backgroundColor: isDark ? '#353535' : '#f8f8f8' }]} 
                 onPress={pickImageFromGallery}
                 disabled={uploading}
               >
-                <View style={styles.imageOptionIcon}>
-                  <Ionicons name="images" size={32} color={accent} />
+                <View style={[styles.imageOptionIcon, { backgroundColor: isDark ? 'rgba(75,190,138,0.15)' : 'rgba(56,142,60,0.1)' }]}>
+                  <Ionicons name="images" size={32} color={isDark ? '#4BBE8A' : accent} />
                 </View>
                 <View style={styles.imageOptionText}>
-                  <ThemedText style={styles.imageOptionTitle}>Choose from Gallery</ThemedText>
-                  <ThemedText style={styles.imageOptionSubtitle}>Select an existing photo from your gallery</ThemedText>
+                  <ThemedText style={[styles.imageOptionTitle, { color: isDark ? '#E8E8E8' : textColor }]}>Choose from Gallery</ThemedText>
+                  <ThemedText style={[styles.imageOptionSubtitle, { color: isDark ? '#B0B0B0' : '#666' }]}>Select an existing photo from your gallery</ThemedText>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                <Ionicons name="chevron-forward" size={20} color={isDark ? '#666' : "#ccc"} />
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={styles.cancelButton} 
+                style={[styles.cancelButton, { borderTopColor: isDark ? '#454545' : '#eee' }]} 
                 onPress={() => setImageSelectionModal(false)}
               >
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+                <ThemedText style={[styles.cancelButtonText, { color: isDark ? '#B0B0B0' : '#666' }]}>Cancel</ThemedText>
               </TouchableOpacity>
             </View>
           </View>

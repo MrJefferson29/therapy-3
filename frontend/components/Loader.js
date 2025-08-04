@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, Modal } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
 
 export default function Loader({ visible, message }) {
+  const { colors, isDark = false } = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <ActivityIndicator size="large" color="#4CAF50" />
-          {message ? <Text style={styles.message}>{message}</Text> : null}
+      <View style={[styles.overlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.18)' }]}>
+        <View style={[styles.container, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          {message ? <Text style={[styles.message, { color: isDark ? '#E8E8E8' : '#333' }]}>{message}</Text> : null}
         </View>
       </View>
     </Modal>
@@ -17,12 +19,10 @@ export default function Loader({ visible, message }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.18)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   container: {
-    backgroundColor: '#fff',
     borderRadius: 18,
     padding: 32,
     alignItems: 'center',
@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 16,
     fontSize: 16,
-    color: '#333',
     fontWeight: '600',
     textAlign: 'center',
   },

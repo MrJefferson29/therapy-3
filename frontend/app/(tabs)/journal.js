@@ -19,6 +19,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '../../hooks/useTheme';
 import journalApi from '@/services/journalApi';
 
 const { width } = Dimensions.get('window');
@@ -44,6 +45,14 @@ const TEXTURE_IMAGE = 'https://www.transparenttextures.com/patterns/paper-fibers
 export default function JournalScreen() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
+  const { colors, isDark = false } = useTheme();
+  
+  // Theme-aware colors
+  const PAPER_BG = isDark ? '#2A2A2A' : '#F8F7F4';
+  const CARD_BG = isDark ? '#353535' : '#FCFBF7';
+  const ACCENT = isDark ? '#4BBE8A' : '#A3B18A';
+  const ACCENT_SOFT = isDark ? '#2A3A2A' : '#DAD7CD';
+  const FAVORITE = '#FFD166';
   const [isWriting, setIsWriting] = useState(false);
   const [selectedMood, setSelectedMood] = useState(null);
   const [entryTitle, setEntryTitle] = useState('');
@@ -239,19 +248,23 @@ export default function JournalScreen() {
 
   // Search Bar
   const renderSearchBar = () => (
-    <View style={styles.searchBarWrap}>
+    <View style={[styles.searchBarWrap, { 
+      backgroundColor: isDark ? '#353535' : '#fff',
+      shadowColor: isDark ? '#000' : '#000',
+      shadowOpacity: isDark ? 0.2 : 0.06,
+    }]}>
       <Ionicons name="search" size={20} color={ACCENT} style={{ marginRight: 8 }} />
       <TextInput
-        style={styles.searchBarInput}
+        style={[styles.searchBarInput, { color: isDark ? '#E8E8E8' : '#333' }]}
         placeholder="Search notes..."
-        placeholderTextColor={'#AAA'}
+        placeholderTextColor={isDark ? '#B0B0B0' : '#AAA'}
         value={search}
         onChangeText={setSearch}
         returnKeyType="search"
       />
       {search.length > 0 && (
         <TouchableOpacity onPress={() => setSearch('')}>
-          <Ionicons name="close-circle" size={18} color={'#AAA'} />
+          <Ionicons name="close-circle" size={18} color={isDark ? '#B0B0B0' : '#AAA'} />
         </TouchableOpacity>
       )}
     </View>
@@ -261,22 +274,36 @@ export default function JournalScreen() {
   const renderMoodFilter = () => (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
       <TouchableOpacity
-        style={[styles.moodPill, !filterMood && styles.moodPillActive]}
+        style={[styles.moodPill, { 
+          backgroundColor: isDark ? '#353535' : ACCENT_SOFT,
+          borderColor: isDark ? '#454545' : 'transparent',
+          borderWidth: isDark ? 1 : 0,
+        }, !filterMood && { 
+          backgroundColor: isDark ? '#4BBE8A' : '#fff',
+          borderColor: isDark ? '#4BBE8A' : ACCENT,
+        }]}
         onPress={() => setFilterMood(null)}
         activeOpacity={0.8}
       >
-        <Ionicons name="apps" size={18} color={ACCENT} />
-        <ThemedText style={styles.moodPillLabel}>All</ThemedText>
+        <Ionicons name="apps" size={18} color={!filterMood ? (isDark ? '#fff' : ACCENT) : ACCENT} />
+        <ThemedText style={[styles.moodPillLabel, { color: !filterMood ? (isDark ? '#fff' : ACCENT) : ACCENT }]}>All</ThemedText>
       </TouchableOpacity>
       {MOODS.map((mood) => (
         <TouchableOpacity
           key={mood.key}
-          style={[styles.moodPill, filterMood === mood.key && { backgroundColor: mood.color + '33', borderColor: mood.color }]}
+          style={[styles.moodPill, { 
+            backgroundColor: isDark ? '#353535' : ACCENT_SOFT,
+            borderColor: isDark ? '#454545' : 'transparent',
+            borderWidth: isDark ? 1 : 0,
+          }, filterMood === mood.key && { 
+            backgroundColor: isDark ? mood.color + '15' : mood.color + '33', 
+            borderColor: mood.color 
+          }]}
           onPress={() => setFilterMood(mood.key)}
           activeOpacity={0.8}
         >
           <Ionicons name={mood.icon} size={18} color={mood.color} />
-          <ThemedText style={styles.moodPillLabel}>{mood.label}</ThemedText>
+          <ThemedText style={[styles.moodPillLabel, { color: filterMood === mood.key ? mood.color : ACCENT }]}>{mood.label}</ThemedText>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -286,9 +313,15 @@ export default function JournalScreen() {
   const renderEntryCard = (entry) => {
     const mood = getMoodFromValue(entry.mood);
     return (
-      <Animated.View key={entry._id} style={styles.entryCardWrap}>
+      <Animated.View key={entry._id} style={[styles.entryCardWrap, { 
+        shadowColor: isDark ? '#000' : '#000',
+        shadowOpacity: isDark ? 0.2 : 0.06,
+      }]}>
         <TouchableOpacity
-          style={styles.entryCard}
+          style={[styles.entryCard, { 
+            backgroundColor: isDark ? '#2A2A2A' : CARD_BG,
+            borderColor: isDark ? '#454545' : ACCENT_SOFT,
+          }]}
           activeOpacity={0.93}
           onPress={() => {
             setViewEntry(entry);
@@ -296,14 +329,18 @@ export default function JournalScreen() {
           }}
         >
           <View style={styles.entryCardTopRow}>
-            <View style={[styles.moodBadge, { backgroundColor: mood.color + '22' }] }>
+            <View style={[styles.moodBadge, { 
+              backgroundColor: isDark ? mood.color + '15' : mood.color + '22',
+              borderColor: isDark ? '#454545' : 'transparent',
+              borderWidth: isDark ? 1 : 0,
+            }] }>
               <Ionicons name={mood.icon} size={14} color={mood.color} style={styles.moodBadgeIcon} />
-              <ThemedText style={styles.moodBadgeLabel}>{mood.label}</ThemedText>
+              <ThemedText style={[styles.moodBadgeLabel, { color: isDark ? '#E8E8E8' : ACCENT }]}>{mood.label}</ThemedText>
             </View>
-            <ThemedText style={styles.entryDate}>{formatDate(entry.createdAt)}</ThemedText>
+            <ThemedText style={[styles.entryDate, { color: isDark ? '#B0B0B0' : '#AAA' }]}>{formatDate(entry.createdAt)}</ThemedText>
           </View>
-          <ThemedText style={styles.entryTitle}>{entry.title}</ThemedText>
-          <ThemedText style={styles.entryContent} numberOfLines={3}>{entry.note}</ThemedText>
+          <ThemedText style={[styles.entryTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>{entry.title}</ThemedText>
+          <ThemedText style={[styles.entryContent, { color: isDark ? '#D0D0D0' : '#444' }]} numberOfLines={3}>{entry.note}</ThemedText>
           <TouchableOpacity
             style={styles.favoriteBtn}
             onPress={() => toggleFavorite(entry._id, entry.favorite)}
@@ -322,7 +359,7 @@ export default function JournalScreen() {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={ACCENT} />
-          <ThemedText style={styles.loadingText}>Loading your notes...</ThemedText>
+          <ThemedText style={[styles.loadingText, { color: isDark ? '#E8E8E8' : ACCENT }]}>Loading your notes...</ThemedText>
         </View>
       );
     }
@@ -340,10 +377,10 @@ export default function JournalScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
       <Image source={{ uri: EMPTY_IMAGE }} style={styles.emptyStateImage} />
-      <ThemedText style={styles.emptyStateTitle}>No Notes Yet</ThemedText>
-      <ThemedText style={styles.emptyStateText}>Start your first note and capture your thoughts, feelings, and ideas.</ThemedText>
-      <TouchableOpacity style={styles.emptyStateBtn} onPress={() => setIsWriting(true)} activeOpacity={0.85}>
-        <ThemedText style={styles.emptyStateBtnText}>New Note</ThemedText>
+      <ThemedText style={[styles.emptyStateTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>No Notes Yet</ThemedText>
+      <ThemedText style={[styles.emptyStateText, { color: isDark ? '#B0B0B0' : '#666' }]}>Start your first note and capture your thoughts, feelings, and ideas.</ThemedText>
+      <TouchableOpacity style={[styles.emptyStateBtn, { backgroundColor: isDark ? '#4BBE8A' : ACCENT }]} onPress={() => setIsWriting(true)} activeOpacity={0.85}>
+        <ThemedText style={[styles.emptyStateBtnText, { color: '#fff' }]}>New Note</ThemedText>
       </TouchableOpacity>
     </View>
   );
@@ -368,9 +405,12 @@ export default function JournalScreen() {
     <Modal visible={isWriting} animationType="fade" transparent>
       <BlurView intensity={30} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.modalBlur}>
         <View style={styles.modalOverlay}>
-          <Animated.View style={styles.modalContent}>
+          <Animated.View style={[styles.modalContent, { 
+            backgroundColor: isDark ? '#2A2A2A' : '#fff',
+            borderColor: isDark ? '#454545' : '#E0E0E0',
+          }]}>
             <View style={styles.modalHeader}>
-              <ThemedText style={styles.modalTitle}>New Note</ThemedText>
+              <ThemedText style={[styles.modalTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>New Note</ThemedText>
               <TouchableOpacity onPress={() => setIsWriting(false)}>
                 <Ionicons name="close" size={24} color={ACCENT} />
               </TouchableOpacity>
@@ -379,26 +419,40 @@ export default function JournalScreen() {
               {MOODS.map((mood) => (
                 <TouchableOpacity
                   key={mood.key}
-                  style={[styles.moodSelectChip, selectedMood === mood.key && { backgroundColor: mood.color + '33', borderColor: mood.color }]}
+                  style={[styles.moodSelectChip, { 
+                    backgroundColor: isDark ? '#353535' : '#F8F8F8',
+                    borderColor: isDark ? '#454545' : '#E0E0E0',
+                  }, selectedMood === mood.key && { 
+                    backgroundColor: isDark ? mood.color + '15' : mood.color + '33', 
+                    borderColor: mood.color 
+                  }]}
                   onPress={() => setSelectedMood(mood.key)}
                 >
                   <Ionicons name={mood.icon} size={18} color={mood.color} />
-                  <ThemedText style={styles.moodSelectLabel}>{mood.label}</ThemedText>
+                  <ThemedText style={[styles.moodSelectLabel, { color: isDark ? '#E8E8E8' : '#333' }]}>{mood.label}</ThemedText>
                 </TouchableOpacity>
               ))}
             </ScrollView>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { 
+                backgroundColor: isDark ? '#353535' : '#F8F8F8',
+                color: isDark ? '#E8E8E8' : '#333',
+                borderColor: isDark ? '#454545' : '#E0E0E0',
+              }]}
               placeholder="Title"
-              placeholderTextColor={'#888'}
+              placeholderTextColor={isDark ? '#B0B0B0' : '#888'}
               value={entryTitle}
               onChangeText={setEntryTitle}
               maxLength={60}
             />
             <TextInput
-              style={styles.modalTextarea}
+              style={[styles.modalTextarea, { 
+                backgroundColor: isDark ? '#353535' : '#F8F8F8',
+                color: isDark ? '#E8E8E8' : '#333',
+                borderColor: isDark ? '#454545' : '#E0E0E0',
+              }]}
               placeholder="Write your note..."
-              placeholderTextColor={'#888'}
+              placeholderTextColor={isDark ? '#B0B0B0' : '#888'}
               multiline
               value={entryContent}
               onChangeText={setEntryContent}
@@ -411,10 +465,10 @@ export default function JournalScreen() {
                 activeOpacity={0.7}
               >
                 <Ionicons name={favorite ? 'star' : 'star-outline'} size={22} color={FAVORITE} />
-                <ThemedText style={styles.favoriteLabel}>Favorite</ThemedText>
+                <ThemedText style={[styles.favoriteLabel, { color: FAVORITE }]}>Favorite</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveBtn, (!(entryTitle && entryContent && selectedMood) || saving) && { opacity: 0.5 }]}
+                style={[styles.saveBtn, { backgroundColor: isDark ? '#4BBE8A' : ACCENT }, (!(entryTitle && entryContent && selectedMood) || saving) && { opacity: 0.5 }]}
                 disabled={!(entryTitle && entryContent && selectedMood) || saving}
                 onPress={createJournalEntry}
               >
@@ -439,19 +493,22 @@ export default function JournalScreen() {
       <Modal visible animationType="fade" transparent>
         <BlurView intensity={30} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.modalBlur}>
           <View style={styles.modalOverlay}>
-            <Animated.View style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, { 
+              backgroundColor: isDark ? '#2A2A2A' : '#fff',
+              borderColor: isDark ? '#454545' : '#E0E0E0',
+            }]}>
               <View style={styles.modalHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons name={mood.icon} size={18} color={mood.color} style={{ marginRight: 8 }} />
-                  <ThemedText style={styles.modalTitle}>{viewEntry.title}</ThemedText>
+                  <ThemedText style={[styles.modalTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>{viewEntry.title}</ThemedText>
                 </View>
                 <TouchableOpacity onPress={() => setViewEntry(null)}>
                   <Ionicons name="close" size={24} color={ACCENT} />
                 </TouchableOpacity>
               </View>
-              <ThemedText style={styles.modalDate}>{formatDate(viewEntry.createdAt)}</ThemedText>
+              <ThemedText style={[styles.modalDate, { color: isDark ? '#B0B0B0' : '#888' }]}>{formatDate(viewEntry.createdAt)}</ThemedText>
               <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
-                <ThemedText style={styles.modalContentText}>{viewEntry.note}</ThemedText>
+                <ThemedText style={[styles.modalContentText, { color: isDark ? '#E8E8E8' : '#333' }]}>{viewEntry.note}</ThemedText>
               </ScrollView>
               <View style={styles.modalRow}>
                 <TouchableOpacity
@@ -460,14 +517,14 @@ export default function JournalScreen() {
                   activeOpacity={0.7}
                 >
                   <Ionicons name={viewEntry.favorite ? 'star' : 'star-outline'} size={22} color={FAVORITE} />
-                  <ThemedText style={styles.favoriteLabel}>Favorite</ThemedText>
+                  <ThemedText style={[styles.favoriteLabel, { color: FAVORITE }]}>Favorite</ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteBtn}
                   onPress={() => deleteJournalEntry(viewEntry._id)}
                 >
                   <Ionicons name="trash-outline" size={18} color="#E76F51" />
-                  <ThemedText style={styles.deleteBtnText}>Delete</ThemedText>
+                  <ThemedText style={[styles.deleteBtnText, { color: '#E76F51' }]}>Delete</ThemedText>
                 </TouchableOpacity>
               </View>
             </Animated.View>

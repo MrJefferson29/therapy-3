@@ -7,21 +7,22 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../hooks/useTheme';
 
-const getStatusColor = (status) => {
+const getStatusColor = (status, isDark = false) => {
   switch (status) {
     case 'pending':
-      return '#FF9800';
+      return isDark ? '#FFB74D' : '#FF9800';
     case 'approved':
-      return '#4CAF50';
+      return isDark ? '#4BBE8A' : '#4CAF50';
     case 'declined':
-      return '#f44336';
+      return isDark ? '#F44336' : '#f44336';
     case 'completed':
-      return '#2196F3';
+      return isDark ? '#64B5F6' : '#2196F3';
     case 'cancelled':
-      return '#9E9E9E';
+      return isDark ? '#BDBDBD' : '#9E9E9E';
     default:
-      return '#666';
+      return isDark ? '#B0B0B0' : '#666';
   }
 };
 
@@ -49,6 +50,7 @@ export default function AppointmentMessage({
   onDecline,
   isOwnMessage 
 }) {
+  const { colors, isDark = false } = useTheme();
   const openMeetingLink = () => {
     if (appointment?.meetingLink) {
       Linking.openURL(appointment.meetingLink);
@@ -56,45 +58,60 @@ export default function AppointmentMessage({
   };
 
   return (
-    <View style={[
-      styles.container,
-      isOwnMessage ? styles.ownMessage : styles.otherMessage
-    ]}>
+          <View style={[
+        styles.container,
+        { backgroundColor: isDark ? '#2A2A2A' : '#fff' },
+        isOwnMessage ? 
+          { 
+            alignSelf: 'flex-end',
+            backgroundColor: isDark ? '#3A5A3A' : '#E8F5E8',
+            borderBottomRightRadius: 4,
+          } : 
+          { 
+            alignSelf: 'flex-start',
+            backgroundColor: isDark ? '#2A2A2A' : '#fff',
+            borderBottomLeftRadius: 4,
+            borderWidth: 1,
+            borderColor: isDark ? '#454545' : '#E0E0E0',
+          }
+      ]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Ionicons name="calendar" size={20} color="#4CAF50" />
-          <Text style={styles.title}>{appointment.title}</Text>
+          <Ionicons name="calendar" size={20} color={isDark ? '#4BBE8A' : "#4CAF50"} />
+          <Text style={[styles.title, { color: isDark ? '#E8E8E8' : '#222' }]}>{appointment.title}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status) }]}>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status, isDark) }]}>
           <Text style={styles.statusText}>{getStatusText(appointment.status)}</Text>
         </View>
       </View>
 
       {/* Description */}
-      <Text style={styles.description}>{appointment.description}</Text>
+      <Text style={[styles.description, { color: isDark ? '#D0D0D0' : '#222' }]}>{appointment.description}</Text>
 
       {/* Time */}
       <View style={styles.timeRow}>
-        <Ionicons name="time-outline" size={16} color="#666" />
-        <Text style={styles.timeText}>
+        <Ionicons name="time-outline" size={16} color={isDark ? '#B0B0B0' : "#666"} />
+        <Text style={[styles.timeText, { color: isDark ? '#B0B0B0' : '#666' }]}>
           {new Date(appointment.scheduledTime).toLocaleString()}
         </Text>
       </View>
 
       {/* Meeting Link */}
       {appointment.meetingLink && appointment.status === 'approved' && (
-        <TouchableOpacity style={styles.meetingLink} onPress={openMeetingLink}>
-          <Ionicons name="videocam-outline" size={16} color="#4CAF50" />
-          <Text style={styles.meetingLinkText}>Join Meeting</Text>
+        <TouchableOpacity style={[styles.meetingLink, { 
+          backgroundColor: isDark ? '#4BBE8A' : '#4CAF50'
+        }]} onPress={openMeetingLink}>
+          <Ionicons name="videocam-outline" size={16} color="#fff" />
+          <Text style={[styles.meetingLinkText, { color: '#fff' }]}>Join Meeting</Text>
         </TouchableOpacity>
       )}
 
       {/* Notes */}
       {appointment.notes && (
-        <View style={styles.notesContainer}>
-          <Text style={styles.notesLabel}>Notes:</Text>
-          <Text style={styles.notesText}>{appointment.notes}</Text>
+        <View style={[styles.notesContainer, { backgroundColor: isDark ? '#353535' : '#f8f8f8' }]}>
+          <Text style={[styles.notesLabel, { color: isDark ? '#E8E8E8' : '#222' }]}>Notes:</Text>
+          <Text style={[styles.notesText, { color: isDark ? '#D0D0D0' : '#222' }]}>{appointment.notes}</Text>
         </View>
       )}
 
@@ -102,7 +119,7 @@ export default function AppointmentMessage({
       {isTherapist && appointment.status === 'pending' && (
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.approveButton]}
+            style={[styles.actionButton, styles.approveButton, { backgroundColor: isDark ? '#4BBE8A' : '#4CAF50' }]}
             onPress={() => onApprove(appointment)}
           >
             <Ionicons name="checkmark" size={16} color="#fff" />
@@ -110,7 +127,7 @@ export default function AppointmentMessage({
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.actionButton, styles.declineButton]}
+            style={[styles.actionButton, styles.declineButton, { backgroundColor: isDark ? '#F44336' : '#f44336' }]}
             onPress={() => onDecline(appointment)}
           >
             <Ionicons name="close" size={16} color="#fff" />
@@ -121,18 +138,18 @@ export default function AppointmentMessage({
 
       {/* Status Message */}
       {appointment.status === 'approved' && (
-        <View style={styles.statusMessage}>
-          <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-          <Text style={styles.statusMessageText}>
+        <View style={[styles.statusMessage, { borderTopColor: isDark ? '#454545' : 'rgba(0,0,0,0.1)' }]}>
+          <Ionicons name="checkmark-circle" size={16} color={isDark ? '#4BBE8A' : "#4CAF50"} />
+          <Text style={[styles.statusMessageText, { color: isDark ? '#E8E8E8' : '#222' }]}>
             Appointment approved! Check the meeting link above.
           </Text>
         </View>
       )}
 
       {appointment.status === 'declined' && (
-        <View style={styles.statusMessage}>
-          <Ionicons name="close-circle" size={16} color="#f44336" />
-          <Text style={styles.statusMessageText}>
+        <View style={[styles.statusMessage, { borderTopColor: isDark ? '#454545' : 'rgba(0,0,0,0.1)' }]}>
+          <Ionicons name="close-circle" size={16} color={isDark ? '#F44336' : "#f44336"} />
+          <Text style={[styles.statusMessageText, { color: isDark ? '#E8E8E8' : '#222' }]}>
             Appointment declined by therapist.
           </Text>
         </View>

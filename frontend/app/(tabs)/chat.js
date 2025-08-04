@@ -23,6 +23,7 @@ import Slider from "@react-native-community/slider";
 import moment from "moment";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
 
 const API_BASE_URL = "https://therapy-3.onrender.com";
 const TOKEN_KEY = "token";
@@ -49,6 +50,7 @@ export default function Chat() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { token, user } = useAuth();
+  const { colors, isDark = false } = useTheme();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +76,18 @@ export default function Chat() {
     const key = `ai_session_id_${userId}`;
     console.log('Using session ID key:', key, 'for user:', userId);
     return key;
+  };
+  
+  // Debug function to log message saving
+  const saveMessagesToStorage = async (messages) => {
+    try {
+      const key = getChatHistoryKey();
+      const messageData = JSON.stringify(messages);
+      await AsyncStorage.setItem(key, messageData);
+      console.log(`Saved ${messages.length} messages to storage with key: ${key}`);
+    } catch (error) {
+      console.error('Failed to save messages to storage:', error);
+    }
   };
   
   const flatListRef = useRef(null);
@@ -222,11 +236,16 @@ export default function Chat() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "AI error");
-      setMessages((prev) => [
-        ...prev,
-        { text: data.text, sender: "bot", time: new Date().toISOString() },
-      ]);
-      await AsyncStorage.setItem(getChatHistoryKey(), JSON.stringify(updated));
+      
+      // Create the bot response message
+      const botResponse = { text: data.text, sender: "bot", time: new Date().toISOString() };
+      
+      // Update messages with both user message and bot response
+      const updatedWithResponse = [...updated, botResponse];
+      setMessages(updatedWithResponse);
+      
+      // Save the complete updated message history
+      await saveMessagesToStorage(updatedWithResponse);
 
       // Danger handling: if AI detects crisis, redirect to therapist selection
       if (data.danger) {
@@ -247,16 +266,22 @@ export default function Chat() {
         );
       }
     } catch (e) {
-      console.error(e);
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: "Sorry, something went wrong.",
-          sender: "bot",
-          isError: true,
-          time: new Date().toISOString(),
-        },
-      ]);
+      console.error('Chat error:', e);
+      const errorMsg = {
+        text: "Sorry, something went wrong. Please try again.",
+        sender: "bot",
+        isError: true,
+        time: new Date().toISOString(),
+      };
+      const updatedWithError = [...updated, errorMsg];
+      setMessages(updatedWithError);
+      
+      // Save the error message to history as well
+      try {
+        await saveMessagesToStorage(updatedWithError);
+      } catch (storageError) {
+        console.error('Failed to save error message:', storageError);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -292,7 +317,9 @@ export default function Chat() {
       };
       setMessages([welcomeMsg]);
       setHasWelcomeMessage(true);
-      await AsyncStorage.setItem(getChatHistoryKey(), JSON.stringify([welcomeMsg]));
+      
+      // Save the welcome message immediately
+      await saveMessagesToStorage([welcomeMsg]);
     } catch (e) {
       console.error(e);
       Alert.alert("Error", "Could not start session.");
@@ -331,10 +358,10 @@ export default function Chat() {
   if (isAuthChecking) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+        <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1B4332" />
-            <Text style={styles.loadingText}>Loading chat...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textPrimary }]}>Loading chat...</Text>
           </View>
         </LinearGradient>
       </View>
@@ -343,13 +370,13 @@ export default function Chat() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+      <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
         {/* Mood Modal */}
         <Modal visible={showMoodModal} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <Animated.View style={styles.moodCard}>
-              <Text style={styles.moodTitle}>How are you feeling today?</Text>
-              <Text style={styles.moodSubtitle}>
+          <View style={[styles.modalOverlay, { backgroundColor: colors.backgroundOverlay }]}>
+            <Animated.View style={[styles.moodCard, { backgroundColor: colors.card }]}>
+              <Text style={[styles.moodTitle, { color: colors.textPrimary }]}>How are you feeling today?</Text>
+              <Text style={[styles.moodSubtitle, { color: colors.accent }]}>
                 Scale 1 (worst) to 10 (best)
               </Text>
               <Text style={styles.moodEmoji}>{moodEmojis[mood - 1]}</Text>
@@ -360,13 +387,13 @@ export default function Chat() {
                 step={1}
                 value={mood}
                 onValueChange={setMood}
-                minimumTrackTintColor="#1B4332"
-                maximumTrackTintColor="#BBECCA"
-                thumbTintColor="#1B4332"
+                minimumTrackTintColor={colors.primary}
+                maximumTrackTintColor={colors.accentLight}
+                thumbTintColor={colors.primary}
               />
-              <Text style={styles.moodValue}>Your mood: {mood}</Text>
+              <Text style={[styles.moodValue, { color: colors.textPrimary }]}>Your mood: {mood}</Text>
         <TouchableOpacity 
-                style={styles.moodButton}
+                style={[styles.moodButton, { backgroundColor: colors.accent }]}
                 onPress={handleStartSession}
         >
                 <Text style={styles.moodButtonText}>Start Chat</Text>
@@ -376,19 +403,19 @@ export default function Chat() {
         </Modal>
 
         {/* Header */}
-        <LinearGradient colors={["#1B4332", "#4BBE8A"]} style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
+        <LinearGradient colors={colors.gradientPrimary} style={styles.header}>
+                  <TouchableOpacity 
+          style={[styles.backButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Zensui Chat</Text>
             <Text style={styles.headerSubtitle}>Your private AI session</Text>
           </View>
           <TouchableOpacity 
-            style={styles.fab}
+            style={[styles.fab, { backgroundColor: isDark ? colors.accent : '#388E3C' }]}
             onPress={startNewChat}
             disabled={isResetting}
           >
@@ -412,13 +439,38 @@ export default function Chat() {
               <Animated.View
                 style={[
                   styles.bubble,
-                  item.sender === "user" ? styles.userBubble : styles.botBubble,
-                  item.isError && styles.errorBubble,
+                  item.sender === "user" ? 
+                    { 
+                      backgroundColor: colors.chatUser,
+                      alignSelf: "flex-end",
+                      borderTopLeftRadius: 10,
+                      borderTopRightRadius: 10,
+                      borderBottomLeftRadius: 10,
+                      borderBottomRightRadius: 0,
+                    } : 
+                    { 
+                      backgroundColor: colors.chatBot,
+                      alignSelf: "flex-start",
+                      borderTopLeftRadius: 10,
+                      borderTopRightRadius: 10,
+                      borderBottomLeftRadius: 0,
+                      borderBottomRightRadius: 10,
+                    },
+                  item.isError && { 
+                    backgroundColor: colors.chatError,
+                    borderColor: colors.error 
+                  },
                   { opacity: fadeAnim },
                 ]}
               >
-                <Text style={styles.bubbleText}>{showText}</Text>
-                <Text style={styles.bubbleTime}>
+                <Text style={[styles.bubbleText, { color: colors.textPrimary }]}>{showText}</Text>
+                <Text style={[
+                  styles.bubbleTime, 
+                  { 
+                    color: colors.textSecondary,
+                    textAlign: item.sender === "user" ? "right" : "left"
+                  }
+                ]}>
                   {item.time
                     ? new Date(item.time).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -436,30 +488,37 @@ export default function Chat() {
 
         {/* Input Bar */}
         <Animated.View
-          style={[styles.inputWrapper, { bottom: keyboardHeight }]}
+          style={[styles.inputWrapper, { 
+            bottom: keyboardHeight,
+            borderTopColor: colors.border 
+          }]}
         >
           <View
-        style={styles.inputContainer}
+        style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
             onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
       >
-      <TextInput
-              style={styles.textInput}
-          value={inputMessage}
-          onChangeText={setInputMessage}
-              placeholder="Type a message..."
-              placeholderTextColor="#888"
-          multiline
-              textAlignVertical="top"
-        />
-        <TouchableOpacity 
+            <TextInput
+        style={[styles.textInput, { 
+          color: colors.textPrimary,
+          backgroundColor: colors.chatInput 
+        }]}
+        value={inputMessage}
+        onChangeText={setInputMessage}
+        placeholder="Type a message..."
+        placeholderTextColor={colors.textTertiary}
+        multiline
+        textAlignVertical="top"
+      />
+                <TouchableOpacity 
           onPress={sendMessage}
-              style={[
-                styles.sendButton,
-                (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
-              ]}
+          style={[
+            styles.sendButton,
+            { backgroundColor: colors.chatSend },
+            (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
+          ]}
           disabled={!inputMessage.trim() || isLoading}
         >
-              <Ionicons name="send" size={24} color="#fff" />
+          <Ionicons name="send" size={24} color="#fff" />
         </TouchableOpacity>
           </View>
         </Animated.View>
@@ -469,7 +528,7 @@ export default function Chat() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ece5dd" },
+  container: { flex: 1 },
   gradient: { flex: 1 },
   header: {
     flexDirection: "row",
@@ -487,7 +546,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   backButton: {
-    backgroundColor: "rgba(255,255,255,0.12)",
     borderRadius: 20,
     padding: 8,
     marginRight: 8,
@@ -511,7 +569,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   fab: {
-    backgroundColor: "#388E3C",
     borderRadius: 24,
     padding: 10,
     elevation: 4,
@@ -531,29 +588,8 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
     elevation: 2,
   },
-  userBubble: {
-    backgroundColor: "#dcf8c6",
-    alignSelf: "flex-end",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 0,
-  },
-  botBubble: {
-    backgroundColor: "#fff",
-    alignSelf: "flex-start",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
-    borderBottomLeftRadius: 0,
-  },
-  errorBubble: {
-    backgroundColor: "#FFE5E5",
-    borderColor: "#FF3B30",
-    borderWidth: 1,
-  },
-  bubbleText: { fontSize: 16, color: "#303030" },
-  bubbleTime: { fontSize: 10, color: "#555", textAlign: "right", marginTop: 4 },
+  bubbleText: { fontSize: 16 },
+  bubbleTime: { fontSize: 10, textAlign: "right", marginTop: 4 },
   inputWrapper: {
     position: "absolute",
     left: 0,
@@ -567,15 +603,13 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 25,
   },
-  textInput: { flex: 1, fontSize: 16, color: "#303030", paddingVertical: 4 },
+  textInput: { flex: 1, fontSize: 16, paddingVertical: 4 },
   sendButton: {
     marginLeft: 10,
-    backgroundColor: "#075E54",
     padding: 10,
     borderRadius: 25,
   },
@@ -583,10 +617,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.25)",
   },
   moodCard: {
-    backgroundColor: "#fff",
     borderRadius: 28,
     padding: 32,
     alignItems: "center",
@@ -600,19 +632,16 @@ const styles = StyleSheet.create({
   moodTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1B4332",
     marginBottom: 6,
   },
-  moodSubtitle: { fontSize: 15, color: "#388E3C", marginBottom: 10 },
+  moodSubtitle: { fontSize: 15, marginBottom: 10 },
   moodEmoji: { fontSize: 48, marginBottom: 8 },
   moodValue: {
     fontSize: 18,
     marginVertical: 8,
-    color: "#1B4332",
     fontWeight: "600",
   },
   moodButton: {
-    backgroundColor: "#388E3C",
     borderRadius: 18,
     paddingVertical: 12,
     paddingHorizontal: 38,
@@ -632,7 +661,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#1B4332",
     fontWeight: "500",
   },
 });
