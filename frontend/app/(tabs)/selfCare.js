@@ -19,6 +19,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '../../hooks/useTheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLoader } from '../../components/LoaderProvider';
 
@@ -74,7 +75,9 @@ const MOODS = [
 export default function SelfCareScreen() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
+  const { colors, isDark = false } = useTheme();
   const router = useRouter();
+  
   const [selectedMood, setSelectedMood] = useState(null);
   const [daily, setDaily] = useState(null);
   const [articleModal, setArticleModal] = useState(false);
@@ -260,25 +263,35 @@ export default function SelfCareScreen() {
 
   // Today's Focus
   const renderFocusCard = () => (
-    <View style={styles.focusCard}>
-      <ThemedText style={styles.focusTitle}>Today's Focus</ThemedText>
-      <ThemedText style={styles.focusTip}>
+    <View style={[styles.focusCard, { 
+      backgroundColor: isDark ? '#2A2A2A' : '#fff',
+      shadowColor: isDark ? '#000' : '#000',
+      shadowOpacity: isDark ? 0.3 : 0.08,
+    }]}>
+      <ThemedText style={[styles.focusTitle, { color: isDark ? '#4BBE8A' : '#4CAF50' }]}>Today's Focus</ThemedText>
+      <ThemedText style={[styles.focusTip, { color: isDark ? '#E8E8E8' : '#222' }]}>
         {daily?.focus?.tip || daily?.focus || 'Loading focus...'}
       </ThemedText>
-      <ThemedText style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>
+      <ThemedText style={[styles.focusTimeText, { color: isDark ? '#B0B0B0' : '#888' }]}>
         {focusComplete ? 'Completed!' : `Time: ${formatTime(focusTimeLeft)}`}
       </ThemedText>
-      <View style={styles.progressBarBg}>
-        <View style={[styles.progressBarFill, { width: `${focusProgress * 100}%` }]} />
+      <View style={[styles.progressBarBg, { backgroundColor: isDark ? '#454545' : '#E0E0E0' }]}>
+        <View style={[styles.progressBarFill, { 
+          width: `${focusProgress * 100}%`,
+          backgroundColor: isDark ? '#4BBE8A' : '#4CAF50'
+        }]} />
       </View>
       {focusComplete ? (
         <View style={{ alignItems: 'center', marginTop: 8 }}>
-          <Ionicons name="checkmark-circle" size={32} color={theme.primary} />
-          <ThemedText style={{ color: theme.primary, fontWeight: '700', marginTop: 4 }}>Completed!</ThemedText>
+          <Ionicons name="checkmark-circle" size={32} color={isDark ? '#4BBE8A' : '#4CAF50'} />
+          <ThemedText style={{ color: isDark ? '#4BBE8A' : '#4CAF50', fontWeight: '700', marginTop: 4 }}>Completed!</ThemedText>
         </View>
       ) : (
         <TouchableOpacity
-          style={[styles.focusLongButton, (focusLoading || focusPaused) && { backgroundColor: '#bbb' }]}
+          style={[styles.focusLongButton, { 
+            backgroundColor: isDark ? '#4BBE8A' : '#4CAF50',
+            opacity: (focusLoading || focusPaused) ? 0.6 : 1
+          }]}
           activeOpacity={0.85}
           onPress={
             !focusLoading && !focusPaused
@@ -332,10 +345,10 @@ export default function SelfCareScreen() {
     if (!focusComplete) {
       return (
         <View style={styles.moodSection}>
-          <ThemedText style={styles.moodTitle}>How are you feeling afterwards?</ThemedText>
+          <ThemedText style={[styles.moodTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>How are you feeling afterwards?</ThemedText>
           <View style={{ alignItems: 'center', marginVertical: 18 }}>
-            <Ionicons name="lock-closed-outline" size={36} color="#bbb" style={{ marginBottom: 8 }} />
-            <ThemedText style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
+            <Ionicons name="lock-closed-outline" size={36} color={isDark ? '#666' : '#bbb'} style={{ marginBottom: 8 }} />
+            <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888', fontSize: 15, textAlign: 'center' }}>
               Complete today's focus to log your mood.
             </ThemedText>
           </View>
@@ -344,23 +357,30 @@ export default function SelfCareScreen() {
     }
     return (
       <View style={styles.moodSection}>
-        <ThemedText style={styles.moodTitle}>How are you feeling afterwards?</ThemedText>
+        <ThemedText style={[styles.moodTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>How are you feeling afterwards?</ThemedText>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodRow}>
           {MOODS.map((mood) => (
             <TouchableOpacity
               key={mood.key}
-              style={[styles.moodButton, selectedMood === mood.key && { backgroundColor: mood.color + '33' }]}
+              style={[styles.moodButton, { 
+                backgroundColor: isDark ? '#353535' : '#F1F3F4',
+                borderColor: selectedMood === mood.key ? mood.color : 'transparent',
+                borderWidth: selectedMood === mood.key ? 2 : 0,
+              }]}
               onPress={() => setSelectedMood(mood.key)}
               activeOpacity={0.8}
             >
               <Ionicons name={mood.icon} size={26} color={mood.color} />
-              <ThemedText style={styles.moodLabel}>{mood.label}</ThemedText>
+              <ThemedText style={[styles.moodLabel, { color: isDark ? '#E8E8E8' : '#333' }]}>{mood.label}</ThemedText>
             </TouchableOpacity>
           ))}
         </ScrollView>
         {selectedMood && (
           <TouchableOpacity
-            style={[styles.focusLongButton, { marginTop: 16, backgroundColor: '#388E3C' }]}
+            style={[styles.focusLongButton, { 
+              marginTop: 16, 
+              backgroundColor: isDark ? '#4BBE8A' : '#388E3C' 
+            }]}
             onPress={handleConfirmMood}
             disabled={moodSubmitting}
             activeOpacity={0.85}
@@ -373,14 +393,17 @@ export default function SelfCareScreen() {
         {moodError ? (
           <ThemedText style={{ color: '#E53935', marginTop: 8 }}>{moodError}</ThemedText>
         ) : null}
-        <ThemedText style={{ color: '#888', fontSize: 13, marginTop: 6, marginBottom: 2 }}>You've logged {userMoodCount} moods</ThemedText>
+        <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888', fontSize: 13, marginTop: 6, marginBottom: 2 }}>You've logged {userMoodCount} moods</ThemedText>
       </View>
     );
   };
 
   // Featured Article
   const renderFeatured = () => (
-    <TouchableOpacity style={styles.featuredCard} activeOpacity={0.88} onPress={() => setArticleModal(true)}>
+    <TouchableOpacity style={[styles.featuredCard, { 
+      shadowColor: isDark ? '#000' : '#000',
+      shadowOpacity: isDark ? 0.3 : 0.13,
+    }]} activeOpacity={0.88} onPress={() => setArticleModal(true)}>
       <View style={{ position: 'absolute', top: 18, left: 18, zIndex: 2 }}>
         {daily?.article?.icon && (
           daily.article.icon.startsWith('meditation') ? (
@@ -421,13 +444,16 @@ export default function SelfCareScreen() {
 
   const renderArticleModal = () => (
     <Modal visible={articleModal} animationType="slide" transparent onRequestClose={() => setArticleModal(false)}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
-        <View style={{ backgroundColor: '#fff', borderRadius: 18, padding: 24, width: '92%', maxHeight: '90%' }}>
+      <View style={{ flex: 1, backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.18)', justifyContent: 'center', alignItems: 'center' }}>
+        <View style={[styles.modalContent, { 
+          backgroundColor: isDark ? '#2A2A2A' : '#fff',
+          borderColor: isDark ? '#454545' : '#E0E0E0',
+        }]}>
           {selectedArticle ? (
             <>
-              <ThemedText style={{ fontWeight: '800', fontSize: 18 }}>{selectedArticle.title}</ThemedText>
+              <ThemedText style={[styles.modalTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>{selectedArticle.title}</ThemedText>
               <ScrollView style={{ maxHeight: 320 }}>
-                <ThemedText style={{ fontSize: 15, marginBottom: 12 }}>{selectedArticle.content}</ThemedText>
+                <ThemedText style={[styles.modalText, { color: isDark ? '#E8E8E8' : '#222' }]}>{selectedArticle.content}</ThemedText>
                 {selectedArticle.files && selectedArticle.files.length > 0 && (
                   <Image source={{ uri: selectedArticle.files[0].url }} style={{ width: '100%', height: 200, borderRadius: 10, marginBottom: 12 }} />
                 )}
@@ -437,7 +463,7 @@ export default function SelfCareScreen() {
               </TouchableOpacity>
             </>
           ) : (
-            <ThemedText style={{ color: '#888' }}>Failed to load article.</ThemedText>
+            <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888' }}>Failed to load article.</ThemedText>
           )}
         </View>
       </View>
@@ -447,7 +473,7 @@ export default function SelfCareScreen() {
   // Footer
   const renderFooter = () => (
     <View style={styles.footer}>
-      <ThemedText style={styles.footerText}>You're doing great. Take it one step at a time 🌾</ThemedText>
+      <ThemedText style={[styles.footerText, { color: isDark ? '#B0B0B0' : '#888' }]}>You're doing great. Take it one step at a time 🌾</ThemedText>
     </View>
   );
 
@@ -508,11 +534,13 @@ export default function SelfCareScreen() {
       {userMoods.map((mood, idx) => {
         const moodObj = MOODS.find(m => m.key === mood.mood) || MOODS.find(m => m.label.toLowerCase() === mood.mood.toLowerCase());
         return (
-          <View key={mood._id || idx} style={{ width: '48%', backgroundColor: '#F1F3F4', borderRadius: 14, padding: 12, marginBottom: 12, alignItems: 'center', flexDirection: 'row' }}>
+          <View key={mood._id || idx} style={[styles.moodHistoryItem, { 
+            backgroundColor: isDark ? '#353535' : '#F1F3F4',
+          }]}>
             <Ionicons name={moodObj?.icon || 'happy-outline'} size={22} color={moodObj?.color || '#888'} style={{ marginRight: 8 }} />
             <View>
-              <ThemedText style={{ fontWeight: '700', color: moodObj?.color || '#333' }}>{moodObj?.label || mood.mood}</ThemedText>
-              {mood.createdAt && <ThemedText style={{ color: '#888', fontSize: 12 }}>{new Date(mood.createdAt).toLocaleDateString()}</ThemedText>}
+              <ThemedText style={{ fontWeight: '700', color: moodObj?.color || (isDark ? '#E8E8E8' : '#333') }}>{moodObj?.label || mood.mood}</ThemedText>
+              {mood.createdAt && <ThemedText style={{ color: isDark ? '#B0B0B0' : '#888', fontSize: 12 }}>{new Date(mood.createdAt).toLocaleDateString()}</ThemedText>}
             </View>
           </View>
         );
@@ -521,7 +549,7 @@ export default function SelfCareScreen() {
   );
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#F7FAF7' }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {renderHero()}
         {renderQuickActions()}
@@ -648,6 +676,11 @@ const styles = StyleSheet.create({
     color: '#222',
     marginBottom: 18,
   },
+  focusTimeText: {
+    color: '#888',
+    fontSize: 13,
+    marginBottom: 4,
+  },
   progressBarBg: {
     width: '100%',
     height: 8,
@@ -704,6 +737,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#333',
   },
+  moodHistoryItem: {
+    width: '48%',
+    backgroundColor: '#F1F3F4',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
   featuredCard: {
     borderRadius: 5,
     overflow: 'hidden',
@@ -752,6 +794,24 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: '700',
     fontSize: 14,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 24,
+    width: '92%',
+    maxHeight: '90%',
+    borderWidth: 1,
+  },
+  modalTitle: {
+    fontWeight: '800',
+    fontSize: 18,
+    marginBottom: 12,
+  },
+  modalText: {
+    fontSize: 15,
+    marginBottom: 12,
+    lineHeight: 22,
   },
   footer: {
     alignItems: 'center',

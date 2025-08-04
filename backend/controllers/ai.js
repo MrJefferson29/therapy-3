@@ -507,10 +507,10 @@ const generateContent = async (req, res) => {
     if (isSeverelyUnstable(prompt)) {
       const crisisResponse = `I'm very concerned about your safety and I want you to know that you're not alone. What you're experiencing sounds incredibly difficult, and it's important that you get immediate support from a mental health professional.
 
-**Immediate Crisis Resources:**
-• **Crisis Helpline:** 0800 800 2000 (24/7)
-• **Emergency Services:** 112 (immediate help)
-• **Text Crisis Support:** Text HOME to 741741
+Immediate Crisis Resources:
+Crisis Helpline: 0800 800 2000 (24/7)
+• Emergency Services: 112 (immediate help)
+• Text Crisis Support: Text HOME to 741741
 
 **What to do right now:**
 1. If you're having thoughts of harming yourself or others, please call 112 immediately
@@ -634,7 +634,6 @@ const generateContent = async (req, res) => {
         response: generatedText,
         session: sessionId,
       });
-
       await newAiEntry.save();
       res.json({ text: generatedText, sessionId });
     } else {

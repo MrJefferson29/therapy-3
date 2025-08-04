@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +10,7 @@ const API_URL = 'https://therapy-3.onrender.com';
 
 export default function UserChats() {
   const { user } = useAuth();
+  const { colors, isDark = false } = useTheme();
   const router = useRouter();
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function UserChats() {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity 
-      style={styles.chatItem} 
+      style={[styles.chatItem, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]} 
       onPress={() => router.push(`/chat/${item.therapistId}`)}
       activeOpacity={0.85}
     >
@@ -43,22 +45,22 @@ export default function UserChats() {
         style={styles.avatar} 
       />
       <View style={styles.chatInfo}>
-        <Text style={styles.username}>{item.username}</Text>
-        <Text style={styles.email}>{item.email}</Text>
-        <Text style={styles.lastMessage}>{item.lastMessage || 'Start a conversation...'}</Text>
+        <Text style={[styles.username, { color: isDark ? '#E8E8E8' : '#222' }]}>{item.username}</Text>
+        <Text style={[styles.email, { color: isDark ? '#B0B0B0' : '#888' }]}>{item.email}</Text>
+        <Text style={[styles.lastMessage, { color: isDark ? '#888' : '#666' }]}>{item.lastMessage || 'Start a conversation...'}</Text>
       </View>
-      <View style={styles.chevronContainer}>
-        <Ionicons name="chevron-forward" size={22} color="#4CAF50" />
+      <View style={[styles.chevronContainer, { backgroundColor: isDark ? 'rgba(75,190,138,0.15)' : 'rgba(76, 175, 80, 0.1)' }]}>
+        <Ionicons name="chevron-forward" size={22} color={isDark ? '#4BBE8A' : "#4CAF50"} />
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+      <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
         {/* Header */}
-        <LinearGradient colors={["#1B4332", "#4BBE8A"]} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <LinearGradient colors={colors.gradientPrimary} style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
@@ -66,7 +68,7 @@ export default function UserChats() {
             <Text style={styles.headerSubtitle}>Conversations with therapists</Text>
           </View>
           <TouchableOpacity 
-            style={styles.avatarWrap}
+            style={[styles.avatarWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]}
             onPress={() => router.push('/MyTherapist')}
           >
             <Ionicons name="add" size={24} color="#fff" />
@@ -84,11 +86,11 @@ export default function UserChats() {
           onRefresh={fetchUserChats}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>No chats yet</Text>
-              <Text style={styles.emptySubtext}>Start a conversation with a therapist to see your chats here</Text>
+              <Ionicons name="chatbubbles-outline" size={64} color={isDark ? '#666' : "#ccc"} />
+              <Text style={[styles.emptyText, { color: isDark ? '#B0B0B0' : '#888' }]}>No chats yet</Text>
+              <Text style={[styles.emptySubtext, { color: isDark ? '#888' : '#aaa' }]}>Start a conversation with a therapist to see your chats here</Text>
               <TouchableOpacity 
-                style={styles.findTherapistBtn}
+                style={[styles.findTherapistBtn, { backgroundColor: isDark ? '#4BBE8A' : '#4CAF50' }]}
                 onPress={() => router.push('/MyTherapist')}
               >
                 <Text style={styles.findTherapistBtnText}>Find a Therapist</Text>

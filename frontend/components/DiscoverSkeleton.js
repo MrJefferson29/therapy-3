@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import SkeletonLoader, { TextSkeleton, AvatarSkeleton } from './SkeletonLoader';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = width / 2 - 2;
@@ -51,8 +52,10 @@ export const MasonryItemSkeleton = () => (
   </View>
 );
 
-export const DiscoverSkeleton = () => (
-  <View style={styles.container}>
+export const DiscoverSkeleton = () => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.container, { backgroundColor: colors.backgroundPrimary }]}>
     {/* Header Section */}
     <View style={styles.headerSection}>
       <View style={styles.headerContent}>
@@ -88,7 +91,8 @@ export const DiscoverSkeleton = () => (
       ))}
     </View>
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

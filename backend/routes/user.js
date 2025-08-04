@@ -7,6 +7,7 @@ const {
   updateProfile,
   getAllTherapists,
   updateUserRole,
+  deleteUser,
 } = require('../controllers/user');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
 const multer = require('multer');
@@ -48,5 +49,8 @@ router.post('/me/upload-profile-image', verifyToken, upload.single('image'), asy
 
 // PATCH /users/:id/role (admin only)
 router.patch('/:id/role', verifyToken, requireAdmin, updateUserRole);
+
+// DELETE /users/:id (admin only)
+router.delete('/:id', verifyToken, requireAdmin, deleteUser);
 
 module.exports = router;

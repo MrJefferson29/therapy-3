@@ -22,6 +22,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TapGestureHandler, State } from 'react-native-gesture-handler';
 import { DiscoverSkeleton } from '@/components/DiscoverSkeleton';
+import { useTheme } from '../hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = width / 2 - 2;
@@ -63,6 +64,7 @@ function getArticleThumbnail(article) {
 }
 
 function ArticleThumbnail({ article, style }) {
+  const { isDark = false } = useTheme();
   const { type: thumbType, url: thumbUrl } = getArticleThumbnail(article);
   const videoFile = article.files && article.files.find(f => f.type === 'video');
   const [thumbUri, setThumbUri] = React.useState(null);
@@ -89,14 +91,14 @@ function ArticleThumbnail({ article, style }) {
     return thumbUri ? (
       <Image source={{ uri: thumbUri }} style={style} />
     ) : (
-      <View style={[style, { backgroundColor: '#e0ffe7', alignItems: 'center', justifyContent: 'center' }]}>
-        <Ionicons name="videocam" size={48} color="#388E3C" />
+      <View style={[style, { backgroundColor: isDark ? '#2A3A2A' : '#e0ffe7', alignItems: 'center', justifyContent: 'center' }]}>
+        <Ionicons name="videocam" size={48} color={isDark ? '#4BBE8A' : "#388E3C"} />
       </View>
     );
   } else {
     return (
-      <View style={[style, { backgroundColor: '#e0ffe7', alignItems: 'center', justifyContent: 'center' }]}>
-        <Ionicons name="image" size={48} color="#388E3C" />
+      <View style={[style, { backgroundColor: isDark ? '#2A3A2A' : '#e0ffe7', alignItems: 'center', justifyContent: 'center' }]}>
+        <Ionicons name="image" size={48} color={isDark ? '#4BBE8A' : "#388E3C"} />
       </View>
     );
   }
@@ -136,6 +138,7 @@ function NoArticlesFound({ category }) {
 }
 
 export default function DiscoverScreen() {
+  const { colors, isDark = false } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [articles, setArticles] = useState([]);
@@ -236,19 +239,20 @@ export default function DiscoverScreen() {
     );
 
   const renderCategoryFilter = () => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContainer}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.categoriesContainer, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
     <TouchableOpacity
         style={[
           styles.categoryChip,
-          !selectedCategory && styles.selectedCategoryChip,
+          { backgroundColor: isDark ? '#353535' : '#f8f8f8' },
+          !selectedCategory && { backgroundColor: isDark ? '#4BBE8A' : '#388E3C' },
         ]}
         onPress={() => setSelectedCategory(null)}
         activeOpacity={0.8}
       >
-        <Ionicons name="apps" size={16} color={!selectedCategory ? '#FFFFFF' : '#000000'} />
+        <Ionicons name="apps" size={16} color={!selectedCategory ? '#FFFFFF' : (isDark ? '#E8E8E8' : '#000000')} />
         <ThemedText style={[
           styles.categoryText,
-          !selectedCategory && styles.selectedCategoryText,
+          { color: !selectedCategory ? '#FFFFFF' : (isDark ? '#E8E8E8' : '#000000') },
         ]}>All</ThemedText>
       </TouchableOpacity>
       {WELLNESS_CATEGORIES.map(item => (
@@ -256,7 +260,8 @@ export default function DiscoverScreen() {
           key={item.id}
       style={[
         styles.categoryChip,
-        selectedCategory === item.id && styles.selectedCategoryChip,
+        { backgroundColor: isDark ? '#353535' : '#f8f8f8' },
+        selectedCategory === item.id && { backgroundColor: isDark ? '#4BBE8A' : '#388E3C' },
       ]}
       onPress={() => setSelectedCategory(item.id)}
           activeOpacity={0.8}
@@ -264,12 +269,12 @@ export default function DiscoverScreen() {
       <Ionicons
         name={item.icon}
         size={16}
-        color={selectedCategory === item.id ? '#FFFFFF' : '#000000'}
+        color={selectedCategory === item.id ? '#FFFFFF' : (isDark ? '#E8E8E8' : '#000000')}
       />
       <ThemedText
         style={[
           styles.categoryText,
-          selectedCategory === item.id && styles.selectedCategoryText,
+          { color: selectedCategory === item.id ? '#FFFFFF' : (isDark ? '#E8E8E8' : '#000000') },
         ]}
       >
         {item.name}
@@ -281,19 +286,19 @@ export default function DiscoverScreen() {
 
   const renderMasonryItem = ({ item }) => (
       <TouchableOpacity
-        style={styles.masonryItem}
+        style={[styles.masonryItem, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}
         onPress={() => openMediaModal(item)}
         activeOpacity={0.8}
       >
         <ArticleThumbnail article={item} style={[styles.masonryImage, { height: COLUMN_WIDTH * 1.2 }]} />
         <BlurView
           intensity={80}
-          tint="dark"
+          tint={isDark ? "dark" : "light"}
           style={styles.masonryOverlay}
         >
           <View style={styles.masonryInfo}>
-            <View style={styles.masonryCategory}>
-              <ThemedText style={styles.masonryCategoryText}>{item.category}</ThemedText>
+            <View style={[styles.masonryCategory, { backgroundColor: isDark ? 'rgba(75,190,138,0.8)' : 'rgba(56,142,60,0.8)' }]}>
+              <ThemedText style={[styles.masonryCategoryText, { color: isDark ? '#E8E8E8' : '#fff' }]}>{item.category}</ThemedText>
             </View>
             <View style={styles.masonryStats}>
               <Ionicons name="heart" size={14} color="#FFFFFF" />
@@ -532,19 +537,24 @@ export default function DiscoverScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#fff' }]}>
       {loading ? (
         <DiscoverSkeleton />
       ) : (
         <ScrollView
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              colors={isDark ? ['#4BBE8A'] : ['#388E3C']}
+              tintColor={isDark ? '#4BBE8A' : '#388E3C'}
+            />
           }
         >
           {/* Featured Articles */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
             <View style={styles.sectionHeader}>
-              <ThemedText style={styles.sectionTitle}>Featured Articles</ThemedText>
+              <ThemedText style={[styles.sectionTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>Featured Articles</ThemedText>
               {/* <TouchableOpacity>
                 <ThemedText style={styles.seeAllButton}>See All</ThemedText>
               </TouchableOpacity> */}

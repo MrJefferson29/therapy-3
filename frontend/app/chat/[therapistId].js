@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import io from 'socket.io-client';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppointmentMessage from '../../components/AppointmentMessage';
 import AppointmentApprovalModal from '../../components/AppointmentApprovalModal';
@@ -15,6 +16,7 @@ const socket = io(API_URL);
 export default function ChatWithTherapist() {
   const { therapistId } = useLocalSearchParams();
   const { user, token } = useAuth();
+  const { colors, isDark = false } = useTheme();
   const router = useRouter();
   const [messages, setMessages] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -219,9 +221,34 @@ export default function ChatWithTherapist() {
           { opacity: fadeAnim }
         ]}
       >
-        <View style={[styles.bubble, item.sender === user._id ? styles.myBubble : styles.theirBubble]}>
-          <Text style={styles.messageText}>{item.message}</Text>
-          <Text style={styles.timeText}>
+        <View style={[
+          styles.bubble, 
+          item.sender === user._id ? 
+            { 
+              backgroundColor: isDark ? '#3A5A3A' : '#dcf8c6',
+              alignSelf: 'flex-end',
+              borderTopLeftRadius: 10,
+              borderTopRightRadius: 10,
+              borderBottomLeftRadius: 10,
+              borderBottomRightRadius: 0,
+            } : 
+            { 
+              backgroundColor: isDark ? '#2A2A2A' : '#fff',
+              alignSelf: 'flex-start',
+              borderTopLeftRadius: 10,
+              borderTopRightRadius: 10,
+              borderBottomRightRadius: 10,
+              borderBottomLeftRadius: 0,
+            }
+        ]}>
+          <Text style={[styles.messageText, { color: isDark ? '#E8E8E8' : '#303030' }]}>{item.message}</Text>
+          <Text style={[
+            styles.timeText, 
+            { 
+              color: isDark ? '#B0B0B0' : '#555',
+              textAlign: item.sender === user._id ? 'right' : 'left'
+            }
+          ]}>
             {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
@@ -240,11 +267,11 @@ export default function ChatWithTherapist() {
   ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#ece5dd' }]}>
+      <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
         {/* Header */}
-        <LinearGradient colors={["#1B4332", "#4BBE8A"]} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <LinearGradient colors={colors.gradientPrimary} style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           {therapist && (
@@ -254,7 +281,7 @@ export default function ChatWithTherapist() {
             </View>
           )}
           {/* Three dots menu */}
-          <TouchableOpacity style={styles.menuBtn} onPress={() => setShowMenu(true)}>
+          <TouchableOpacity style={[styles.menuBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]} onPress={() => setShowMenu(true)}>
             <Ionicons name="ellipsis-vertical" size={28} color="#fff" />
           </TouchableOpacity>
         </LinearGradient>
@@ -265,17 +292,17 @@ export default function ChatWithTherapist() {
           animationType="fade"
           onRequestClose={() => setShowMenu(false)}
         >
-          <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={() => setShowMenu(false)}>
-            <View style={styles.menuContainer}>
+          <TouchableOpacity style={[styles.menuOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.2)' }]} activeOpacity={1} onPress={() => setShowMenu(false)}>
+            <View style={[styles.menuContainer, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
               <TouchableOpacity style={styles.menuItem} onPress={handleMenuRequestAppointment}>
-                <Text style={styles.menuItemText}>Request Appointment</Text>
+                <Text style={[styles.menuItemText, { color: isDark ? '#E8E8E8' : '#222' }]}>Request Appointment</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
         
         <KeyboardAvoidingView 
-          style={styles.keyboardContainer} 
+          style={[styles.keyboardContainer, { backgroundColor: isDark ? '#1A1A1A' : 'transparent' }]} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
@@ -285,19 +312,30 @@ export default function ChatWithTherapist() {
             data={combinedMessages}
             keyExtractor={(item, index) => item.type === 'appointment' ? item.appointmentId : index.toString()}
             renderItem={renderMessage}
-            contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+            contentContainerStyle={{ 
+              padding: 16, 
+              paddingBottom: 24,
+              backgroundColor: isDark ? '#1A1A1A' : 'transparent'
+            }}
             showsVerticalScrollIndicator={false}
+            style={{ backgroundColor: isDark ? '#1A1A1A' : 'transparent' }}
           />
           
           {/* Input Bar */}
-          <View style={styles.inputWrapper}>
-            <View style={styles.inputContainer}>
+          <View style={[styles.inputWrapper, { 
+            backgroundColor: isDark ? 'rgba(42,42,42,0.9)' : 'rgba(255,255,255,0.9)',
+            borderTopColor: isDark ? '#454545' : '#ddd'
+          }]}>
+            <View style={[styles.inputContainer, { backgroundColor: isDark ? '#353535' : '#fff' }]}>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { 
+                  color: isDark ? '#E8E8E8' : '#303030',
+                  backgroundColor: isDark ? '#353535' : '#fff'
+                }]}
                 value={input}
                 onChangeText={setInput}
                 placeholder="Type a message..."
-                placeholderTextColor="#888"
+                placeholderTextColor={isDark ? '#B0B0B0' : "#888"}
                 multiline
                 textAlignVertical="top"
               />
@@ -305,6 +343,7 @@ export default function ChatWithTherapist() {
                 onPress={sendMessage}
                 style={[
                   styles.sendButton,
+                  { backgroundColor: isDark ? '#4BBE8A' : '#075E54' },
                   !input.trim() && { opacity: 0.5 }
                 ]}
                 disabled={!input.trim()}

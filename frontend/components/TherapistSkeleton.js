@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import SkeletonLoader, { TextSkeleton, AvatarSkeleton, CardSkeleton } from './SkeletonLoader';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../hooks/useTheme';
 
 export const TherapistCardSkeleton = () => (
   <View style={styles.therapistCardSkeleton}>
@@ -22,13 +23,15 @@ export const TherapistCardSkeleton = () => (
   </View>
 );
 
-export const TherapistSectionSkeleton = () => (
-  <View style={styles.sectionCard}>
-    <View style={styles.sectionHeader}>
-      <LinearGradient
-        colors={['#1B4332', '#4BBE8A']}
-        style={styles.headerGradient}
-      />
+export const TherapistSectionSkeleton = () => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+      <View style={styles.sectionHeader}>
+        <LinearGradient
+          colors={colors.gradientPrimary}
+          style={styles.headerGradient}
+        />
       <View style={styles.headerContent}>
         <View style={styles.headerText}>
           <TextSkeleton lines={1} lineHeight={20} width="60%" />
@@ -57,7 +60,8 @@ export const TherapistSectionSkeleton = () => (
       <TherapistCardSkeleton />
     </View>
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   sectionCard: {

@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import DiscoverScreen from '@/app/discover';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TherapistSectionSkeleton } from '@/components/TherapistSkeleton';
 
@@ -213,6 +214,7 @@ export default function UnifiedIndexScreen() {
   const theme = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const { user: rawUser, loading } = useAuth();
+  const { colors, isDark = false } = useTheme();
   const user = rawUser as User | null;
   const [quote] = useState(getRandomQuote());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -384,7 +386,7 @@ export default function UnifiedIndexScreen() {
               <Image source={{ uri: t.profileImage || DEFAULT_PROFILE_IMAGES[0] }} style={styles.therapistImage} />
               <View style={styles.therapistInfo}>
                 <ThemedText style={styles.therapistName}>{t.username}</ThemedText>
-                <ThemedText style={styles.therapistSpecialization}>{t.email}</ThemedText>
+                <ThemedText style={[styles.therapistSpecialization, { color: colors.textSecondary }]}>{t.email}</ThemedText>
               </View>
               <TouchableOpacity style={styles.bookButton}>
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" style={{ marginRight: 4 }} />
@@ -590,12 +592,10 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#222',
     marginBottom: 2,
   },
   dateText: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   quoteText: {
@@ -687,7 +687,6 @@ const styles = StyleSheet.create({
     marginTop: -20,
   },
   sectionCard: {
-    backgroundColor: 'white',
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 20,
@@ -737,7 +736,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   therapistSpecialization: {
-    color: '#666',
+    // color will be set dynamically via theme
   },
   bookButton: {
     backgroundColor: '#4CAF50',
@@ -856,7 +855,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 24,
     marginBottom: 12,
-    color: '#222',
     paddingHorizontal: 10,
   },
 });

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../hooks/useTheme';
 
 const API_URL = 'https://therapy-3.onrender.com';
 
@@ -23,6 +24,7 @@ export default function AppointmentApprovalModal({
   token, 
   onAppointmentUpdated 
 }) {
+  const { colors, isDark = false } = useTheme();
   const [meetingLink, setMeetingLink] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -132,49 +134,49 @@ export default function AppointmentApprovalModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <LinearGradient colors={["#1B4332", "#4BBE8A"]} style={styles.modalHeader}>
+      <View style={[styles.modalOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.3)' }]}>
+        <View style={[styles.modalContent, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]}>
+          <LinearGradient colors={colors.gradientPrimary} style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Appointment Request</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </LinearGradient>
 
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+          <ScrollView style={[styles.modalBody, { backgroundColor: isDark ? '#2A2A2A' : '#fff' }]} showsVerticalScrollIndicator={false}>
             {/* Appointment Info */}
             <View style={styles.infoSection}>
-              <Text style={styles.sectionTitle}>Request Details</Text>
+              <Text style={[styles.sectionTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>Request Details</Text>
               
               <View style={styles.infoRow}>
-                <Ionicons name="person" size={20} color="#666" />
+                <Ionicons name="person" size={20} color={isDark ? '#B0B0B0' : "#666"} />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Client</Text>
-                  <Text style={styles.infoValue}>{appointment.client?.username}</Text>
+                  <Text style={[styles.infoLabel, { color: isDark ? '#B0B0B0' : '#666' }]}>Client</Text>
+                  <Text style={[styles.infoValue, { color: isDark ? '#E8E8E8' : '#222' }]}>{appointment.client?.username}</Text>
                 </View>
               </View>
 
               <View style={styles.infoRow}>
-                <Ionicons name="document-text" size={20} color="#666" />
+                <Ionicons name="document-text" size={20} color={isDark ? '#B0B0B0' : "#666"} />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Title</Text>
-                  <Text style={styles.infoValue}>{appointment.title}</Text>
+                  <Text style={[styles.infoLabel, { color: isDark ? '#B0B0B0' : '#666' }]}>Title</Text>
+                  <Text style={[styles.infoValue, { color: isDark ? '#E8E8E8' : '#222' }]}>{appointment.title}</Text>
                 </View>
               </View>
 
               <View style={styles.infoRow}>
-                <Ionicons name="chatbubble" size={20} color="#666" />
+                <Ionicons name="chatbubble" size={20} color={isDark ? '#B0B0B0' : "#666"} />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Description</Text>
-                  <Text style={styles.infoValue}>{appointment.description}</Text>
+                  <Text style={[styles.infoLabel, { color: isDark ? '#B0B0B0' : '#666' }]}>Description</Text>
+                  <Text style={[styles.infoValue, { color: isDark ? '#E8E8E8' : '#222' }]}>{appointment.description}</Text>
                 </View>
               </View>
 
               <View style={styles.infoRow}>
-                <Ionicons name="time" size={20} color="#666" />
+                <Ionicons name="time" size={20} color={isDark ? '#B0B0B0' : "#666"} />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Requested Time</Text>
-                  <Text style={styles.infoValue}>
+                  <Text style={[styles.infoLabel, { color: isDark ? '#B0B0B0' : '#666' }]}>Requested Time</Text>
+                  <Text style={[styles.infoValue, { color: isDark ? '#E8E8E8' : '#222' }]}>
                     {new Date(appointment.scheduledTime).toLocaleString()}
                   </Text>
                 </View>
@@ -183,32 +185,40 @@ export default function AppointmentApprovalModal({
 
             {/* Approval Form */}
             <View style={styles.formSection}>
-              <Text style={styles.sectionTitle}>Session Details</Text>
+              <Text style={[styles.sectionTitle, { color: isDark ? '#E8E8E8' : '#222' }]}>Session Details</Text>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Meeting Link *</Text>
+                <Text style={[styles.label, { color: isDark ? '#E8E8E8' : '#222' }]}>Meeting Link *</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { 
+                    backgroundColor: isDark ? '#353535' : '#f8f8f8',
+                    color: isDark ? '#E8E8E8' : '#222',
+                    borderColor: isDark ? '#454545' : '#ddd'
+                  }]}
                   value={meetingLink}
                   onChangeText={setMeetingLink}
                   placeholder="Enter Zoom or Google Meet link"
-                  placeholderTextColor="#888"
+                  placeholderTextColor={isDark ? '#B0B0B0' : "#888"}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
-                <Text style={styles.helperText}>
+                <Text style={[styles.helperText, { color: isDark ? '#B0B0B0' : '#666' }]}>
                   Provide a Zoom, Google Meet, or other video conferencing link
                 </Text>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Notes (Optional)</Text>
+                <Text style={[styles.label, { color: isDark ? '#E8E8E8' : '#222' }]}>Notes (Optional)</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea]}
+                  style={[styles.input, styles.textArea, { 
+                    backgroundColor: isDark ? '#353535' : '#f8f8f8',
+                    color: isDark ? '#E8E8E8' : '#222',
+                    borderColor: isDark ? '#454545' : '#ddd'
+                  }]}
                   value={notes}
                   onChangeText={setNotes}
                   placeholder="Add any additional notes for the client"
-                  placeholderTextColor="#888"
+                  placeholderTextColor={isDark ? '#B0B0B0' : "#888"}
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
@@ -218,25 +228,25 @@ export default function AppointmentApprovalModal({
           </ScrollView>
 
           {/* Action Buttons */}
-          <View style={styles.modalFooter}>
+          <View style={[styles.modalFooter, { backgroundColor: isDark ? '#2A2A2A' : '#fff', borderTopColor: isDark ? '#454545' : '#eee' }]}>
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={styles.declineButton}
+                style={[styles.declineButton, { backgroundColor: isDark ? '#353535' : '#f8f8f8' }]}
                 onPress={declineAppointment}
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator size="small" color="#f44336" />
+                  <ActivityIndicator size="small" color={isDark ? '#F44336' : "#f44336"} />
                 ) : (
                   <>
-                    <Ionicons name="close" size={20} color="#f44336" />
-                    <Text style={styles.declineButtonText}>Decline</Text>
+                    <Ionicons name="close" size={20} color={isDark ? '#F44336' : "#f44336"} />
+                    <Text style={[styles.declineButtonText, { color: isDark ? '#F44336' : "#f44336" }]}>Decline</Text>
                   </>
                 )}
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={[styles.approveButton, loading && styles.approveButtonDisabled]}
+                style={[styles.approveButton, { backgroundColor: isDark ? '#4BBE8A' : '#4CAF50' }, loading && styles.approveButtonDisabled]}
                 onPress={approveAppointment}
                 disabled={loading}
               >
