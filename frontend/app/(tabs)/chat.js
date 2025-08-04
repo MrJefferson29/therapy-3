@@ -406,9 +406,9 @@ export default function Chat() {
         <LinearGradient colors={colors.gradientPrimary} style={styles.header}>
                   <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]}
-          onPress={() => router.back()}
+          onPress={() => router.push('/MyTherapist')}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="people-outline" size={24} color="#fff" />
         </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Zensui Chat</Text>
