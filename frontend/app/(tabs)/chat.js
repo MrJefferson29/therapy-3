@@ -238,7 +238,12 @@ export default function Chat() {
       if (!res.ok) throw new Error(data.error || "AI error");
       
       // Create the bot response message
-      const botResponse = { text: data.text, sender: "bot", time: new Date().toISOString() };
+      const botResponse = { 
+        text: data.text, 
+        sender: "bot", 
+        time: new Date().toISOString(),
+        model: data.model // Store which model was used
+      };
       
       // Update messages with both user message and bot response
       const updatedWithResponse = [...updated, botResponse];
@@ -464,20 +469,27 @@ export default function Chat() {
                 ]}
               >
                 <Text style={[styles.bubbleText, { color: colors.textPrimary }]}>{showText}</Text>
-                <Text style={[
-                  styles.bubbleTime, 
-                  { 
-                    color: colors.textSecondary,
-                    textAlign: item.sender === "user" ? "right" : "left"
-                  }
-                ]}>
-                  {item.time
-                    ? new Date(item.time).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
-                </Text>
+                <View style={styles.bubbleFooter}>
+                  <Text style={[
+                    styles.bubbleTime, 
+                    { 
+                      color: colors.textSecondary,
+                      textAlign: item.sender === "user" ? "right" : "left"
+                    }
+                  ]}>
+                    {item.time
+                      ? new Date(item.time).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : ""}
+                  </Text>
+                  {item.sender === "bot" && item.model && (
+                    <Text style={[styles.modelIndicator, { color: colors.textTertiary }]}>
+                      {item.model === 'gemini' ? '🤖' : '🧠'}
+                    </Text>
+                  )}
+                </View>
               </Animated.View>
             );
           }}
@@ -590,6 +602,16 @@ const styles = StyleSheet.create({
   },
   bubbleText: { fontSize: 16 },
   bubbleTime: { fontSize: 10, textAlign: "right", marginTop: 4 },
+  bubbleFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  modelIndicator: {
+    fontSize: 14,
+    marginLeft: 8,
+  },
   inputWrapper: {
     position: "absolute",
     left: 0,
