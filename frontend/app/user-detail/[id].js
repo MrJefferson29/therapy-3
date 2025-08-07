@@ -58,11 +58,11 @@ export default function UserDetail() {
   };
 
   const fetchUserDetails = async () => {
-    setLoading(true);
-    setError('');
+      setLoading(true);
+      setError('');
     
-    try {
-      const token = await AsyncStorage.getItem('token');
+      try {
+        const token = await AsyncStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
       }
@@ -171,7 +171,7 @@ export default function UserDetail() {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(`${API_URL}/user/${id}/role`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
@@ -294,7 +294,7 @@ export default function UserDetail() {
         
         <View style={styles.roleOptions}>
           {['user', 'therapist', 'admin'].map((role) => (
-            <TouchableOpacity
+        <TouchableOpacity
               key={role}
               style={[
                 styles.roleOption,
@@ -318,7 +318,7 @@ export default function UserDetail() {
               ]}>
                 {role.charAt(0).toUpperCase() + role.slice(1)}
               </ThemedText>
-            </TouchableOpacity>
+        </TouchableOpacity>
           ))}
         </View>
       </View>

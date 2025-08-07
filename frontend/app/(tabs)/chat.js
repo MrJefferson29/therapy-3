@@ -118,25 +118,25 @@ export default function Chat() {
     
     // Only load data if user is available
     if (user) {
-      (async () => {
-        try {
+    (async () => {
+      try {
           // Clean up old global storage keys to prevent data leakage
           await AsyncStorage.removeItem("ai_chat_history");
           await AsyncStorage.removeItem("ai_session_id");
           
           const savedMessages = await AsyncStorage.getItem(getChatHistoryKey());
           const savedSession = await AsyncStorage.getItem(getSessionIdKey());
-          if (savedMessages) {
-            const parsedMessages = JSON.parse(savedMessages);
-            setMessages(parsedMessages);
-            setHasWelcomeMessage(parsedMessages.length > 0);
-          }
-          if (savedSession) setSessionId(savedSession);
-          else setShowMoodModal(true);
-        } catch (e) {
-          console.error(e);
+        if (savedMessages) {
+          const parsedMessages = JSON.parse(savedMessages);
+          setMessages(parsedMessages);
+          setHasWelcomeMessage(parsedMessages.length > 0);
         }
-      })();
+        if (savedSession) setSessionId(savedSession);
+        else setShowMoodModal(true);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
     }
 
     // keyboard listeners
@@ -269,9 +269,9 @@ export default function Chat() {
       console.error('Chat error:', e);
       const errorMsg = {
         text: "Sorry, something went wrong. Please try again.",
-        sender: "bot",
-        isError: true,
-        time: new Date().toISOString(),
+          sender: "bot",
+          isError: true,
+          time: new Date().toISOString(),
       };
       const updatedWithError = [...updated, errorMsg];
       setMessages(updatedWithError);
@@ -404,12 +404,12 @@ export default function Chat() {
 
         {/* Header */}
         <LinearGradient colors={colors.gradientPrimary} style={styles.header}>
-                  <TouchableOpacity 
+          <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)' }]}
           onPress={() => router.push('/MyTherapist')}
-        >
+          >
           <Ionicons name="people-outline" size={24} color="#fff" />
-        </TouchableOpacity>
+          </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Zensui Chat</Text>
             <Text style={styles.headerSubtitle}>Your private AI session</Text>
@@ -497,28 +497,28 @@ export default function Chat() {
         style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
             onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
       >
-            <TextInput
+      <TextInput
         style={[styles.textInput, { 
           color: colors.textPrimary,
           backgroundColor: colors.chatInput 
         }]}
-        value={inputMessage}
-        onChangeText={setInputMessage}
-        placeholder="Type a message..."
+          value={inputMessage}
+          onChangeText={setInputMessage}
+              placeholder="Type a message..."
         placeholderTextColor={colors.textTertiary}
-        multiline
-        textAlignVertical="top"
-      />
-                <TouchableOpacity 
+          multiline
+              textAlignVertical="top"
+        />
+        <TouchableOpacity 
           onPress={sendMessage}
-          style={[
-            styles.sendButton,
+              style={[
+                styles.sendButton,
             { backgroundColor: colors.chatSend },
-            (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
-          ]}
+                (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
+              ]}
           disabled={!inputMessage.trim() || isLoading}
         >
-          <Ionicons name="send" size={24} color="#fff" />
+              <Ionicons name="send" size={24} color="#fff" />
         </TouchableOpacity>
           </View>
         </Animated.View>
