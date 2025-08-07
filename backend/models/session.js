@@ -12,6 +12,11 @@ const sessionSchema = new mongoose.Schema({
     max: 10,
     required: true,
   },
+  selectedModel: {
+    type: String,
+    enum: ['gemini', 'deepseek'],
+    default: 'gemini'
+  },
   terminated: {
     type: Boolean,
     default: false,
@@ -24,4 +29,4 @@ const sessionSchema = new mongoose.Schema({
 
 const Session = mongoose.model("Session", sessionSchema);
 
-module.exports = Session; 
+module.exports = Session;

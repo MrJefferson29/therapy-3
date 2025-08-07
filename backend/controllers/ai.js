@@ -1,5 +1,6 @@
 const express = require("express");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const DeepseekAI = require("../services/deepseekAI");
 const Ai = require("../models/ai");
 const Session = require("../models/session");
 const intents = require('../intents.json');
@@ -7,9 +8,50 @@ const User = require("../models/user");
 const Appointment = require("../models/appointment");
 const sendEmail = require("../utils/sendEmail");
 
-// Initialize the AI model
-const genAI = new GoogleGenerativeAI("AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Initialize AI models
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
+const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const deepseekModel = new DeepseekAI(process.env.DEEPSEEK_API_KEY);
+
+// Model selection strategy
+const AI_MODELS = {
+  GEMINI: 'gemini',
+  DEEPSEEK: 'deepseek'
+};
+
+function selectModel() {
+  // You can implement different selection strategies:
+  // 1. Random selection
+  // 2. Round-robin
+  // 3. Based on load/performance
+  // 4. Based on specific use cases
+  
+  // For now, using random selection
+  return Math.random() < 0.5 ? AI_MODELS.GEMINI : AI_MODELS.DEEPSEEK;
+}
+
+async function generateWithModel(model, prompt) {
+  try {
+    let result;
+    switch (model) {
+      case AI_MODELS.GEMINI:
+        result = await geminiModel.generateContent(prompt);
+        break;
+      case AI_MODELS.DEEPSEEK:
+        result = await deepseekModel.generateContent(prompt);
+        break;
+      default:
+        throw new Error('Invalid model selected');
+    }
+    return await result.response.text();
+  } catch (error) {
+    console.error(`Error with ${model}:`, error);
+    // If one model fails, try the other one
+    const backupModel = model === AI_MODELS.GEMINI ? AI_MODELS.DEEPSEEK : AI_MODELS.GEMINI;
+    console.log(`Trying backup model: ${backupModel}`);
+    return generateWithModel(backupModel, prompt);
+  }
+}
 
 // Enhanced therapist system prompt with specialized therapeutic training
 const THERAPIST_SYSTEM_PROMPT = `
@@ -454,7 +496,11 @@ const startSession = async (req, res) => {
     if (typeof mood !== 'number' || mood < 1 || mood > 10) {
       return res.status(400).json({ error: 'Mood (1-10) is required to start a session.' });
     }
-    const newSession = new Session({ user: req.userId, mood });
+    const newSession = new Session({ 
+      user: req.userId, 
+      mood,
+      selectedModel: selectModel() // Store the selected model for the session
+    });
     await newSession.save();
     res.json({ sessionId: newSession._id });
   } catch (error) {
@@ -483,15 +529,21 @@ const generateContent = async (req, res) => {
     let { sessionId } = req.body;
 
     // If no sessionId, create a new session for the user
+    let session;
     if (!sessionId) {
-      const newSession = new Session({ user: req.userId });
-      await newSession.save();
-      sessionId = newSession._id;
+      session = new Session({ 
+        user: req.userId,
+        selectedModel: selectModel()
+      });
+      await session.save();
+      sessionId = session._id;
+    } else {
+      session = await Session.findOne({ _id: sessionId, user: req.userId });
+      if (!session) return res.status(404).json({ error: "Session not found" });
+      if (session.terminated) return res.status(400).json({ error: "Session is terminated" });
     }
 
     // Check if session is terminated
-    const session = await Session.findOne({ _id: sessionId, user: req.userId });
-    if (!session) return res.status(404).json({ error: "Session not found" });
     if (session.terminated) return res.status(400).json({ error: "Session is terminated" });
 
     // Fetch all previous messages for this session, ordered by creation time
@@ -558,9 +610,6 @@ Crisis Helpline: 0800 800 2000 (24/7)
         }
       }
 
-      // Optionally, notify admin as well (add admin email if desired)
-      // await sendEmail({ ... });
-
       return res.json({
         text: crisisResponse,
         sessionId,
@@ -624,18 +673,23 @@ Crisis Helpline: 0800 800 2000 (24/7)
     // Build the contextual prompt
     const fullPrompt = buildContextualPrompt(historyPrompt, prompt, isVague);
 
-    // Generate the AI response using the enhanced prompt
-    const result = await model.generateContent(fullPrompt);
-    const generatedText = await result.response.text();
+    // Generate response using the selected model
+    const selectedModel = session.selectedModel || selectModel();
+    const generatedText = await generateWithModel(selectedModel, fullPrompt);
 
     if (generatedText) {
       const newAiEntry = new Ai({
         prompt: prompt,
         response: generatedText,
         session: sessionId,
+        model: selectedModel // Store which model generated the response
       });
       await newAiEntry.save();
-      res.json({ text: generatedText, sessionId });
+      res.json({ 
+        text: generatedText, 
+        sessionId,
+        model: selectedModel // Optionally inform the client which model was used
+      });
     } else {
       res.status(500).json({ error: "AI response is empty" });
     }
@@ -665,7 +719,7 @@ You are a wellness and self-care assistant for a mobile app. For the date ${toda
 
 Return ONLY the JSON object, no extra text or explanation.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await geminiModel.generateContent(prompt);
     const text = await result.response.text();
     
     let data;

@@ -15,6 +15,11 @@ const aiSchema = new mongoose.Schema({
         ref: "Session",
         required: true,
     },
+    model: {
+        type: String,
+        enum: ['gemini', 'deepseek'],
+        default: 'gemini'
+    }
 }, { timestamps: true });
 
 const Ai = mongoose.model("Ai", aiSchema);
