@@ -115,7 +115,7 @@ export default function MyTherapist() {
         activeOpacity={0.8}
       >
         <Ionicons name="arrow-back" size={24} color={themeColors.primary} />
-      </TouchableOpacity>
+        </TouchableOpacity>
       
       <View style={styles.headerCenter}>
         <ThemedText style={[styles.headerTitle, { color: themeColors.text }]}>
@@ -146,7 +146,7 @@ export default function MyTherapist() {
       backgroundColor: themeColors.card,
       borderColor: themeColors.border,
     }]}>
-      <Image
+              <Image
         source={{ 
           uri: therapist.profileImage || getRandomProfileImage(therapist.username) 
         }}
@@ -186,7 +186,7 @@ export default function MyTherapist() {
       <ThemedText style={[styles.loadingText, { color: themeColors.text }]}>
         Loading therapists...
       </ThemedText>
-    </View>
+              </View>
   );
 
   const renderErrorState = () => (
@@ -198,13 +198,13 @@ export default function MyTherapist() {
       <ThemedText style={[styles.errorMessage, { color: themeColors.textSecondary }]}>
         {error}
       </ThemedText>
-      <TouchableOpacity
+              <TouchableOpacity
         style={[styles.retryButton, { backgroundColor: themeColors.primary }]}
         onPress={fetchTherapists}
-      >
+              >
         <ThemedText style={styles.retryButtonText}>Try Again</ThemedText>
-      </TouchableOpacity>
-    </View>
+              </TouchableOpacity>
+            </View>
   );
 
   const renderEmptyState = () => (
@@ -245,8 +245,8 @@ export default function MyTherapist() {
             therapists.map(renderTherapistCard)
           ) : (
             renderEmptyState()
-          )}
-        </ScrollView>
+        )}
+      </ScrollView>
       )}
     </SafeAreaView>
   );

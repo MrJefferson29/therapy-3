@@ -66,10 +66,10 @@ export default function AllUsers() {
     } else {
       setLoading(true);
     }
-    setError('');
+      setError('');
     
-    try {
-      const token = await AsyncStorage.getItem('token');
+      try {
+        const token = await AsyncStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
       }
@@ -360,7 +360,7 @@ export default function AllUsers() {
             ) : (
               renderEmptyState()
             )}
-          </ScrollView>
+    </ScrollView>
         )}
       </View>
     </SafeAreaView>
