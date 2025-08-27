@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 
-const API_URL = 'https://therapy-3.onrender.com';
+const API_URL = 'http://192.168.1.177:5000';
 
 export default function RequestAppointment() {
   const { therapistId } = useLocalSearchParams();

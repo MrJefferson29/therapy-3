@@ -1,4 +1,4 @@
-const API_URL = 'https://therapy-3.onrender.com'; // Change to your backend URL if needed
+const API_URL = 'http://192.168.1.177:5000'; // Local network backend URL
 
 export async function register({ username, email, password }) {
   const res = await fetch(`${API_URL}/auth/register`, {

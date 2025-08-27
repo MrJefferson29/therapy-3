@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const API_URL = 'https://therapy-3.onrender.com';
+const API_URL = 'http://192.168.1.177:5000';
 
 export default function TherapistChats() {
   const { user } = useAuth();
