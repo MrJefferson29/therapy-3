@@ -126,11 +126,10 @@ app.use('/appointment', appointmentRoutes);
 app.use('/chat', chatRoutes);
 
 const PORT = process.env.PORT || 5000;
-const HOST = '0.0.0.0'; // Bind to all network interfaces
 
-server.listen(PORT, HOST, () => {
-    console.log(`Server running on ${HOST}:${PORT}`);
-    console.log(`Accessible at: http://192.168.1.177:${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Production server accessible at: https://therapy-3.onrender.com`);
 });
 
 // Handle memory leak warning
