@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../hooks/useTheme';
 
-const API_URL = 'https://therapy-3.onrender.com';
+const API_URL = 'http://192.168.1.177:5000';
 
 export default function AppointmentApprovalModal({ 
   visible, 

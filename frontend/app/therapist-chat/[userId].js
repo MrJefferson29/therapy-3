@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AppointmentMessage from '../../components/AppointmentMessage';
 import AppointmentApprovalModal from '../../components/AppointmentApprovalModal';
 
-const API_URL = 'https://therapy-3.onrender.com';
+const API_URL = 'http://192.168.1.177:5000';
 const socket = io(API_URL);
 
 export default function ChatWithUser() {
@@ -33,7 +33,53 @@ export default function ChatWithUser() {
     fetchMessages();
     fetchAppointments();
     socket.on('chatMessage', (msg) => {
-      if (msg.roomId === roomId) setMessages(prev => [...prev, msg]);
+      console.log('🔔 Therapist received message:', msg);
+      console.log('🔍 Message details:', {
+        roomId: msg.roomId,
+        sender: msg.sender || msg.senderId,
+        message: msg.message,
+        encryptedMessage: msg.encryptedMessage ? msg.encryptedMessage.substring(0, 20) + '...' : 'none',
+        hasEncryption: !!msg.encryption
+      });
+      
+      if (msg.roomId === roomId) {
+        console.log('✅ Message matches room, adding to messages');
+        console.log('📝 Message content:', msg.message);
+        console.log('👤 Sender:', msg.senderId || msg.sender);
+        
+        // Check if this message is from the current therapist (avoid duplicate)
+        const isFromCurrentTherapist = (msg.senderId || msg.sender) === user._id;
+        
+        if (isFromCurrentTherapist) {
+          console.log('🔄 Message from current therapist, updating existing local message');
+          // Update the local message with the real message from server
+          setMessages(prev => prev.map(existingMsg => 
+            existingMsg.isLocal && existingMsg.message === msg.message 
+              ? { ...msg, isLocal: false }
+              : existingMsg
+          ));
+        } else {
+          console.log('➕ Adding new message from client');
+          // Check if message already exists to prevent duplicates
+          setMessages(prev => {
+            const messageExists = prev.some(existingMsg => 
+              existingMsg._id === msg._id || 
+              (existingMsg.message === msg.message && 
+               existingMsg.sender === msg.sender && 
+               Math.abs(new Date(existingMsg.timestamp) - new Date(msg.timestamp)) < 5000) // Within 5 seconds
+            );
+            
+            if (messageExists) {
+              console.log('🔄 Message already exists, skipping duplicate');
+              return prev;
+            }
+            
+            return [...prev, msg];
+          });
+        }
+      } else {
+        console.log('❌ Message room mismatch:', msg.roomId, 'vs', roomId);
+      }
     });
     return () => {
       socket.off('chatMessage');
@@ -64,11 +110,53 @@ export default function ChatWithUser() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`${API_URL}/chat/${roomId}`);
+      console.log(`Fetching messages for room: ${roomId}`);
+      
+      // Always include userId for decryption
+      const response = await fetch(`${API_URL}/chat/${roomId}?userId=${user._id}`);
+      
+      if (!response.ok) {
+        console.error('Messages API error:', response.status, response.statusText);
+        setMessages([]);
+        return;
+      }
+      
       const data = await response.json();
-      setMessages(data);
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.error('Messages API returned non-array data:', data);
+        setMessages([]);
+        return;
+      }
+      
+      console.log(`Fetched ${data.length} messages`);
+      
+      // Process messages to ensure we have the decrypted content
+      const processedMessages = data.map(msg => {
+        // If message has decryptedMessage field, use it
+        if (msg.decryptedMessage) {
+          return { ...msg, message: msg.decryptedMessage };
+        }
+        // If message has originalMessage field, use it
+        if (msg.originalMessage) {
+          return { ...msg, message: msg.originalMessage };
+        }
+        // Otherwise, use the message field as-is
+        return msg;
+      });
+      
+      console.log('📝 Processed messages:', processedMessages.map(m => ({ 
+        id: m._id, 
+        message: m.message, 
+        sender: m.sender,
+        timestamp: m.timestamp 
+      })));
+      
+      setMessages(processedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setMessages([]); // Set empty array on error
     }
   };
 
@@ -119,6 +207,19 @@ export default function ChatWithUser() {
 
   const sendMessage = () => {
     if (!input.trim()) return;
+    
+    // Check if user is loaded
+    if (!user || !user._id) {
+      console.error('❌ Therapist not loaded, cannot send message');
+      Alert.alert('Error', 'Therapist session not loaded. Please try again.');
+      return;
+    }
+    
+    console.log('🚀 Therapist sending message:', input);
+    console.log('🏠 Room ID:', roomId);
+    console.log('👤 Therapist ID:', user._id);
+    console.log('👥 Client ID:', userId);
+    
     const msg = {
       roomId,
       sender: user._id,
@@ -126,12 +227,67 @@ export default function ChatWithUser() {
       message: input,
       timestamp: new Date().toISOString(),
     };
-    socket.emit('chatMessage', msg);
+    
+    // Socket message with required fields for encryption
+    const socketMsg = {
+      roomId,
+      senderId: user._id,        // Required by backend encryption
+      receiverId: userId,        // Required by backend encryption
+      message: input,
+      timestamp: new Date().toISOString(),
+    };
+    
+    console.log('📤 Emitting socket message:', socketMsg);
+    socket.emit('chatMessage', socketMsg);
+    
+    // Add message to local state immediately for instant display
+    const localMessage = {
+      ...msg,
+      _id: Date.now().toString(), // Temporary ID for local display
+      timestamp: new Date().toISOString(),
+      isLocal: true // Flag to identify local messages
+    };
+    
+    console.log('📱 Adding local message to state:', localMessage);
+    setMessages(prev => [...prev, localMessage]);
+    
+    // Clear input
     setInput('');
+    
+    // Save message to database
     fetch(`${API_URL}/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(msg),
+    }).then(async response => {
+      if (response.ok) {
+        console.log('✅ Message saved to database');
+        try {
+          // Update local message with real database ID
+          const savedMessage = await response.json();
+          console.log('💾 Saved message data:', savedMessage);
+          setMessages(prev => prev.map(msg => 
+            msg.isLocal && msg.message === savedMessage.message
+              ? { ...savedMessage, isLocal: false }
+              : msg
+          ));
+        } catch (parseError) {
+          console.error('❌ Error parsing response:', parseError);
+        }
+      } else {
+        console.error('❌ Failed to save message to database');
+        // Remove local message if save failed
+        setMessages(prev => prev.filter(msg => !msg.isLocal));
+        Alert.alert('Error', 'Failed to send message. Please try again.');
+      }
+    }).catch(error => {
+      console.error('❌ Error saving message:', error);
+      // Remove local message if save failed
+      setMessages(prev => prev.filter(msg => !msg.isLocal));
+      Alert.alert('Error', 'Failed to send message. Please try again.');
     });
   };
 
@@ -185,6 +341,8 @@ export default function ChatWithUser() {
   };
 
   const renderMessage = ({ item }) => {
+    console.log('🎨 Therapist rendering message item:', item);
+    
     if (item.type === 'appointment') {
       const appointment = appointments.find(app => app._id === item.appointmentId);
       if (!appointment) return null;
@@ -203,17 +361,20 @@ export default function ChatWithUser() {
       );
     }
 
+    // Determine if this is the therapist's own message
+    const isOwnMessage = (item.sender === user._id) || (item.senderId === user._id);
+    
     return (
       <Animated.View 
         style={[
           styles.messageRow, 
-          item.sender === user._id ? styles.myRow : styles.theirRow,
+          isOwnMessage ? styles.myRow : styles.theirRow,
           { opacity: fadeAnim }
         ]}
       >
         <View style={[
           styles.bubble, 
-          item.sender === user._id ? 
+          isOwnMessage ? 
             { 
               backgroundColor: isDark ? '#3A5A3A' : '#dcf8c6',
               alignSelf: 'flex-end',
@@ -231,12 +392,15 @@ export default function ChatWithUser() {
               borderBottomLeftRadius: 0,
             }
         ]}>
-          <Text style={[styles.messageText, { color: isDark ? '#E8E8E8' : '#303030' }]}>{item.message}</Text>
+          <Text style={[styles.messageText, { color: isDark ? '#E8E8E8' : '#303030' }]}>
+            {item.message}
+            {item.isLocal && <Text style={{ fontStyle: 'italic', opacity: 0.7 }}> (sending...)</Text>}
+          </Text>
           <Text style={[
             styles.timeText, 
             { 
               color: isDark ? '#B0B0B0' : '#555',
-              textAlign: item.sender === user._id ? 'right' : 'left'
+              textAlign: isOwnMessage ? 'right' : 'left'
             }
           ]}>
             {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -248,13 +412,16 @@ export default function ChatWithUser() {
 
   // Combine messages and appointments for display
   const combinedMessages = [
-    ...messages.map(msg => ({ ...msg, type: 'message' })),
-    ...appointments.map(app => ({ 
+    ...(Array.isArray(messages) ? messages.map(msg => ({ ...msg, type: 'message' })) : []),
+    ...(Array.isArray(appointments) ? appointments.map(app => ({ 
       type: 'appointment', 
       appointmentId: app._id, 
       timestamp: app.createdDate 
-    }))
+    })) : [])
   ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  console.log('📊 Therapist messages state:', messages);
+  console.log('🔗 Therapist combined messages:', combinedMessages);
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#ece5dd' }]}>

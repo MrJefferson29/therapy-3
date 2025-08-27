@@ -21,7 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 
 const { width } = Dimensions.get("window");
-const API_URL = 'https://therapy-3.onrender.com';
+const API_URL = 'http://192.168.1.177:5000';
 
 const DEFAULT_PROFILE_IMAGES = [
   "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&w=256&h=256&facepad=2",

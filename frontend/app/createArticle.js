@@ -27,7 +27,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 const { width: screenWidth } = Dimensions.get('window');
-const API_URL = 'https://therapy-3.onrender.com/article';
+const API_URL = 'http://192.168.1.177:5000/article';
 
 export default function CreateArticle() {
   const { colors, isDark = false } = useTheme();

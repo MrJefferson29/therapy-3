@@ -14,4 +14,7 @@ router.get('/therapist/:therapistId', chatController.getTherapistChats);
 // Get all unique therapists who have chatted with a user
 router.get('/user/:userId', chatController.getUserChats);
 
+// Test encryption functionality
+router.get('/test-encryption', chatController.testEncryption);
+
 module.exports = router; 
