@@ -11,7 +11,7 @@ import AppointmentApprovalModal from '../../components/AppointmentApprovalModal'
 import AppointmentRequestButton from '../../components/AppointmentRequestButton';
 import chatEncryption from '../../utils/chatEncryption';
 
-const API_URL = 'http://192.168.1.177:5000';
+const API_URL = 'https://therapy-3.onrender.com';
 const socket = io(API_URL);
 
 export default function ChatWithTherapist() {
@@ -227,7 +227,7 @@ export default function ChatWithTherapist() {
         {
           text: 'Request',
           onPress: () => {
-            router.push(`/request-appointment?therapistId=${therapistId}`);
+    router.push(`/request-appointment?therapistId=${therapistId}`);
           },
         },
       ]
@@ -420,7 +420,7 @@ export default function ChatWithTherapist() {
 
     // Determine if this is the user's own message
     const isOwnMessage = (item.sender === user._id) || (item.senderId === user._id);
-    
+
     return (
       <Animated.View 
         style={[
@@ -565,7 +565,7 @@ export default function ChatWithTherapist() {
                 {isLoading ? (
                   <Text style={{ color: '#fff', fontSize: 12 }}>...</Text>
                 ) : (
-                  <Ionicons name="send" size={24} color="#fff" />
+                <Ionicons name="send" size={24} color="#fff" />
                 )}
               </TouchableOpacity>
             </View>
@@ -743,4 +743,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#222',
   },
-});
+}); 

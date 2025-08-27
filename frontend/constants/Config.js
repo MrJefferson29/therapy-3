@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = 'http://192.168.1.177:5000'; // Local network backend URL
+export const API_BASE_URL = 'https://therapy-3.onrender.com'; // Production backend URL
 
 // App Configuration
 export const APP_CONFIG = {

@@ -25,7 +25,7 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 
-const API_BASE_URL = "http://192.168.1.177:5000";
+const API_BASE_URL = "https://therapy-3.onrender.com";
 const TOKEN_KEY = "token";
 const { width } = Dimensions.get("window");
 const moodEmojis = ["😢", "😞", "😕", "😐", "🙂", "😊", "😃", "😁", "🤩", "😍"];
