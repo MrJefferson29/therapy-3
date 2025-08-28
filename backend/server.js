@@ -40,7 +40,8 @@ io.on('connection', (socket) => {
     // Join a room for a user-to-therapist chat
     socket.on('joinRoom', ({ roomId }) => {
         socket.join(roomId);
-        console.log(`Socket ${socket.id} joined room ${roomId}`);
+        console.log(`🚪 Socket ${socket.id} joined room ${roomId}`);
+        console.log(`📊 Room ${roomId} now has ${io.sockets.adapter.rooms.get(roomId)?.size || 0} users`);
     });
 
     // Handle sending a message
@@ -100,10 +101,32 @@ io.on('connection', (socket) => {
                 encryptedMessage: secureMessage.encryptedMessage.substring(0, 20) + '...'
             });
             
-            // Broadcast encrypted message to room
-            io.to(data.roomId).emit('chatMessage', secureMessage);
+            // Save message to database first
+            const Chat = require('./models/chat');
+            const newMessage = new Chat({
+                roomId: data.roomId,
+                sender: senderId,
+                receiver: receiverId,
+                message: encryptedData.encrypted, // Store encrypted message
+                timestamp: secureMessage.timestamp,
+                encryption: secureMessage.encryption
+            });
             
-            console.log(`Encrypted message sent to room ${data.roomId}`);
+            await newMessage.save();
+            console.log('💾 Message saved to database with ID:', newMessage._id);
+            
+            // Add the database ID to the message before broadcasting
+            const messageToBroadcast = {
+                ...secureMessage,
+                _id: newMessage._id
+            };
+            
+            // Broadcast encrypted message to room
+            const roomSize = io.sockets.adapter.rooms.get(data.roomId)?.size || 0;
+            console.log(`📤 Broadcasting message to room ${data.roomId} with ${roomSize} users`);
+            io.to(data.roomId).emit('chatMessage', messageToBroadcast);
+            
+            console.log(`✅ Encrypted message sent to room ${data.roomId}`);
         } catch (error) {
             console.error('Error processing chat message:', error);
             // Send error back to sender
@@ -114,8 +137,19 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('leaveRoom', ({ roomId }) => {
+        socket.leave(roomId);
+        console.log(`🚪 Socket ${socket.id} left room ${roomId}`);
+        console.log(`📊 Room ${roomId} now has ${io.sockets.adapter.rooms.get(roomId)?.size || 0} users`);
+    });
+
+    socket.on('ping', ({ roomId, timestamp }) => {
+        console.log(`🏓 Ping received from socket ${socket.id} in room ${roomId} at ${new Date(timestamp).toISOString()}`);
+        socket.emit('pong', { roomId, timestamp, serverTime: Date.now() });
+    });
+
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        console.log('🔌 User disconnected:', socket.id);
     });
 });
 

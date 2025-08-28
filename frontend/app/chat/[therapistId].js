@@ -12,7 +12,11 @@ import AppointmentRequestButton from '../../components/AppointmentRequestButton'
 import chatEncryption from '../../utils/chatEncryption';
 
 const API_URL = 'https://therapy-3.onrender.com';
-const socket = io(API_URL);
+const socket = io(API_URL, {
+  transports: ['websocket', 'polling'],
+  timeout: 20000,
+  forceNew: true
+});
 
 export default function ChatWithTherapist() {
   const { therapistId } = useLocalSearchParams();
@@ -31,25 +35,130 @@ export default function ChatWithTherapist() {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const sendMessage = async () => {
+    if (!input.trim() || !roomId || !user || !therapist) {
+      Alert.alert('Error', 'Please enter a message');
+      return;
+    }
+
+    const messageData = {
+      roomId: roomId,
+      senderId: user._id,
+      receiverId: therapistId,
+      message: input.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    // Add message locally first for immediate feedback
+    const localMessage = {
+      _id: Date.now().toString(), // Temporary ID
+      ...messageData,
+      isLocal: true,
+      sender: user._id
+    };
+
+    setMessages(prev => [...prev, localMessage]);
+    setInput('');
+
+    try {
+      // Emit message via socket
+      socket.emit('chatMessage', messageData);
+      console.log('📤 Message sent via socket:', messageData);
+      
+      // Also save via HTTP as fallback
+      try {
+        const response = await fetch(`${API_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            roomId: messageData.roomId,
+            sender: messageData.senderId,
+            receiver: messageData.receiverId,
+            message: messageData.message
+          })
+        });
+        
+        if (response.ok) {
+          console.log('💾 Message also saved via HTTP fallback');
+        }
+      } catch (httpError) {
+        console.log('⚠️ HTTP fallback failed, but socket succeeded:', httpError.message);
+      }
+    } catch (error) {
+      console.error('❌ Error sending message via socket:', error);
+      
+      // Try HTTP fallback
+      try {
+        const response = await fetch(`${API_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            roomId: messageData.roomId,
+            sender: messageData.senderId,
+            receiver: messageData.receiverId,
+            message: messageData.message
+          })
+        });
+        
+        if (response.ok) {
+          console.log('💾 Message sent via HTTP fallback');
+          // Update local message to remove isLocal flag
+          setMessages(prev => prev.map(msg => 
+            msg._id === localMessage._id ? { ...msg, isLocal: false } : msg
+          ));
+        } else {
+          throw new Error('HTTP fallback also failed');
+        }
+      } catch (httpError) {
+        console.error('❌ Both socket and HTTP failed:', httpError);
+        Alert.alert('Error', 'Failed to send message. Please try again.');
+        
+        // Remove the local message if sending failed
+        setMessages(prev => prev.filter(msg => msg._id !== localMessage._id));
+        setInput(messageData.message); // Restore the input
+      }
+    }
+  };
+
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || !user) return;
+    
+    console.log('🔌 Connecting to socket and joining room:', roomId);
+    
+    // Connect to socket if not already connected
+    if (!socket.connected) {
+      console.log('🔌 Socket not connected, connecting...');
+      socket.connect();
+    } else {
+      console.log('🔌 Socket already connected');
+    }
+    
+    // Join room
     socket.emit('joinRoom', { roomId });
+    console.log('🚪 Joined room:', roomId);
+    
+    // Fetch initial messages
     fetchMessages();
     fetchAppointments();
-    socket.on('chatMessage', (msg) => {
+    
+    // Listen for incoming messages
+    const handleChatMessage = (msg) => {
       console.log('🔔 Socket received message:', msg);
       console.log('🔍 Message details:', {
         roomId: msg.roomId,
         sender: msg.sender || msg.senderId,
         message: msg.message,
-        encryptedMessage: msg.encryptedMessage ? msg.encryptedMessage.substring(0, 20) + '...' : 'none',
-        hasEncryption: !!msg.encryption
+        timestamp: msg.timestamp
       });
       
       if (msg.roomId === roomId) {
-        console.log('✅ Message matches room, adding to messages');
-        console.log('📝 Message content:', msg.message);
-        console.log('👤 Sender:', msg.senderId || msg.sender);
+        console.log('✅ Message matches room, processing...');
         
         // Check if this message is from the current user (avoid duplicate)
         const isFromCurrentUser = (msg.senderId || msg.sender) === user._id;
@@ -59,7 +168,7 @@ export default function ChatWithTherapist() {
           // Update the local message with the real message from server
           setMessages(prev => prev.map(existingMsg => 
             existingMsg.isLocal && existingMsg.message === msg.message 
-              ? { ...msg, isLocal: false }
+              ? { ...msg, isLocal: false, _id: msg._id }
               : existingMsg
           ));
         } else {
@@ -70,7 +179,7 @@ export default function ChatWithTherapist() {
               existingMsg._id === msg._id || 
               (existingMsg.message === msg.message && 
                existingMsg.sender === msg.sender && 
-               Math.abs(new Date(existingMsg.timestamp) - new Date(msg.timestamp)) < 5000) // Within 5 seconds
+               Math.abs(new Date(existingMsg.timestamp) - new Date(msg.timestamp)) < 5000)
             );
             
             if (messageExists) {
@@ -84,12 +193,44 @@ export default function ChatWithTherapist() {
       } else {
         console.log('❌ Message room mismatch:', msg.roomId, 'vs', roomId);
       }
+    };
+    
+    // Listen for socket connection status
+    const handleConnect = () => {
+      console.log('🔌 Socket connected, joining room:', roomId);
+      socket.emit('joinRoom', { roomId });
+    };
+    
+    const handleDisconnect = () => {
+      console.log('🔌 Socket disconnected');
+    };
+    
+    // Add event listeners
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('chatMessage', handleChatMessage);
+    socket.on('pong', (data) => {
+      console.log('🏓 Pong received:', data);
     });
+    
+    // Test socket connection with a ping
+    setTimeout(() => {
+      if (socket.connected) {
+        console.log('🏓 Testing socket connection...');
+        socket.emit('ping', { roomId, timestamp: Date.now() });
+      }
+    }, 2000);
+    
+    // Cleanup function
     return () => {
-      socket.off('chatMessage');
+      console.log('🧹 Cleaning up socket listeners for room:', roomId);
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('chatMessage', handleChatMessage);
+      socket.off('pong');
       socket.emit('leaveRoom', { roomId });
     };
-  }, [roomId]);
+  }, [roomId, user]);
 
   useEffect(() => {
     if (therapistId) {
@@ -306,96 +447,7 @@ export default function ChatWithTherapist() {
     requestAppointment();
   };
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    
-    // Check if user is loaded
-    if (!user || !user._id) {
-      console.error('❌ User not loaded, cannot send message');
-      Alert.alert('Error', 'User session not loaded. Please try again.');
-      return;
-    }
-    
-    // Set loading state
-    setIsLoading(true);
-    
-    console.log('🚀 Sending message:', input);
-    console.log('🏠 Room ID:', roomId);
-    console.log('👤 User ID:', user._id);
-    console.log('👨‍⚕️ Therapist ID:', therapistId);
-    
-    const msg = {
-      roomId,
-      sender: user._id,
-      receiver: therapistId,
-      message: input,
-      timestamp: new Date().toISOString(),
-    };
-    
-    // Socket message with required fields for encryption
-    const socketMsg = {
-      roomId,
-      senderId: user._id,        // Required by backend encryption
-      receiverId: therapistId,   // Required by backend encryption
-      message: input,
-      timestamp: new Date().toISOString(),
-    };
-    
-    console.log('📤 Emitting socket message:', socketMsg);
-    socket.emit('chatMessage', socketMsg);
-    
-    // Add message to local state immediately for instant display
-    const localMessage = {
-      ...msg,
-      _id: Date.now().toString(), // Temporary ID for local display
-      timestamp: new Date().toISOString(),
-      isLocal: true // Flag to identify local messages
-    };
-    
-    console.log('📱 Adding local message to state:', localMessage);
-    setMessages(prev => [...prev, localMessage]);
-    
-    // Clear input
-    setInput('');
-    
-    // Save message to database
-    fetch(`${API_URL}/chat`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(msg),
-    }).then(async response => {
-      if (response.ok) {
-        console.log('✅ Message saved to database');
-        try {
-          // Update local message with real database ID
-          const savedMessage = await response.json();
-          console.log('💾 Saved message data:', savedMessage);
-          setMessages(prev => prev.map(msg => 
-            msg.isLocal && msg.message === savedMessage.message
-              ? { ...savedMessage, isLocal: false }
-              : msg
-          ));
-        } catch (parseError) {
-          console.error('❌ Error parsing response:', parseError);
-        }
-      } else {
-        console.error('❌ Failed to save message to database');
-        // Remove local message if save failed
-        setMessages(prev => prev.filter(msg => !msg.isLocal));
-        Alert.alert('Error', 'Failed to send message. Please try again.');
-      }
-    }).catch(error => {
-      console.error('❌ Error saving message:', error);
-      // Remove local message if save failed
-      setMessages(prev => prev.filter(msg => !msg.isLocal));
-      Alert.alert('Error', 'Failed to send message. Please try again.');
-    }).finally(() => {
-      setIsLoading(false);
-    });
-  };
+
 
   const renderMessage = ({ item }) => {
     console.log('🎨 Rendering message item:', item);
@@ -475,7 +527,11 @@ export default function ChatWithTherapist() {
       appointmentId: app._id, 
       timestamp: app.createdDate 
     })) : [])
-  ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  ].sort((a, b) => {
+    const dateA = new Date(a.timestamp);
+    const dateB = new Date(b.timestamp);
+    return dateA.getTime() - dateB.getTime();
+  });
   
   console.log('📊 Messages state:', messages);
   console.log('🔗 Combined messages:', combinedMessages);
