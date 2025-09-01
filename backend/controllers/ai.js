@@ -1,5 +1,7 @@
 const express = require("express");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const fs = require("fs");
+const path = require("path");
 const DeepseekAI = require("../services/deepseekAI");
 const Ai = require("../models/ai");
 const Session = require("../models/session");
@@ -7,6 +9,32 @@ const intents = require('../intents.json');
 const User = require("../models/user");
 const Appointment = require("../models/appointment");
 const sendEmail = require("../utils/sendEmail");
+
+// Load university student training data
+let universityStudentKnowledge = {};
+try {
+  const trainingDataPath = path.join(__dirname, '..', 'training_data', 'university_student_knowledge.json');
+  console.log('Looking for training data at:', trainingDataPath);
+  if (fs.existsSync(trainingDataPath)) {
+    universityStudentKnowledge = JSON.parse(fs.readFileSync(trainingDataPath, 'utf8'));
+    console.log('✅ University student training data loaded successfully');
+    console.log('Training data keys:', Object.keys(universityStudentKnowledge));
+  } else {
+    console.log('⚠️ University student training data file not found at:', trainingDataPath);
+    // Fallback: try to load from current directory
+    const fallbackPath = path.join(__dirname, 'training_data', 'university_student_knowledge.json');
+    console.log('Trying fallback path:', fallbackPath);
+    if (fs.existsSync(fallbackPath)) {
+      universityStudentKnowledge = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
+      console.log('✅ University student training data loaded from fallback path');
+    } else {
+      console.log('❌ Training data not found in fallback path either');
+    }
+  }
+} catch (error) {
+  console.log('❌ Error loading university student training data:', error.message);
+  console.log('Error stack:', error.stack);
+}
 
 // Initialize AI models
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
