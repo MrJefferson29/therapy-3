@@ -127,11 +127,12 @@ RESPONSE STYLE:
 
 SAFETY PROTOCOLS:
 - If someone appears to be in crisis, suicidal, or homicidal, respond with:
-  "I'm very concerned about your safety. Please contact a crisis therapist immediately. There are a number of skilled therapists available on the therapists platform."
+  "I'm very concerned about your safety and well-being. I'm immediately connecting you with a qualified therapist who can provide the urgent support you need. Please don't hesitate to reach out - you're not alone in this."
 - For domestic violence: Provide safety planning and local resources
 - For substance abuse: Offer harm reduction strategies and treatment referrals
 - Never provide medical diagnosis or medication advice
 - Always maintain professional boundaries
+- CRITICAL: When crisis is detected, the system will automatically book an emergency session with an available therapist
 
 CONVERSATION FLOW:
 - Build therapeutic alliance through consistent, caring responses
@@ -373,61 +374,86 @@ function isSeverelyUnstable(input) {
     }
   }
   
-  // Define high-risk crisis patterns with context
+  // Enhanced semantic crisis detection patterns
   const crisisPatterns = [
-    // Suicidal ideation - specific and direct
-    /i want to die/i,
-    /i want to kill myself/i,
-    /i want to end my life/i,
-    /i want to end it all/i,
-    /i wish i was dead/i,
-    /i wish to die/i,
-    /i wish to end it all/i,
-    /i'm going to kill myself/i,
-    /i'm going to end my life/i,
-    /i'm going to end it all/i,
-    /i plan to kill myself/i,
-    /i plan to end my life/i,
-    /i have a plan to kill myself/i,
-    /i have a plan to end my life/i,
-    /i know how i would do it/i,
-    /i have the means to kill myself/i,
-    /i have the means to end my life/i,
-    /i'm better off dead/i,
-    /everyone would be better off without me/i,
-    /no one would miss me/i,
-    /i have no reason to live/i,
-    /life is pointless/i,
-    /life is meaningless/i,
-    /i can't take it anymore/i,
-    /i can't handle this anymore/i,
-    /i give up on life/i,
-    /i'm giving up/i,
+    // Suicidal ideation - various expressions with semantic understanding
+    /i (want|wish|need|desire) to (die|end my life|kill myself|commit suicide|end it all)/i,
+    /i (want|wish|need|desire) to (end myself|take my life|end my existence)/i,
+    /i (want|wish|need|desire) to (stop existing|not be here|disappear|not wake up)/i,
+    /i (want|wish|need|desire) to (end this|end everything|end it|end the pain)/i,
+    /i (want|wish|need|desire) to (go away|leave this world|not be alive)/i,
+    /i (want|wish|need|desire) to (end my suffering|stop living|not live)/i,
+    /i (want|wish|need|desire) to (end my pain|stop existing|not be alive)/i,
+    /i (want|wish|need|desire) to (end the suffering|stop the hurt|end the hurt)/i,
+    /i (want|wish|need|desire) to (end my misery|stop my pain|end my agony)/i,
+    /i (want|wish|need|desire) to (end my torment|stop my suffering|end my distress)/i,
     
-    // Self-harm - specific and direct
-    /i want to hurt myself/i,
-    /i want to cut myself/i,
-    /i want to harm myself/i,
-    /i'm going to hurt myself/i,
-    /i'm going to cut myself/i,
-    /i'm going to harm myself/i,
-    /i plan to hurt myself/i,
-    /i plan to cut myself/i,
-    /i plan to harm myself/i,
+    // Future tense suicidal ideation
+    /i'm going to (die|kill myself|end my life|commit suicide|end it all)/i,
+    /i'm going to (end myself|take my life|end my existence)/i,
+    /i'm going to (stop existing|not be here|disappear|not wake up)/i,
+    /i'm going to (end this|end everything|end it|end the pain)/i,
+    /i'm going to (go away|leave this world|not be alive)/i,
+    /i'm going to (end my suffering|stop living|not live)/i,
+    /i'm going to (end my pain|stop existing|not be alive)/i,
     
-    // Homicidal ideation - specific and direct
-    /i want to kill someone/i,
-    /i want to hurt someone/i,
-    /i want to harm someone/i,
-    /i want to attack someone/i,
-    /i'm going to kill someone/i,
-    /i'm going to hurt someone/i,
-    /i'm going to harm someone/i,
-    /i'm going to attack someone/i,
-    /i plan to kill someone/i,
-    /i plan to hurt someone/i,
-    /i plan to harm someone/i,
-    /i plan to attack someone/i,
+    // Planning and intent
+    /i (plan|intend|am planning|am intending) to (die|kill myself|end my life|commit suicide)/i,
+    /i (plan|intend|am planning|am intending) to (end myself|take my life|end my existence)/i,
+    /i (plan|intend|am planning|am intending) to (stop existing|not be here|disappear)/i,
+    /i (plan|intend|am planning|am intending) to (end this|end everything|end it)/i,
+    /i (plan|intend|am planning|am intending) to (go away|leave this world|not be alive)/i,
+    
+    // Means and methods
+    /i (have|know|found) (a way|the means|how) to (die|kill myself|end my life|commit suicide)/i,
+    /i (have|know|found) (a way|the means|how) to (end myself|take my life|end my existence)/i,
+    /i (have|know|found) (a way|the means|how) to (stop existing|not be here|disappear)/i,
+    /i (have|know|found) (a way|the means|how) to (end this|end everything|end it)/i,
+    
+    // Hopelessness and worthlessness
+    /i'm (better off|worse off) (dead|not alive|not existing)/i,
+    /everyone would be (better off|worse off) (without me|if i wasn't here|if i was gone)/i,
+    /no one would (miss me|care if i was gone|notice if i was gone)/i,
+    /i have (no reason|no purpose|nothing) to (live|be alive|exist)/i,
+    /life is (pointless|meaningless|worthless|hopeless)/i,
+    /i'm (worthless|useless|hopeless|helpless)/i,
+    /i'm (better off|worse off) (dead|not alive|not existing)/i,
+    
+    // Overwhelming distress
+    /i can't (take|bear|stand|endure|handle) (this|it|anymore|this pain|this suffering)/i,
+    /i can't (cope|deal|manage|handle) (this|it|anymore|this pain|this suffering)/i,
+    /i (give up|am giving up|have given up) (on life|on everything|on trying)/i,
+    /i (want|need) (this|it|everything) to (stop|end|be over|be done)/i,
+    /i (want|need) to (give up|quit|stop trying|stop fighting)/i,
+    /i'm (giving up|quitting|stopping) (on life|on everything|on trying)/i,
+    /i'm (at|hitting) (rock bottom|my breaking point|my limit)/i,
+    /i (can't|don't) (go on|continue|keep going|keep fighting)/i,
+    
+    // Self-harm - enhanced semantic patterns
+    /i (want|wish|need|desire) to (hurt|cut|harm|injure|damage|wound) (myself|my body)/i,
+    /i (want|wish|need|desire) to (punish|hurt|cut|harm|injure|damage|wound) (myself|my body)/i,
+    /i (want|wish|need|desire) to (hurt|cut|harm|injure|damage|wound) (my|the) (body|skin|arms|legs)/i,
+    /i (want|wish|need|desire) to (punish|hurt|cut|harm|injure|damage|wound) (my|the) (body|skin|arms|legs)/i,
+    /i'm going to (hurt|cut|harm|injure|damage|wound) (myself|my body)/i,
+    /i'm going to (punish|hurt|cut|harm|injure|damage|wound) (myself|my body)/i,
+    /i'm going to (hurt|cut|harm|injure|damage|wound) (my|the) (body|skin|arms|legs)/i,
+    /i (plan|intend|am planning|am intending) to (hurt|cut|harm|injure|damage|wound) (myself|my body)/i,
+    /i (plan|intend|am planning|am intending) to (punish|hurt|cut|harm|injure|damage|wound) (myself|my body)/i,
+    /i (plan|intend|am planning|am intending) to (hurt|cut|harm|injure|damage|wound) (my|the) (body|skin|arms|legs)/i,
+    
+    // Homicidal ideation - enhanced semantic patterns
+    /i (want|wish|need|desire) to (kill|hurt|harm|injure|attack|assault) (someone|people|them)/i,
+    /i (want|wish|need|desire) to (kill|hurt|harm|injure|attack|assault) (him|her|them|that person)/i,
+    /i (want|wish|need|desire) to (kill|hurt|harm|injure|attack|assault) (my|the) (partner|spouse|family|friend|boss|teacher)/i,
+    /i (want|wish|need|desire) to (kill|hurt|harm|injure|attack|assault) (my|the) (boyfriend|girlfriend|husband|wife)/i,
+    /i'm going to (kill|hurt|harm|injure|attack|assault) (someone|people|them)/i,
+    /i'm going to (kill|hurt|harm|injure|attack|assault) (him|her|them|that person)/i,
+    /i'm going to (kill|hurt|harm|injure|attack|assault) (my|the) (partner|spouse|family|friend|boss|teacher)/i,
+    /i'm going to (kill|hurt|harm|injure|attack|assault) (my|the) (boyfriend|girlfriend|husband|wife)/i,
+    /i (plan|intend|am planning|am intending) to (kill|hurt|harm|injure|attack|assault) (someone|people|them)/i,
+    /i (plan|intend|am planning|am intending) to (kill|hurt|harm|injure|attack|assault) (him|her|them|that person)/i,
+    /i (plan|intend|am planning|am intending) to (kill|hurt|harm|injure|attack|assault) (my|the) (partner|spouse|family|friend|boss|teacher)/i,
+    /i (plan|intend|am planning|am intending) to (kill|hurt|harm|injure|attack|assault) (my|the) (boyfriend|girlfriend|husband|wife)/i,
     
     // Domestic violence - specific and direct
     /my partner hits me/i,
@@ -763,20 +789,22 @@ const generateContent = async (req, res) => {
 
     // Check for severe instability first
     if (isSeverelyUnstable(prompt)) {
-      const crisisResponse = `I'm very concerned about your safety and I want you to know that you're not alone. What you're experiencing sounds incredibly difficult, and it's important that you get immediate support from a mental health professional.
+      const crisisResponse = `I'm very concerned about your safety and well-being. What you're experiencing sounds incredibly difficult, and I want you to know that you're not alone in this.
+
+**I'm immediately connecting you with a qualified therapist** who can provide the urgent support you need. You don't have to face this alone.
 
 Immediate Crisis Resources:
 Crisis Helpline: 0800 800 2000 (24/7)
 • Emergency Services: 112 (immediate help)
 • Text Crisis Support: Text HOME to 741741
 
-**What to do right now:**
-1. If you're having thoughts of harming yourself or others, please call 112 immediately
-2. Reach out to someone you trust - a friend, family member, or mental health professional
-3. If you're in immediate danger, go to your nearest emergency room
+**What's happening right now:**
+1. I'm automatically booking you an emergency session with an available therapist
+2. You'll be redirected to connect with them immediately
+3. If you're in immediate danger, please call 112 right now
 4. Remember: these feelings are temporary and help is available
 
-**You matter, and your life has value.** Professional help can make a real difference in how you're feeling. Would you be willing to reach out to one of these resources right now?`;
+**You matter, and your life has value.** A professional therapist will be with you shortly to provide the support you need. Please don't hesitate to reach out - you're taking an important step by seeking help.`;
       const newAiEntry = new Ai({
         prompt: prompt,
         response: crisisResponse,
