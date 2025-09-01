@@ -80,6 +80,16 @@ SPECIALIZED INTERVENTIONS:
 - For relationships: Communication skills, boundary setting, attachment theory insights
 - For self-esteem: Self-compassion exercises, positive self-talk, achievement recognition
 
+UNIVERSITY STUDENT-SPECIFIC INTERVENTIONS:
+- For academic pressures: Time management strategies, study techniques, stress reduction, realistic goal-setting
+- For CGPA anxiety: Academic counseling referrals, grade perspective, learning from setbacks
+- For family expectations: Boundary setting, communication strategies, cultural sensitivity
+- For financial stress: Budgeting guidance, resource finding, financial aid information
+- For social challenges: Social skills development, peer support groups, campus integration
+- For religious/spiritual needs: Faith-based coping, spiritual community connections, prayer/meditation
+- For first-generation students: Academic support, cultural navigation, family communication
+- For final year project stress: Project management, supervisor communication, realistic timelines
+
 RESPONSE STYLE:
 - Warm, professional, and non-judgmental tone
 - Use therapeutic language that normalizes experiences
@@ -89,7 +99,7 @@ RESPONSE STYLE:
 
 SAFETY PROTOCOLS:
 - If someone appears to be in crisis, suicidal, or homicidal, respond with:
-  "I'm very concerned about your safety. Please contact a crisis therapist immediately or speak with a mental health professional. You can call 0800 800 2000 (Suicide & Crisis Lifeline) or 112 for immediate help."
+  "I'm very concerned about your safety. Please contact a crisis therapist immediately. There are a number of skilled therapists available on the therapists platform."
 - For domestic violence: Provide safety planning and local resources
 - For substance abuse: Offer harm reduction strategies and treatment referrals
 - Never provide medical diagnosis or medication advice
@@ -228,6 +238,17 @@ function buildContextualPrompt(historyPrompt, userPrompt, isVague = false) {
   contextPrompt += `\n- If the user mentions anger: Help with anger management and emotional regulation`;
   contextPrompt += `\n- If the user mentions grief: Provide grief support and normalization`;
   
+  // University student-specific guidance
+  contextPrompt += `\n\nUNIVERSITY STUDENT GUIDANCE:`;
+  contextPrompt += `\n- If the user mentions academic pressure/CGPA: Help with realistic goal-setting and study strategies`;
+  contextPrompt += `\n- If the user mentions financial stress: Offer budgeting tips and resource finding`;
+  contextPrompt += `\n- If the user mentions family expectations: Help with boundary setting and cultural communication`;
+  contextPrompt += `\n- If the user mentions social challenges: Guide toward campus integration and peer support`;
+  contextPrompt += `\n- If the user mentions religious/spiritual needs: Support faith-based coping and spiritual community`;
+  contextPrompt += `\n- If the user mentions first-generation struggles: Provide academic support and cultural navigation`;
+  contextPrompt += `\n- If the user mentions final year project stress: Help with project management and supervisor communication`;
+  contextPrompt += `\n- If the user mentions lecturer issues: Guide toward professional communication and advocacy`;
+  
   // Add conversation flow guidance
   contextPrompt += `\n\nCONVERSATION FLOW:`;
   contextPrompt += `\n- If this is a follow-up to a previous question, build on that context`;
@@ -237,6 +258,12 @@ function buildContextualPrompt(historyPrompt, userPrompt, isVague = false) {
   contextPrompt += `\n- If the user seems frustrated or stuck, offer practical coping strategies or validation`;
   contextPrompt += `\n- Use Socratic questioning to help them arrive at their own insights`;
   contextPrompt += `\n- Balance validation with gentle challenge of unhelpful patterns`;
+  
+  // Inject relevant university student knowledge based on user input
+  const relevantKnowledge = injectUniversityStudentKnowledge(userPrompt);
+  if (relevantKnowledge) {
+    contextPrompt += relevantKnowledge;
+  }
   
   contextPrompt += `\n\nUser: ${userPrompt}\nAI:`;
   
@@ -297,7 +324,18 @@ function isSeverelyUnstable(input) {
     
     // Time expressions
     /died (yesterday|today|last week|this morning)/i,
-    /killed (yesterday|today|last week|this morning)/i
+    /killed (yesterday|today|last week|this morning)/i,
+    
+    // Academic harmless expressions
+    /killed (the exam|the test|the assignment|the presentation)/i,
+    /died (during|in|at) (exam|test|presentation)/i,
+    /killed (it|them) (in|at|during) (class|lecture|tutorial)/i,
+    /died (of|from) (boredom|embarrassment) (in|at|during) (class|lecture)/i,
+    
+    // Financial harmless expressions
+    /killed (my budget|my savings|my wallet)/i,
+    /died (of|from) (shock|embarrassment) (when|after) (seeing|checking) (bill|price)/i,
+    /killed (it|them) (at|in) (work|job|business)/i
   ];
   
   // Check for harmless patterns first
@@ -456,7 +494,46 @@ function isSeverelyUnstable(input) {
     /i'm helpless/i,
     /i'm hopeless/i,
     /i'm worthless/i,
-    /i'm depressed to death/i
+    /i'm depressed to death/i,
+    
+    // Academic crisis patterns
+    /i'm going to fail my degree/i,
+    /i'm going to fail my final year/i,
+    /i can't handle my studies anymore/i,
+    /i want to drop out/i,
+    /i'm going to drop out/i,
+    /i can't face my lecturers anymore/i,
+    /i'm going to fail my project/i,
+    /i can't complete my final year project/i,
+    /my cgpa is ruined/i,
+    /my grades are destroyed/i,
+    /i'm going to disappoint my family/i,
+    /my family will disown me/i,
+    /i can't meet my family's expectations/i,
+    
+    // Financial crisis patterns
+    /i can't afford to study anymore/i,
+    /i'm going to be homeless/i,
+    /i can't pay my fees/i,
+    /i can't afford food/i,
+    /i'm starving/i,
+    /i can't pay my rent/i,
+    /i'm going to be evicted/i,
+    /my family can't support me anymore/i,
+    /i'm in debt/i,
+    /i can't pay my loans/i,
+    
+    // Social crisis patterns
+    /i have no friends/i,
+    /everyone hates me/i,
+    /i don't fit in anywhere/i,
+    /i'm completely alone/i,
+    /no one understands me/i,
+    /i'm being bullied/i,
+    /i'm being excluded/i,
+    /social media is destroying me/i,
+    /i can't handle the pressure/i,
+    /i'm a failure compared to others/i
   ];
   
   // Check for crisis patterns
@@ -488,6 +565,107 @@ function isSeverelyUnstable(input) {
   }
   
   return false; // No crisis detected
+}
+
+// Function to inject relevant university student knowledge based on user input
+function injectUniversityStudentKnowledge(userInput) {
+  let relevantKnowledge = '';
+  
+  // Check for academic pressure patterns
+  if (userInput.toLowerCase().match(/(cgpa|grade|academic|study|exam|test|assignment|project|lecturer|professor|coursework)/)) {
+    if (universityStudentKnowledge.university_student_knowledge?.academic_pressures) {
+      relevantKnowledge += '\n\nACADEMIC EXPERTISE:';
+      if (universityStudentKnowledge.university_student_knowledge.academic_pressures.cgpa_anxiety) {
+        relevantKnowledge += `\n- CGPA Anxiety: ${universityStudentKnowledge.university_student_knowledge.academic_pressures.cgpa_anxiety.understanding}`;
+        relevantKnowledge += `\n- Interventions: ${universityStudentKnowledge.university_student_knowledge.academic_pressures.cgpa_anxiety.interventions.join(', ')}`;
+      }
+      if (universityStudentKnowledge.university_student_knowledge.academic_pressures.procrastination) {
+        relevantKnowledge += `\n- Procrastination: ${universityStudentKnowledge.university_student_knowledge.academic_pressures.procrastination.understanding}`;
+        relevantKnowledge += `\n- Interventions: ${universityStudentKnowledge.university_student_knowledge.academic_pressures.procrastination.interventions.join(', ')}`;
+      }
+      if (universityStudentKnowledge.university_student_knowledge.academic_pressures.exam_anxiety) {
+        relevantKnowledge += `\n- Exam Anxiety: ${universityStudentKnowledge.university_student_knowledge.academic_pressures.exam_anxiety.understanding}`;
+        relevantKnowledge += `\n- Interventions: ${universityStudentKnowledge.university_student_knowledge.academic_pressures.exam_anxiety.interventions.join(', ')}`;
+      }
+    }
+  }
+  
+  // Check for financial stress patterns
+  if (userInput.toLowerCase().match(/(money|financial|budget|cost|tuition|fee|loan|debt|expensive|afford|funding|scholarship)/)) {
+    if (universityStudentKnowledge.university_student_knowledge?.financial_stress) {
+      relevantKnowledge += '\n\nFINANCIAL EXPERTISE:';
+      if (universityStudentKnowledge.university_student_knowledge.financial_stress.self_funding_education) {
+        relevantKnowledge += `\n- Self-Funding: ${universityStudentKnowledge.university_student_knowledge.financial_stress.self_funding_education.understanding}`;
+        relevantKnowledge += `\n- Resources: ${universityStudentKnowledge.university_student_knowledge.financial_stress.self_funding_education.resources.join(', ')}`;
+        relevantKnowledge += `\n- Coping: ${universityStudentKnowledge.university_student_knowledge.financial_stress.self_funding_education.coping_strategies.join(', ')}`;
+      }
+    }
+  }
+  
+  // Check for social challenges patterns
+  if (userInput.toLowerCase().match(/(friend|social|lonely|isolated|peer|group|roommate|bully|harassment|fit in|belong)/)) {
+    if (universityStudentKnowledge.university_student_knowledge?.social_challenges) {
+      relevantKnowledge += '\n\nSOCIAL EXPERTISE:';
+      if (universityStudentKnowledge.university_student_knowledge.social_challenges.social_isolation) {
+        relevantKnowledge += `\n- Social Isolation: ${universityStudentKnowledge.university_student_knowledge.social_challenges.social_isolation.understanding}`;
+        relevantKnowledge += `\n- Interventions: ${universityStudentKnowledge.university_student_knowledge.social_challenges.social_isolation.interventions.join(', ')}`;
+      }
+    }
+  }
+  
+  // Check for family expectations patterns
+  if (userInput.toLowerCase().match(/(family|parent|expectation|pressure|first generation|cultural|tradition|obligation)/)) {
+    if (universityStudentKnowledge.university_student_knowledge?.family_expectations) {
+      relevantKnowledge += '\n\nFAMILY EXPERTISE:';
+      if (universityStudentKnowledge.university_student_knowledge.family_expectations.first_generation_students) {
+        relevantKnowledge += `\n- First-Generation: ${universityStudentKnowledge.university_student_knowledge.family_expectations.first_generation_students.understanding}`;
+        relevantKnowledge += `\n- Support: ${universityStudentKnowledge.university_student_knowledge.family_expectations.first_generation_students.support_strategies.join(', ')}`;
+      }
+    }
+  }
+  
+  // Check for religious/spiritual patterns
+  if (userInput.toLowerCase().match(/(religion|spiritual|faith|prayer|god|belief|church|mosque|temple|meditation|soul)/)) {
+    if (universityStudentKnowledge.university_student_knowledge?.religious_spiritual) {
+      relevantKnowledge += '\n\nSPIRITUAL EXPERTISE:';
+      if (universityStudentKnowledge.university_student_knowledge.religious_spiritual.faith_based_coping) {
+        relevantKnowledge += `\n- Faith-Based Coping: ${universityStudentKnowledge.university_student_knowledge.religious_spiritual.faith_based_coping.understanding}`;
+        relevantKnowledge += `\n- Support: ${universityStudentKnowledge.university_student_knowledge.religious_spiritual.faith_based_coping.support_strategies.join(', ')}`;
+      }
+    }
+  }
+  
+  // Check for mental health patterns
+  if (userInput.toLowerCase().match(/(imposter|perfection|anxiety|depression|stress|burnout|overwhelm|worthless|failure)/)) {
+    if (universityStudentKnowledge.university_student_knowledge?.mental_health) {
+      relevantKnowledge += '\n\nMENTAL HEALTH EXPERTISE:';
+      if (universityStudentKnowledge.university_student_knowledge.mental_health.imposter_syndrome) {
+        relevantKnowledge += `\n- Imposter Syndrome: ${universityStudentKnowledge.university_student_knowledge.mental_health.imposter_syndrome.understanding}`;
+        relevantKnowledge += `\n- Interventions: ${universityStudentKnowledge.university_student_knowledge.mental_health.imposter_syndrome.interventions.join(', ')}`;
+      }
+      if (universityStudentKnowledge.university_student_knowledge.mental_health.perfectionism) {
+        relevantKnowledge += `\n- Perfectionism: ${universityStudentKnowledge.university_student_knowledge.mental_health.perfectionism.understanding}`;
+        relevantKnowledge += `\n- Interventions: ${universityStudentKnowledge.university_student_knowledge.mental_health.perfectionism.interventions.join(', ')}`;
+      }
+    }
+  }
+  
+  // Add practical resources
+  if (universityStudentKnowledge.university_student_knowledge?.practical_resources) {
+    relevantKnowledge += '\n\nPRACTICAL RESOURCES:';
+    relevantKnowledge += `\n- Campus Services: ${universityStudentKnowledge.university_student_knowledge.practical_resources.campus_services.join(', ')}`;
+    relevantKnowledge += `\n- Crisis Resources: ${universityStudentKnowledge.university_student_knowledge.practical_resources.crisis_resources.join(', ')}`;
+  }
+  
+  // Add evidence-based techniques
+  if (universityStudentKnowledge.university_student_knowledge?.evidence_based_techniques) {
+    relevantKnowledge += '\n\nEVIDENCE-BASED TECHNIQUES:';
+    relevantKnowledge += `\n- Stress Management: ${universityStudentKnowledge.university_student_knowledge.evidence_based_techniques.stress_management.join(', ')}`;
+    relevantKnowledge += `\n- Cognitive Techniques: ${universityStudentKnowledge.university_student_knowledge.evidence_based_techniques.cognitive_techniques.join(', ')}`;
+    relevantKnowledge += `\n- Academic Support: ${universityStudentKnowledge.university_student_knowledge.evidence_based_techniques.academic_support.join(', ')}`;
+  }
+  
+  return relevantKnowledge;
 }
 
 const startSession = async (req, res) => {
@@ -747,4 +925,4 @@ Return ONLY the JSON object, no extra text or explanation.`;
   }
 };
 
-module.exports = { generateContent, startSession, endSession, selfCareHomeContent };
+module.exports = { generateContent, startSession, endSession, selfCareHomeContent, isSeverelyUnstable, injectUniversityStudentKnowledge };
