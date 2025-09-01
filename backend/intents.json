@@ -354,6 +354,326 @@
         ]
       },
       {
+        "tag": "academic-pressure",
+        "patterns": [
+          "I'm stressed about my grades",
+          "I'm worried about my CGPA",
+          "I can't handle the academic pressure",
+          "My lecturers are too demanding",
+          "I'm falling behind in my studies",
+          "I'm afraid I'll fail",
+          "My final year project is overwhelming",
+          "I can't keep up with my coursework",
+          "I'm struggling with my studies",
+          "Academic pressure is killing me"
+        ],
+        "responses": [
+          "Academic pressure can be incredibly overwhelming, especially when you're juggling multiple responsibilities. Remember that your worth isn't defined by your grades alone. Let's break this down - what specific aspect of your studies is causing the most stress right now?",
+          "I hear how much pressure you're feeling from your studies. It's completely normal to feel overwhelmed, especially during final year. Let's talk about what's most urgent - are you struggling with time management, understanding the material, or something else?",
+          "Academic stress can feel like the weight of the world on your shoulders. You're not alone in feeling this way. Let's identify one small step you can take today to feel more in control. What would help you feel even slightly better about your academic situation?"
+        ]
+      },
+      {
+        "tag": "financial-stress",
+        "patterns": [
+          "I'm struggling financially",
+          "I can't afford my education",
+          "I'm worried about money",
+          "I can't pay my fees",
+          "I'm stressed about finances",
+          "I can't afford basic needs",
+          "I'm working too much to study",
+          "I'm in debt",
+          "I can't afford food",
+          "Financial pressure is overwhelming"
+        ],
+        "responses": [
+          "Financial stress can be incredibly overwhelming, especially when you're trying to focus on your education. You're not alone in this struggle. Let's talk about what resources might be available to you - have you looked into financial aid, scholarships, or part-time work opportunities?",
+          "I understand how difficult it is to balance financial concerns with academic demands. This is a real challenge that many students face. What's the most pressing financial concern you're dealing with right now? Sometimes breaking it down can help us find solutions.",
+          "Financial pressure can make everything else feel impossible. Remember that your education is an investment in your future, and there are often resources available to help. Let's explore what options might be available to you. What would be most helpful right now?"
+        ]
+      },
+      {
+        "tag": "family-expectations",
+        "patterns": [
+          "My family expects too much",
+          "I can't meet my family's expectations",
+          "I'm disappointing my family",
+          "My parents pressure me",
+          "I'm a first-generation student",
+          "My family doesn't understand",
+          "Cultural pressure is overwhelming",
+          "I feel like I'm letting my family down",
+          "My family has high expectations",
+          "I can't live up to family standards"
+        ],
+        "responses": [
+          "Family expectations can create a tremendous amount of pressure, especially when you're navigating university life. It's completely normal to feel torn between your own needs and your family's hopes for you. What would it look like to set some healthy boundaries while still honoring your family's values?",
+          "Being a first-generation student comes with unique challenges and pressures. You're not just studying for yourself, but for your entire family. That's a heavy responsibility to carry. Let's talk about how you can balance honoring your family's dreams while taking care of your own well-being.",
+          "Cultural and family expectations can feel like an impossible standard to meet. Remember that you're allowed to have your own dreams and needs too. What would it look like to have a conversation with your family about realistic expectations and your own goals?"
+        ]
+      },
+      {
+        "tag": "social-challenges",
+        "patterns": [
+          "I don't fit in",
+          "I have trouble making friends",
+          "I feel socially isolated",
+          "I'm being left out",
+          "I can't connect with my peers",
+          "Social media makes me feel worse",
+          "I'm comparing myself to others",
+          "I feel like an outsider",
+          "I'm not good at socializing",
+          "I feel lonely at university"
+        ],
+        "responses": [
+          "Feeling like you don't fit in can be incredibly painful, especially in a university environment where social connections are so important. You're not alone in feeling this way - many students struggle with social integration. What kind of social interactions feel most comfortable for you?",
+          "Social media can make it seem like everyone else has perfect social lives while you're struggling. Remember that what you see online is often a curated highlight reel, not reality. Let's talk about what genuine connections look like for you and how you might find your people.",
+          "University can be a challenging social environment, especially if you're introverted or coming from a different background. Finding your tribe takes time. What activities or interests do you have that might help you connect with like-minded people? Sometimes joining clubs or study groups can help."
+        ]
+      },
+      {
+        "tag": "religious-spiritual",
+        "patterns": [
+          "I'm struggling with my faith",
+          "I need spiritual guidance",
+          "I'm questioning my beliefs",
+          "I need prayer support",
+          "I'm feeling spiritually lost",
+          "My faith is being tested",
+          "I need religious community",
+          "I'm seeking spiritual comfort",
+          "I need God's guidance",
+          "I'm feeling disconnected from my faith"
+        ],
+        "responses": [
+          "Spiritual struggles can be deeply personal and challenging, especially during times of stress and change. Your faith journey is unique to you, and it's okay to have questions and doubts. What aspects of your spiritual life feel most important to you right now?",
+          "Faith can be a powerful source of comfort and strength during difficult times. Many people find that prayer, meditation, or connecting with their religious community helps them feel more grounded. What spiritual practices have been helpful for you in the past?",
+          "Spiritual questions often arise during periods of growth and change, which is completely normal. Your faith journey is your own, and there's no right or wrong way to navigate it. What would help you feel more connected to your spiritual self right now?"
+        ]
+      },
+      {
+        "tag": "time-management",
+        "patterns": [
+          "I can't manage my time",
+          "I'm always running late",
+          "I procrastinate too much",
+          "I can't balance my schedule",
+          "I'm overwhelmed with deadlines",
+          "I need help with time management",
+          "I waste too much time",
+          "I can't prioritize my tasks",
+          "I'm always behind schedule",
+          "I need better study habits"
+        ],
+        "responses": [
+          "Time management is a common struggle for university students, especially when juggling multiple responsibilities. Let's start by identifying your biggest time challenges. What specific areas do you find most difficult to manage - studying, assignments, or daily routines?",
+          "Procrastination and time management issues often stem from feeling overwhelmed. Sometimes breaking tasks into smaller, more manageable pieces can help. What's one thing you could do today to feel more in control of your time?",
+          "Many students find that creating a simple routine or schedule helps with time management. What would a realistic daily schedule look like for you? Remember, it's okay to start small and build from there."
+        ]
+      },
+      {
+        "tag": "career-anxiety",
+        "patterns": [
+          "I'm worried about my future career",
+          "I don't know what to do after graduation",
+          "I'm afraid I won't find a job",
+          "I'm questioning my career choice",
+          "I feel unprepared for the workforce",
+          "I'm stressed about job hunting",
+          "I don't know if I chose the right major",
+          "I'm worried about my career prospects",
+          "I feel like I'm not good enough for my field",
+          "I'm anxious about my future"
+        ],
+        "responses": [
+          "Career anxiety is very common among university students, especially as graduation approaches. It's completely normal to feel uncertain about your future. What aspects of your career planning feel most overwhelming right now?",
+          "Many students experience career anxiety, and it often comes from feeling unprepared. Remember that most people don't have everything figured out when they graduate. What small steps could you take to feel more confident about your career path?",
+          "Career uncertainty can be really stressful. Sometimes talking through your interests and values can help clarify your direction. What drew you to your current field of study? What aspects of it do you find most interesting?"
+        ]
+      },
+      {
+        "tag": "imposter-syndrome",
+        "patterns": [
+          "I feel like I don't belong here",
+          "I think I got in by mistake",
+          "Everyone else is smarter than me",
+          "I'm not good enough for this program",
+          "I feel like a fraud",
+          "I don't deserve to be here",
+          "I'm afraid people will find out I'm not smart",
+          "I feel inferior to my classmates",
+          "I think I'm not qualified enough",
+          "I feel like I'm pretending to be competent"
+        ],
+        "responses": [
+          "Imposter syndrome is incredibly common among university students, especially high achievers. Many people feel like they don't deserve their success, even when they've worked hard for it. You're not alone in feeling this way. What triggers these feelings for you?",
+          "Imposter syndrome often comes from comparing yourself to others and feeling like you don't measure up. Remember that everyone has different strengths and struggles. What would it look like to focus on your own progress rather than comparing yourself to others?",
+          "These feelings of inadequacy are very common, especially in competitive academic environments. You were accepted into your program for a reason. What evidence do you have that you do belong here and are capable of succeeding?"
+        ]
+      },
+      {
+        "tag": "relationship-stress",
+        "patterns": [
+          "I'm having relationship problems",
+          "My relationship is affecting my studies",
+          "I'm fighting with my partner",
+          "I'm worried about my relationship",
+          "My relationship is causing stress",
+          "I don't know if my relationship is healthy",
+          "I'm having trouble balancing love and studies",
+          "My partner doesn't understand my stress",
+          "I'm feeling distant from my partner",
+          "I need relationship advice"
+        ],
+        "responses": [
+          "Relationship stress can significantly impact your academic performance and overall well-being. It's important to find a balance between your personal life and studies. What specific aspects of your relationship are causing you the most stress?",
+          "Balancing relationships and academic demands can be really challenging. Sometimes partners don't fully understand the pressures of university life. What would help your partner better understand what you're going through?",
+          "Relationship issues can be incredibly distracting when you're trying to focus on your studies. It's okay to prioritize your well-being. What boundaries might help you maintain a healthier balance between your relationship and academic responsibilities?"
+        ]
+      },
+      {
+        "tag": "health-concerns",
+        "patterns": [
+          "I'm not taking care of my health",
+          "I'm not eating properly",
+          "I'm not getting enough sleep",
+          "I'm not exercising",
+          "I'm neglecting my physical health",
+          "I'm always tired",
+          "I have no energy",
+          "I'm not feeling well",
+          "I need to improve my health habits",
+          "I'm worried about my health"
+        ],
+        "responses": [
+          "Taking care of your physical health is crucial, especially during stressful academic periods. When we're overwhelmed, self-care often gets pushed aside. What's one small thing you could do today to take better care of yourself?",
+          "Poor health habits can really impact your academic performance and mental well-being. Sometimes starting with the basics - like getting enough sleep or eating regular meals - can make a big difference. What health habit would you like to improve first?",
+          "It's common for students to neglect their health when they're busy with studies. Remember that taking care of yourself isn't selfish - it's necessary for your success. What would help you prioritize your health alongside your academic responsibilities?"
+        ]
+      },
+      {
+        "tag": "bullying-harassment",
+        "patterns": [
+          "I'm being bullied",
+          "Someone is harassing me",
+          "I'm being treated badly",
+          "I'm experiencing discrimination",
+          "I'm being excluded",
+          "Someone is spreading rumors about me",
+          "I'm being cyberbullied",
+          "I feel unsafe",
+          "I'm being targeted",
+          "I need help with bullying"
+        ],
+        "responses": [
+          "I'm so sorry you're experiencing this. Bullying and harassment are never okay, and you don't deserve to be treated this way. Your safety and well-being are the most important things. Have you considered reporting this to university authorities or seeking support from campus resources?",
+          "Experiencing bullying or harassment can be incredibly painful and isolating. You're not alone, and there are people who want to help you. What would make you feel safer right now? Sometimes talking to a trusted friend, family member, or counselor can help.",
+          "This kind of treatment can have a serious impact on your mental health and academic performance. You have the right to feel safe and respected. What support do you need to address this situation? Remember, you don't have to handle this alone."
+        ]
+      },
+      {
+        "tag": "grief-loss",
+        "patterns": [
+          "I lost someone important to me",
+          "I'm grieving",
+          "I'm dealing with a loss",
+          "Someone I love passed away",
+          "I'm struggling with grief",
+          "I can't stop thinking about my loss",
+          "I'm not coping well with death",
+          "I need help with grief",
+          "I'm feeling lost after a death",
+          "I'm mourning"
+        ],
+        "responses": [
+          "I'm so sorry for your loss. Grief is one of the most difficult experiences we can go through, and it's completely normal to struggle with it. There's no right or wrong way to grieve, and everyone's process is different. How are you coping with this loss?",
+          "Losing someone important can make everything else feel overwhelming, including your studies. It's okay to take time to process your grief and to ask for help when you need it. What would be most helpful for you right now?",
+          "Grief can affect every aspect of your life, including your academic performance. Be gentle with yourself during this difficult time. What support do you have around you? Sometimes talking to a grief counselor or joining a support group can help."
+        ]
+      },
+      {
+        "tag": "identity-crisis",
+        "patterns": [
+          "I don't know who I am anymore",
+          "I'm questioning my identity",
+          "I feel lost",
+          "I don't recognize myself",
+          "I'm having an identity crisis",
+          "I don't know what I want",
+          "I feel disconnected from myself",
+          "I'm questioning everything",
+          "I don't know what I believe in",
+          "I feel like I'm changing"
+        ],
+        "responses": [
+          "Identity exploration and questioning is a normal part of university life, especially during times of significant change and growth. It's okay to feel uncertain about who you are and what you want. What aspects of your identity feel most unclear right now?",
+          "Feeling lost or disconnected from yourself can be really unsettling. University is often a time of major personal growth and change. Sometimes this process involves questioning things you once felt certain about. What would help you feel more grounded in who you are?",
+          "Identity crises often occur during periods of transition and growth. It's completely normal to question your beliefs, values, and sense of self during university. What small steps could you take to reconnect with yourself and what matters to you?"
+        ]
+      },
+      {
+        "tag": "perfectionism",
+        "patterns": [
+          "I'm a perfectionist",
+          "I can't accept anything less than perfect",
+          "I'm too hard on myself",
+          "I set impossible standards",
+          "I'm never satisfied with my work",
+          "I'm afraid of making mistakes",
+          "I can't handle imperfection",
+          "I'm too critical of myself",
+          "I need everything to be perfect",
+          "I'm paralyzed by perfectionism"
+        ],
+        "responses": [
+          "Perfectionism can be incredibly exhausting and can actually interfere with your academic performance. While striving for excellence is admirable, perfectionism often leads to stress, procrastination, and burnout. What would it look like to set more realistic standards for yourself?",
+          "Being a perfectionist often means you're your own harshest critic. Remember that making mistakes is a normal part of learning and growth. What would help you be kinder to yourself when things don't go perfectly?",
+          "Perfectionism can paralyze you and prevent you from completing tasks or trying new things. Sometimes the pursuit of perfection actually gets in the way of progress. What would it feel like to aim for 'good enough' instead of perfect?"
+        ]
+      },
+      {
+        "tag": "loneliness-isolation",
+        "patterns": [
+          "I feel lonely",
+          "I'm isolated",
+          "I have no one to talk to",
+          "I feel disconnected from others",
+          "I'm alone",
+          "I don't have any friends",
+          "I feel like no one understands me",
+          "I'm socially isolated",
+          "I feel like an outsider",
+          "I need connection"
+        ],
+        "responses": [
+          "Feeling lonely and isolated can be incredibly painful, especially in a university environment where it seems like everyone else is having fun and making connections. You're not alone in feeling this way. What would help you feel more connected to others?",
+          "Loneliness is a common experience, especially during times of transition or stress. Sometimes reaching out to others, even in small ways, can help. What kind of social interactions feel most comfortable for you? Even brief connections can make a difference.",
+          "Feeling disconnected from others can really impact your mental health and academic performance. Remember that many people feel lonely, even when it seems like they're surrounded by friends. What small steps could you take to build more connections in your life?"
+        ]
+      },
+      {
+        "tag": "motivation-burnout",
+        "patterns": [
+          "I have no motivation",
+          "I'm burned out",
+          "I can't get motivated",
+          "I'm exhausted",
+          "I don't want to do anything",
+          "I'm tired all the time",
+          "I have no energy",
+          "I'm feeling drained",
+          "I can't focus",
+          "I need motivation"
+        ],
+        "responses": [
+          "Burnout and lack of motivation are very common among university students, especially when you've been pushing yourself hard for a long time. It's okay to need a break. What would help you feel more rested and recharged?",
+          "When you're burned out, even small tasks can feel overwhelming. Sometimes taking a step back and giving yourself permission to rest can actually help you be more productive in the long run. What would a realistic, sustainable pace look like for you?",
+          "Lack of motivation often comes from being overwhelmed or exhausted. It's not a sign of weakness - it's your body and mind telling you that you need to slow down. What small steps could you take to care for yourself and rebuild your energy?"
+        ]
+      },
+      {
         "tag": "custom-qa-1",
         "patterns": [
           "Thank you for writing. You did nothing wrong! You did not put this woman in prison. She did it to he..."
