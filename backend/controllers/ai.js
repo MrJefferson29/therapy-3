@@ -388,6 +388,12 @@ function isSeverelyUnstable(input) {
     /i (want|wish|need|desire) to (end my misery|stop my pain|end my agony)/i,
     /i (want|wish|need|desire) to (end my torment|stop my suffering|end my distress)/i,
     
+    // Direct suicidal statements
+    /i'm (suicidal|feeling suicidal|having suicidal thoughts)/i,
+    /i am (suicidal|feeling suicidal|having suicidal thoughts)/i,
+    /i feel (suicidal|like killing myself|like ending it all)/i,
+    /i have (suicidal thoughts|thoughts of suicide|thoughts of killing myself)/i,
+    
     // Future tense suicidal ideation
     /i'm going to (die|kill myself|end my life|commit suicide|end it all)/i,
     /i'm going to (end myself|take my life|end my existence)/i,
