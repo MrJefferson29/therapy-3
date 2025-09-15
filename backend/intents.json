@@ -12,9 +12,481 @@
           "how is it going"
         ],
         "resonses": [
-          "Hello! How are you today!",
-          "Hey! What's up",
-          "Hey, How are you feeling today"
+          "Hello! I'm here to listen and support you. Is it okay if I ask a few questions about how you've been feeling?",
+          "Hi there! I'm here to help. Would you be comfortable if I ask some questions to better understand how you're doing?",
+          "Hello! I'm here to support you. May I ask a few questions about your current situation and how you've been feeling?"
+        ]
+      },
+      {
+        "tag": "intake_consent_yes",
+        "patterns": [
+          "yes",
+          "sure",
+          "okay",
+          "ok",
+          "alright",
+          "i'm okay with that",
+          "that's fine",
+          "go ahead",
+          "yes please"
+        ],
+        "responses": [
+          "Thank you for trusting me. What brings you here today? I'd like to understand what's been on your mind lately."
+        ]
+      },
+      {
+        "tag": "intake_consent_no",
+        "patterns": [
+          "no",
+          "not really",
+          "i don't want to",
+          "i'm not comfortable",
+          "maybe later",
+          "not now"
+        ],
+        "responses": [
+          "I completely understand and respect your decision. I'm here whenever you're ready to talk. Is there anything specific I can help you with right now, or would you prefer to just chat about whatever's on your mind?"
+        ]
+      },
+      {
+        "tag": "presenting_problem",
+        "patterns": [
+          "i'm feeling stressed",
+          "i'm struggling",
+          "i need help",
+          "i'm having a hard time",
+          "i'm not doing well",
+          "i'm overwhelmed",
+          "i'm anxious",
+          "i'm depressed",
+          "i'm worried",
+          "i'm having problems"
+        ],
+        "responses": [
+          "I hear that you're going through a difficult time. Let me ask you some questions to better understand what you're experiencing. Over the last 2 weeks, how often have you been bothered by little interest or pleasure in doing things? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_1",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling down, depressed, or hopeless? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_2",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by trouble falling asleep, staying asleep, or sleeping too much? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_3",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling tired or having little energy? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_4",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by poor appetite or overeating? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_5",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling bad about yourself or that you are a failure? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_6",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by trouble concentrating on things like reading or watching TV? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_7",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by moving or speaking so slowly that others notice, or the opposite—being fidgety/restless? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "phq9_question_8",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by thoughts that you would be better off dead or of hurting yourself? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_1",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Now let me ask about anxiety. Over the last 2 weeks, how often have you been bothered by feeling nervous, anxious, or on edge? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_2",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by not being able to stop or control worrying? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_3",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by worrying too much about different things? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_4",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by trouble relaxing? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_5",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by being so restless that it is hard to sit still? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_6",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by becoming easily annoyed or irritable? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "gad7_question_7",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling afraid as if something awful might happen? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ]
+      },
+      {
+        "tag": "suicide_risk_assessment",
+        "patterns": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "responses": [
+          "Thank you for completing the assessment. I'd like to ask you a few more important questions about your safety. Have you wished you were dead or wished you could go to sleep and not wake up?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_1",
+        "patterns": [
+          "yes",
+          "sometimes",
+          "i have",
+          "i do",
+          "i wish i was dead",
+          "i wish i could sleep forever"
+        ],
+        "responses": [
+          "I understand this is very difficult to talk about. Have you had any actual thoughts of killing yourself?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_1_no",
+        "patterns": [
+          "no",
+          "never",
+          "not really",
+          "i haven't"
+        ],
+        "responses": [
+          "Thank you for being honest with me. I'd like to understand more about your life as a student. Which of these areas is affecting you the most right now? Academic Pressures, Financial Dynamics, Social Challenges, or Family Expectations?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_2",
+        "patterns": [
+          "yes",
+          "i have thought about it",
+          "sometimes",
+          "i think about suicide"
+        ],
+        "responses": [
+          "I'm really concerned about your safety. Have you been thinking about how you might do this?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_2_no",
+        "patterns": [
+          "no",
+          "not really",
+          "i haven't thought about how"
+        ],
+        "responses": [
+          "Thank you for being honest. I'm still concerned about your safety. Have you taken any steps toward making a plan or preparing to harm yourself?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_3",
+        "patterns": [
+          "yes",
+          "i have thought about how",
+          "i know how i would do it",
+          "i have a plan"
+        ],
+        "responses": [
+          "I'm very concerned about your safety. Have you taken any steps toward making a plan or preparing to harm yourself?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_4",
+        "patterns": [
+          "yes",
+          "i have taken steps",
+          "i have prepared",
+          "i have a plan and i'm ready"
+        ],
+        "responses": [
+          "I'm really concerned about your safety. Please reach out to a trusted person immediately. If you're in Nigeria, call 112 for emergency help or contact the Suicide Prevention Helpline: 0806 210 6493. Would you like me to connect you with a human counselor on our platform now?"
+        ]
+      },
+      {
+        "tag": "suicide_risk_question_4_no",
+        "patterns": [
+          "no",
+          "i haven't taken steps",
+          "not yet",
+          "i haven't prepared"
+        ],
+        "responses": [
+          "I'm still concerned about your safety. I strongly recommend connecting with a professional therapist on our platform who can provide the support you need. You can access our therapists through the 'My Therapist' section of the app. Would you like me to help you book a session with one of our professional therapists?"
+        ]
+      },
+      {
+        "tag": "contextual_stressors_academic",
+        "patterns": [
+          "academic pressures",
+          "academic",
+          "grades",
+          "cgpa",
+          "studies",
+          "lecturers",
+          "final year project"
+        ],
+        "responses": [
+          "I understand that academic pressures can be overwhelming. Do you struggle with worries about CGPA, family expectations, strict lecturers, or your final year project? What helps you cope when you feel stressed? (e.g., talking to friends, prayer, exercise, music, journaling)"
+        ]
+      },
+      {
+        "tag": "contextual_stressors_financial",
+        "patterns": [
+          "financial dynamics",
+          "financial",
+          "money",
+          "fees",
+          "funding",
+          "economic"
+        ],
+        "responses": [
+          "Financial stress can be incredibly challenging for students. Are you experiencing stress from self-funding education, survival costs, or family economic pressure? What helps you cope when you feel stressed? (e.g., talking to friends, prayer, exercise, music, journaling)"
+        ]
+      },
+      {
+        "tag": "contextual_stressors_social",
+        "patterns": [
+          "social challenges",
+          "social",
+          "friends",
+          "fitting in",
+          "peer pressure",
+          "social media"
+        ],
+        "responses": [
+          "Social challenges can be really difficult to navigate. Are you facing difficulties fitting in, peer pressure, or comparing yourself on social media? What helps you cope when you feel stressed? (e.g., talking to friends, prayer, exercise, music, journaling)"
+        ]
+      },
+      {
+        "tag": "contextual_stressors_family",
+        "patterns": [
+          "family expectations",
+          "family",
+          "parents",
+          "first generation",
+          "cultural expectations"
+        ],
+        "responses": [
+          "Family expectations can create a lot of pressure. Are you under pressure as a first-generation student, or facing cultural expectations about your career? What helps you cope when you feel stressed? (e.g., talking to friends, prayer, exercise, music, journaling)"
+        ]
+      },
+      {
+        "tag": "coping_strategies",
+        "patterns": [
+          "talking to friends",
+          "prayer",
+          "exercise",
+          "music",
+          "journaling",
+          "meditation",
+          "reading",
+          "watching tv",
+          "sleeping",
+          "eating",
+          "shopping",
+          "gaming",
+          "social media",
+          "cooking",
+          "cleaning",
+          "art",
+          "writing"
+        ],
+        "responses": [
+          "Thank you for sharing what helps you cope. Based on your responses, it seems you are experiencing mild stress. Here are some self-care tips and resources you can try: Practice deep breathing exercises, maintain a regular sleep schedule, stay connected with supportive friends, and consider keeping a gratitude journal. You can also access our self-care resources in the app. If you'd like additional support, you can connect with one of our professional therapists through the 'My Therapist' section."
+        ]
+      },
+      {
+        "tag": "support_plan_low_scores",
+        "patterns": [
+          "i'm doing okay",
+          "i'm fine",
+          "not too bad",
+          "manageable",
+          "i can handle it"
+        ],
+        "responses": [
+          "It seems you are experiencing mild stress. Here are some self-care tips and resources you can try: Practice deep breathing exercises, maintain a regular sleep schedule, stay connected with supportive friends, and consider keeping a gratitude journal. You can also access our self-care resources in the app. If you'd like additional support, you can connect with one of our professional therapists through the 'My Therapist' section."
+        ]
+      },
+      {
+        "tag": "support_plan_moderate_scores",
+        "patterns": [
+          "i'm struggling",
+          "it's hard",
+          "i need help",
+          "i'm overwhelmed",
+          "i can't cope"
+        ],
+        "responses": [
+          "It looks like you're going through a tough time. I recommend speaking with a counselor. Our platform has qualified therapists who specialize in student mental health. You can access them through the 'My Therapist' section of the app. Would you like me to help you book a session with one of our professional therapists?"
+        ]
+      },
+      {
+        "tag": "support_plan_severe_scores",
+        "patterns": [
+          "i'm really struggling",
+          "i can't handle this",
+          "i'm in crisis",
+          "i need immediate help",
+          "i'm having a breakdown"
+        ],
+        "responses": [
+          "I'm really concerned about how you've been feeling. I strongly suggest connecting with a mental health professional immediately. Our platform has therapists who specialize in crisis intervention and can provide the urgent support you need. You can access them through the 'My Therapist' section of the app, or I can help you book an emergency session right now. Your mental health is important, and professional help can make a significant difference."
+        ]
+      },
+      {
+        "tag": "crisis_escalation_yes",
+        "patterns": [
+          "yes, connect me",
+          "yes",
+          "i need help now",
+          "connect me",
+          "i want to talk to someone"
+        ],
+        "responses": [
+          "I'm immediately connecting you with a qualified therapist on our platform who can provide the urgent support you need. You'll be redirected to our therapist selection page where you can choose a professional who specializes in crisis intervention. All our therapists are trained to handle urgent situations and can provide immediate support. You're taking an important step by seeking help."
+        ]
+      },
+      {
+        "tag": "crisis_escalation_no",
+        "patterns": [
+          "no, not now",
+          "no",
+          "not right now",
+          "maybe later",
+          "i don't want to"
+        ],
+        "responses": [
+          "I understand, but I'm still very concerned about your safety. Please remember that help is available whenever you're ready. You can access our therapists anytime through the 'My Therapist' section of the app. If you're in immediate danger, please call emergency services (112) or reach out to a trusted person. You don't have to face this alone."
         ]
       },
       {

@@ -257,6 +257,29 @@ function detectRepetitiveQuestion(historyPrompt, currentPrompt) {
   return false;
 }
 
+// Assessment scoring functions
+function calculatePHQ9Score(responses) {
+  if (!responses || responses.length < 9) return 0;
+  return responses.reduce((sum, response) => sum + (parseInt(response) || 0), 0);
+}
+
+function calculateGAD7Score(responses) {
+  if (!responses || responses.length < 7) return 0;
+  return responses.reduce((sum, response) => sum + (parseInt(response) || 0), 0);
+}
+
+function determineSupportPlan(phq9Score, gad7Score, hasSuicideIdeation) {
+  if (hasSuicideIdeation) {
+    return 'crisis_escalation';
+  } else if (phq9Score >= 15 || gad7Score >= 15) {
+    return 'severe_scores';
+  } else if (phq9Score >= 5 || gad7Score >= 5) {
+    return 'moderate_scores';
+  } else {
+    return 'low_scores';
+  }
+}
+
 function buildContextualPrompt(historyPrompt, userPrompt, isVague = false) {
   let contextPrompt = THERAPIST_SYSTEM_PROMPT;
   
@@ -271,6 +294,13 @@ CONVERSATION ANALYSIS GUIDELINES:
 - Avoid asking multiple questions - focus on providing value through analysis
 - If you must ask a question, make it meaningful and purposeful
 - Direct users to platform therapists when they need specialized professional help
+
+ASSESSMENT FLOW GUIDELINES:
+- If user gives consent, begin with PHQ9 assessment questions
+- Follow structured assessment flow: PHQ9 → GAD7 → Suicide Risk → Contextual Stressors → Support Plan
+- Track assessment responses and calculate scores appropriately
+- Escalate to crisis intervention if suicide ideation is present
+- Provide appropriate support plan based on assessment scores
 
 RESPONSE STRUCTURE:
 1. Acknowledge and validate their experience
@@ -829,6 +859,45 @@ const generateContent = async (req, res) => {
       historyPrompt += `User: ${msg.prompt}\nAI: ${msg.response}\n`;
     });
 
+    // Track assessment progress
+    let assessmentState = {
+      phq9Responses: [],
+      gad7Responses: [],
+      suicideRiskResponses: [],
+      currentPhase: 'intake', // intake, phq9, gad7, suicide_risk, contextual_stressors, support_plan
+      hasSuicideIdeation: false
+    };
+
+    // Extract assessment responses from conversation history
+    const assessmentResponses = previousMessages.filter(msg => 
+      /^[0-3]$/.test(msg.prompt.trim())
+    );
+    
+    if (assessmentResponses.length > 0) {
+      // Determine current phase based on number of responses
+      if (assessmentResponses.length <= 9) {
+        assessmentState.currentPhase = 'phq9';
+        assessmentState.phq9Responses = assessmentResponses.slice(0, 9).map(msg => msg.prompt.trim());
+      } else if (assessmentResponses.length <= 16) {
+        assessmentState.currentPhase = 'gad7';
+        assessmentState.phq9Responses = assessmentResponses.slice(0, 9).map(msg => msg.prompt.trim());
+        assessmentState.gad7Responses = assessmentResponses.slice(9, 16).map(msg => msg.prompt.trim());
+      } else {
+        assessmentState.currentPhase = 'suicide_risk';
+        assessmentState.phq9Responses = assessmentResponses.slice(0, 9).map(msg => msg.prompt.trim());
+        assessmentState.gad7Responses = assessmentResponses.slice(9, 16).map(msg => msg.prompt.trim());
+        assessmentState.suicideRiskResponses = assessmentResponses.slice(16).map(msg => msg.prompt.trim());
+      }
+    } else {
+      // Check if this is the first assessment question (from presenting problem)
+      const hasPresentingProblem = previousMessages.some(msg => 
+        msg.response && msg.response.includes('little interest or pleasure in doing things')
+      );
+      if (hasPresentingProblem) {
+        assessmentState.currentPhase = 'phq9';
+      }
+    }
+
     // Check for severe instability first
     if (isSeverelyUnstable(prompt)) {
       const crisisResponse = `I'm very concerned about your safety and well-being. What you're experiencing sounds incredibly difficult, and I want you to know that you're not alone in this.
@@ -902,6 +971,86 @@ Please don't hesitate to reach out - you're taking an important step by seeking 
         } : null,
         appointmentError,
       });
+    }
+
+    // Handle assessment flow
+    if (/^[0-3]$/.test(prompt.trim())) {
+      // This is an assessment response - add it to the appropriate array
+      if (assessmentState.currentPhase === 'phq9' && assessmentState.phq9Responses.length < 9) {
+        assessmentState.phq9Responses.push(prompt.trim());
+      } else if (assessmentState.currentPhase === 'gad7' && assessmentState.gad7Responses.length < 7) {
+        assessmentState.gad7Responses.push(prompt.trim());
+      }
+      
+      // Recalculate scores with updated responses
+      const phq9Score = calculatePHQ9Score(assessmentState.phq9Responses);
+      const gad7Score = calculateGAD7Score(assessmentState.gad7Responses);
+      
+      // Check for suicide ideation in PHQ9 question 9
+      if (assessmentState.phq9Responses.length >= 9 && parseInt(assessmentState.phq9Responses[8]) > 0) {
+        assessmentState.hasSuicideIdeation = true;
+      }
+      
+      // Determine next step based on current phase
+      if (assessmentState.currentPhase === 'phq9' && assessmentState.phq9Responses.length < 9) {
+        // Continue PHQ9 questions
+        const nextQuestion = assessmentState.phq9Responses.length;
+        const phq9Questions = [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling down, depressed, or hopeless? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by trouble falling asleep, staying asleep, or sleeping too much? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling tired or having little energy? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by poor appetite or overeating? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling bad about yourself or that you are a failure? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by trouble concentrating on things like reading or watching TV? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by moving or speaking so slowly that others notice, or the opposite—being fidgety/restless? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by thoughts that you would be better off dead or of hurting yourself? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ];
+        
+        let response;
+        if (nextQuestion < phq9Questions.length) {
+          response = phq9Questions[nextQuestion];
+        } else {
+          // PHQ9 complete, transition to GAD7
+          assessmentState.currentPhase = 'gad7';
+          response = "Thank you. Now let me ask about anxiety. Over the last 2 weeks, how often have you been bothered by feeling nervous, anxious, or on edge? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)";
+        }
+        
+        const newAiEntry = new Ai({
+          prompt: prompt,
+          response: response,
+          session: sessionId,
+        });
+        await newAiEntry.save();
+        return res.json({ text: response, sessionId });
+      } else if (assessmentState.currentPhase === 'gad7' && assessmentState.gad7Responses.length < 7) {
+        // Continue GAD7 questions
+        const nextQuestion = assessmentState.gad7Responses.length;
+        const gad7Questions = [
+          "Thank you. Over the last 2 weeks, how often have you been bothered by not being able to stop or control worrying? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by worrying too much about different things? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by trouble relaxing? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by being so restless that it is hard to sit still? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by becoming easily annoyed or irritable? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)",
+          "Thank you. Over the last 2 weeks, how often have you been bothered by feeling afraid as if something awful might happen? (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day)"
+        ];
+        
+        let response;
+        if (nextQuestion < gad7Questions.length) {
+          response = gad7Questions[nextQuestion];
+        } else {
+          // GAD7 complete, transition to suicide risk assessment
+          assessmentState.currentPhase = 'suicide_risk';
+          response = "Thank you for completing the assessment. I'd like to ask you a few more important questions about your safety. Have you wished you were dead or wished you could go to sleep and not wake up?";
+        }
+        
+        const newAiEntry = new Ai({
+          prompt: prompt,
+          response: response,
+          session: sessionId,
+        });
+        await newAiEntry.save();
+        return res.json({ text: response, sessionId });
+      }
     }
 
     // Check if this is a vague response
@@ -1027,4 +1176,14 @@ Return ONLY the JSON object, no extra text or explanation.`;
   }
 };
 
-module.exports = { generateContent, startSession, endSession, selfCareHomeContent, isSeverelyUnstable, injectUniversityStudentKnowledge };
+module.exports = { 
+  generateContent, 
+  startSession, 
+  endSession, 
+  selfCareHomeContent, 
+  isSeverelyUnstable, 
+  injectUniversityStudentKnowledge,
+  calculatePHQ9Score,
+  calculateGAD7Score,
+  determineSupportPlan
+};
