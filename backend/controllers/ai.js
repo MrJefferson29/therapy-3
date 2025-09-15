@@ -268,12 +268,15 @@ function calculateGAD7Score(responses) {
   return responses.reduce((sum, response) => sum + (parseInt(response) || 0), 0);
 }
 
-function determineSupportPlan(phq9Score, gad7Score, hasSuicideIdeation) {
+function determineSupportPlan(phq9Score, gad7Score, hasSuicideIdeation, initialMood = 5) {
   if (hasSuicideIdeation) {
     return 'crisis_escalation';
   } else if (phq9Score >= 15 || gad7Score >= 15) {
     return 'severe_scores';
   } else if (phq9Score >= 5 || gad7Score >= 5) {
+    return 'moderate_scores';
+  } else if (initialMood <= 3) {
+    // Even with low assessment scores, low initial mood suggests need for support
     return 'moderate_scores';
   } else {
     return 'low_scores';
@@ -296,11 +299,13 @@ CONVERSATION ANALYSIS GUIDELINES:
 - Direct users to platform therapists when they need specialized professional help
 
 ASSESSMENT FLOW GUIDELINES:
+- User started session with mood rating: ${assessmentState.initialMood}/10
 - If user gives consent, begin with PHQ9 assessment questions
 - Follow structured assessment flow: PHQ9 → GAD7 → Suicide Risk → Contextual Stressors → Support Plan
 - Track assessment responses and calculate scores appropriately
+- Consider initial mood when providing support recommendations
 - Escalate to crisis intervention if suicide ideation is present
-- Provide appropriate support plan based on assessment scores
+- Provide appropriate support plan based on assessment scores and initial mood
 
 RESPONSE STRUCTURE:
 1. Acknowledge and validate their experience
@@ -865,7 +870,8 @@ const generateContent = async (req, res) => {
       gad7Responses: [],
       suicideRiskResponses: [],
       currentPhase: 'intake', // intake, phq9, gad7, suicide_risk, contextual_stressors, support_plan
-      hasSuicideIdeation: false
+      hasSuicideIdeation: false,
+      initialMood: session.mood || 5 // Include initial mood in assessment state
     };
 
     // Extract assessment responses from conversation history

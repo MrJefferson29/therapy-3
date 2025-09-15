@@ -421,7 +421,7 @@
           "writing"
         ],
         "responses": [
-          "Thank you for sharing what helps you cope. Based on your responses, it seems you are experiencing mild stress. Here are some self-care tips and resources you can try: Practice deep breathing exercises, maintain a regular sleep schedule, stay connected with supportive friends, and consider keeping a gratitude journal. You can also access our self-care resources in the app. If you'd like additional support, you can connect with one of our professional therapists through the 'My Therapist' section."
+          "Thank you for sharing what helps you cope. Based on your responses and your initial mood rating, it seems you are experiencing mild stress. Here are some self-care tips and resources you can try: Practice deep breathing exercises, maintain a regular sleep schedule, stay connected with supportive friends, and consider keeping a gratitude journal. You can also access our self-care resources in the app. If you'd like additional support, you can connect with one of our professional therapists through the 'My Therapist' section."
         ]
       },
       {
@@ -434,7 +434,7 @@
           "i can handle it"
         ],
         "responses": [
-          "It seems you are experiencing mild stress. Here are some self-care tips and resources you can try: Practice deep breathing exercises, maintain a regular sleep schedule, stay connected with supportive friends, and consider keeping a gratitude journal. You can also access our self-care resources in the app. If you'd like additional support, you can connect with one of our professional therapists through the 'My Therapist' section."
+          "It seems you are experiencing mild stress. Based on your initial mood rating and assessment responses, here are some self-care tips and resources you can try: Practice deep breathing exercises, maintain a regular sleep schedule, stay connected with supportive friends, and consider keeping a gratitude journal. You can also access our self-care resources in the app. If you'd like additional support, you can connect with one of our professional therapists through the 'My Therapist' section."
         ]
       },
       {
@@ -447,7 +447,7 @@
           "i can't cope"
         ],
         "responses": [
-          "It looks like you're going through a tough time. I recommend speaking with a counselor. Our platform has qualified therapists who specialize in student mental health. You can access them through the 'My Therapist' section of the app. Would you like me to help you book a session with one of our professional therapists?"
+          "It looks like you're going through a tough time. Based on your assessment responses and initial mood rating, I recommend speaking with a counselor. Our platform has qualified therapists who specialize in student mental health. You can access them through the 'My Therapist' section of the app. Would you like me to help you book a session with one of our professional therapists?"
         ]
       },
       {
@@ -460,7 +460,7 @@
           "i'm having a breakdown"
         ],
         "responses": [
-          "I'm really concerned about how you've been feeling. I strongly suggest connecting with a mental health professional immediately. Our platform has therapists who specialize in crisis intervention and can provide the urgent support you need. You can access them through the 'My Therapist' section of the app, or I can help you book an emergency session right now. Your mental health is important, and professional help can make a significant difference."
+          "I'm really concerned about how you've been feeling. Based on your assessment responses and initial mood rating, I strongly suggest connecting with a mental health professional immediately. Our platform has therapists who specialize in crisis intervention and can provide the urgent support you need. You can access them through the 'My Therapist' section of the app, or I can help you book an emergency session right now. Your mental health is important, and professional help can make a significant difference."
         ]
       },
       {
