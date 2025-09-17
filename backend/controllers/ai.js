@@ -182,6 +182,7 @@ function normalize(text) {
 
 function matchIntent(userInput) {
   const normalizedInput = normalize(userInput);
+  console.log(`[INTENT DEBUG] Matching intent for: "${userInput}" -> normalized: "${normalizedInput}"`);
   
   // First, check for exact matches (prioritize these)
   for (const intent of intents.intents) {
@@ -190,8 +191,9 @@ function matchIntent(userInput) {
       
       // Check for exact match first
       if (normalizedInput === normalizedPattern) {
-        const responses = intent.resonses || intent.responses;
+        const responses = intent.responses || intent.resonses;
         if (responses && responses.length > 0) {
+          console.log(`[INTENT DEBUG] Exact match found for intent: ${intent.tag}`);
           return responses[Math.floor(Math.random() * responses.length)];
         }
       }
@@ -204,8 +206,9 @@ function matchIntent(userInput) {
       const normalizedPattern = normalize(pattern);
       const phraseRegex = new RegExp(`\\b${normalizedPattern.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
       if (phraseRegex.test(normalizedInput)) {
-        const responses = intent.resonses || intent.responses;
+        const responses = intent.responses || intent.resonses;
         if (responses && responses.length > 0) {
+          console.log(`Phrase match found for intent: ${intent.tag}`);
           return responses[Math.floor(Math.random() * responses.length)];
         }
       }
@@ -220,14 +223,37 @@ function matchIntent(userInput) {
       
       // Only match if the pattern is short (1-3 words) to avoid false matches
       if (words.length <= 3 && words.every(word => normalizedInput.includes(word))) {
-        const responses = intent.resonses || intent.responses;
+        const responses = intent.responses || intent.resonses;
         if (responses && responses.length > 0) {
+          console.log(`Word match found for intent: ${intent.tag}`);
           return responses[Math.floor(Math.random() * responses.length)];
         }
       }
     }
   }
   
+  // Check for multi-word patterns that might match user input
+  for (const intent of intents.intents) {
+    for (const pattern of intent.patterns) {
+      const normalizedPattern = normalize(pattern);
+      const patternWords = normalizedPattern.split(' ');
+      const inputWords = normalizedInput.split(' ');
+      
+      // Check if most words from the pattern are present in the input
+      if (patternWords.length > 1) {
+        const matchingWords = patternWords.filter(word => inputWords.includes(word));
+        if (matchingWords.length >= Math.ceil(patternWords.length * 0.6)) { // At least 60% of words match
+          const responses = intent.responses || intent.resonses;
+          if (responses && responses.length > 0) {
+            console.log(`Multi-word match found for intent: ${intent.tag} (${matchingWords.length}/${patternWords.length} words matched)`);
+            return responses[Math.floor(Math.random() * responses.length)];
+          }
+        }
+      }
+    }
+  }
+  
+  console.log('[INTENT DEBUG] No intent match found');
   return null;
 }
 
@@ -1109,8 +1135,10 @@ Please don't hesitate to reach out - you're taking an important step by seeking 
     
     // Try general intent matching for non-vague responses
     if (!isVague) {
+      console.log('Attempting intent matching for non-vague response...');
       const matchedResponse = matchIntent(prompt);
       if (matchedResponse) {
+        console.log('Intent match found! Using intent response instead of AI generation.');
         const newAiEntry = new Ai({
           prompt: prompt,
           response: matchedResponse,
@@ -1118,7 +1146,11 @@ Please don't hesitate to reach out - you're taking an important step by seeking 
         });
         await newAiEntry.save();
         return res.json({ text: matchedResponse, sessionId });
+      } else {
+        console.log('No intent match found, falling back to AI generation...');
       }
+    } else {
+      console.log('Input marked as vague, skipping general intent matching...');
     }
 
     // Build the contextual prompt
