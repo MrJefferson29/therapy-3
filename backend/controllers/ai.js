@@ -85,6 +85,13 @@ async function generateWithModel(model, prompt) {
 const THERAPIST_SYSTEM_PROMPT = `
 You are Zensui AI, a compassionate therapy assistant designed to provide supportive, evidence-based therapeutic conversations. You specialize in cognitive behavioral therapy (CBT), trauma-informed care, and mindfulness-based interventions.
 
+IMPORTANT: You are a friendly, helpful AI that can respond to ANY type of question or conversation. While you specialize in therapeutic support, you should:
+- Respond warmly and naturally to casual greetings and general questions
+- Be conversational and approachable in all interactions
+- When users ask non-wellness questions, answer them helpfully while maintaining your caring personality
+- Only apply therapeutic techniques when users are discussing emotional, mental health, or wellness topics
+- For general questions, be informative and friendly without forcing therapeutic responses
+
 THERAPEUTIC APPROACH:
 - Use Cognitive Behavioral Therapy (CBT) techniques to help identify thought patterns
 - Apply trauma-informed principles with sensitivity and care
@@ -283,20 +290,26 @@ function determineSupportPlan(phq9Score, gad7Score, hasSuicideIdeation, initialM
   }
 }
 
-function buildContextualPrompt(historyPrompt, userPrompt, isVague = false) {
+function buildContextualPrompt(historyPrompt, userPrompt, isVague = false, assessmentState = null) {
   let contextPrompt = THERAPIST_SYSTEM_PROMPT;
   
   // Add conversation flow guidance
   contextPrompt += `
 
 CONVERSATION ANALYSIS GUIDELINES:
-- Analyze the user's emotional state and underlying themes
-- Provide insights about patterns you notice in their communication
-- Offer practical coping strategies based on what they've shared
-- Use reflective statements to help them gain perspective
+- First, determine if this is a wellness/therapeutic conversation or a general question
+- For general questions (greetings, casual conversation, non-wellness topics): Respond naturally and helpfully
+- For wellness/therapeutic topics: Analyze the user's emotional state and underlying themes
+- Provide insights about patterns you notice in their communication (only for wellness topics)
+- Offer practical coping strategies based on what they've shared (only for wellness topics)
+- Use reflective statements to help them gain perspective (only for wellness topics)
 - Avoid asking multiple questions - focus on providing value through analysis
 - If you must ask a question, make it meaningful and purposeful
-- Direct users to platform therapists when they need specialized professional help
+- Direct users to platform therapists when they need specialized professional help`;
+
+  // Add assessment flow guidelines only if assessmentState is available
+  if (assessmentState && assessmentState.initialMood !== undefined) {
+    contextPrompt += `
 
 ASSESSMENT FLOW GUIDELINES:
 - User started session with mood rating: ${assessmentState.initialMood}/10
@@ -305,7 +318,10 @@ ASSESSMENT FLOW GUIDELINES:
 - Track assessment responses and calculate scores appropriately
 - Consider initial mood when providing support recommendations
 - Escalate to crisis intervention if suicide ideation is present
-- Provide appropriate support plan based on assessment scores and initial mood
+- Provide appropriate support plan based on assessment scores and initial mood`;
+  }
+
+  contextPrompt += `
 
 RESPONSE STRUCTURE:
 1. Acknowledge and validate their experience
@@ -1106,7 +1122,7 @@ Please don't hesitate to reach out - you're taking an important step by seeking 
     }
 
     // Build the contextual prompt
-    const fullPrompt = buildContextualPrompt(historyPrompt, prompt, isVague);
+    const fullPrompt = buildContextualPrompt(historyPrompt, prompt, isVague, assessmentState);
 
     // Generate response using the selected model
     const selectedModel = session.selectedModel || selectModel();
