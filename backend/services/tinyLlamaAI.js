@@ -1,4 +1,6 @@
-const { Transformers } = require('@xenova/transformers');
+const { pipeline } = require('@xenova/transformers');
+const fs = require('fs');
+const path = require('path');
 
 class TinyLlamaAI {
     constructor(modelPath = './therapy-ai-tinyllama-clean') {
@@ -12,8 +14,16 @@ class TinyLlamaAI {
         try {
             console.log('🔄 Initializing TinyLlama model...');
             
+            // Check if model files exist
+            const modelFiles = ['config.json', 'model.safetensors', 'tokenizer.json'];
+            const missingFiles = modelFiles.filter(file => !fs.existsSync(path.join(this.modelPath, file)));
+            
+            if (missingFiles.length > 0) {
+                throw new Error(`Missing model files: ${missingFiles.join(', ')}. Please ensure model files are in ${this.modelPath}`);
+            }
+            
             // Load the fine-tuned model and tokenizer
-            this.model = await Transformers.pipeline(
+            this.model = await pipeline(
                 'text-generation',
                 this.modelPath,
                 {
@@ -26,7 +36,7 @@ class TinyLlamaAI {
             console.log('✅ TinyLlama model initialized successfully');
             return true;
         } catch (error) {
-            console.error('❌ Failed to initialize TinyLlama model:', error);
+            console.error('❌ Failed to initialize TinyLlama model:', error.message);
             this.isInitialized = false;
             return false;
         }

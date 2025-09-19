@@ -3,13 +3,23 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
 const path = require("path");
 const DeepseekAI = require("../services/deepseekAI");
-const TinyLlamaAI = require("../services/tinyLlamaAI");
 const Ai = require("../models/ai");
 const Session = require("../models/session");
 const intents = require('../intents.json');
 const User = require("../models/user");
 const Appointment = require("../models/appointment");
 const sendEmail = require("../utils/sendEmail");
+
+// Conditional import for TinyLlama
+let TinyLlamaAI = null;
+try {
+  if (process.env.USE_TINYLLAMA === 'true') {
+    TinyLlamaAI = require("../services/tinyLlamaAI");
+    console.log("✅ TinyLlama service loaded successfully");
+  }
+} catch (error) {
+  console.log("⚠️ TinyLlama service not available:", error.message);
+}
 
 // Load university student training data
 let universityStudentKnowledge = {};
@@ -44,13 +54,15 @@ const deepseekModel = new DeepseekAI(process.env.DEEPSEEK_API_KEY);
 
 // Initialize TinyLlama model
 let tinyLlamaModel = null;
-if (process.env.USE_TINYLLAMA === 'true') {
+if (process.env.USE_TINYLLAMA === 'true' && TinyLlamaAI) {
   try {
     tinyLlamaModel = new TinyLlamaAI();
     console.log('✅ TinyLlama model service initialized');
   } catch (error) {
     console.log('⚠️ Failed to initialize TinyLlama model:', error.message);
   }
+} else if (process.env.USE_TINYLLAMA === 'true' && !TinyLlamaAI) {
+  console.log('⚠️ TinyLlama service not available - falling back to other models');
 } else {
   console.log('⚠️ TinyLlama model not enabled (set USE_TINYLLAMA=true to enable)');
 }
@@ -86,7 +98,13 @@ async function generateWithModel(model, prompt) {
         if (!tinyLlamaModel || !tinyLlamaModel.isReady()) {
           throw new Error('TinyLlama model not ready');
         }
-        result = await tinyLlamaModel.generateContent(prompt);
+        try {
+          result = await tinyLlamaModel.generateContent(prompt);
+        } catch (error) {
+          console.log('❌ TinyLlama generation failed, falling back to Gemini:', error.message);
+          // Fallback to Gemini if TinyLlama fails
+          result = await geminiModel.generateContent(prompt);
+        }
         break;
       default:
         throw new Error('Invalid model selected');
@@ -992,10 +1010,15 @@ const endSession = async (req, res) => {
 
 const generateContent = async (req, res) => {
   try {
-    // Initialize TinyLlama if not already done
+    // Initialize TinyLlama if not already done and available
     if (tinyLlamaModel && !tinyLlamaModel.isReady()) {
       console.log('🔄 Initializing TinyLlama model...');
-      await tinyLlamaModel.initialize();
+      try {
+        await tinyLlamaModel.initialize();
+      } catch (error) {
+        console.log('❌ Failed to initialize TinyLlama model:', error.message);
+        // Don't throw error, just continue with other models
+      }
     }
     
     const prompt = req.body.prompt;
