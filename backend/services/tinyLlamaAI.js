@@ -4,7 +4,7 @@ const path = require('path');
 
 class TinyLlamaAI {
     constructor(modelPath = '../therapy-ai-tinyllama-clean') {
-        this.modelPath = path.resolve(__dirname, modelPath);
+        this.modelPath = path.resolve(__dirname, '..', 'therapy-ai-tinyllama-clean');
         this.model = null;
         this.tokenizer = null;
         this.isInitialized = false;
