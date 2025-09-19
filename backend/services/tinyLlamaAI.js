@@ -22,7 +22,12 @@ class TinyLlamaAI {
             if (missingFiles.length > 0) {
                 console.log('❌ Missing files:', missingFiles);
                 console.log('📁 Looking in:', this.modelPath);
-                throw new Error(`Missing model files: ${missingFiles.join(', ')}. Please ensure model files are in ${this.modelPath}`);
+                console.log('💡 Model files not found on server. TinyLlama will be disabled.');
+                console.log('💡 To enable TinyLlama:');
+                console.log('   1. Upload model files to cloud storage');
+                console.log('   2. Update MODEL_URLS in backend/scripts/download_model.js');
+                console.log('   3. Run the download script during deployment');
+                throw new Error(`Missing model files: ${missingFiles.join(', ')}. TinyLlama disabled - using fallback models.`);
             }
             
             console.log('✅ All required model files found');
