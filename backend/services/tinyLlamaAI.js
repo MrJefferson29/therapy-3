@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 class TinyLlamaAI {
-    constructor(modelPath = './therapy-ai-tinyllama-clean') {
-        this.modelPath = modelPath;
+    constructor(modelPath = '../therapy-ai-tinyllama-clean') {
+        this.modelPath = path.resolve(__dirname, modelPath);
         this.model = null;
         this.tokenizer = null;
         this.isInitialized = false;
@@ -13,14 +13,19 @@ class TinyLlamaAI {
     async initialize() {
         try {
             console.log('🔄 Initializing TinyLlama model...');
+            console.log('📁 Model path:', this.modelPath);
             
             // Check if model files exist
             const modelFiles = ['config.json', 'model.safetensors', 'tokenizer.json'];
             const missingFiles = modelFiles.filter(file => !fs.existsSync(path.join(this.modelPath, file)));
             
             if (missingFiles.length > 0) {
+                console.log('❌ Missing files:', missingFiles);
+                console.log('📁 Looking in:', this.modelPath);
                 throw new Error(`Missing model files: ${missingFiles.join(', ')}. Please ensure model files are in ${this.modelPath}`);
             }
+            
+            console.log('✅ All required model files found');
             
             // Load the fine-tuned model and tokenizer
             this.model = await pipeline(
