@@ -3,6 +3,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
 const path = require("path");
 const DeepseekAI = require("../services/deepseekAI");
+const TinyLlamaAI = require("../services/tinyLlamaAI");
 const Ai = require("../models/ai");
 const Session = require("../models/session");
 const intents = require('../intents.json');
@@ -41,20 +42,33 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 const deepseekModel = new DeepseekAI(process.env.DEEPSEEK_API_KEY);
 
+// Initialize TinyLlama model
+let tinyLlamaModel = null;
+if (process.env.USE_TINYLLAMA === 'true') {
+  try {
+    tinyLlamaModel = new TinyLlamaAI();
+    console.log('✅ TinyLlama model service initialized');
+  } catch (error) {
+    console.log('⚠️ Failed to initialize TinyLlama model:', error.message);
+  }
+} else {
+  console.log('⚠️ TinyLlama model not enabled (set USE_TINYLLAMA=true to enable)');
+}
+
 // Model selection strategy
 const AI_MODELS = {
   GEMINI: 'gemini',
-  DEEPSEEK: 'deepseek'
+  DEEPSEEK: 'deepseek',
+  TINYLLAMA: 'tinyllama'
 };
 
 function selectModel() {
-  // You can implement different selection strategies:
-  // 1. Random selection
-  // 2. Round-robin
-  // 3. Based on load/performance
-  // 4. Based on specific use cases
+  // Prioritize TinyLlama if available and enabled
+  if (tinyLlamaModel && tinyLlamaModel.isReady()) {
+    return AI_MODELS.TINYLLAMA;
+  }
   
-  // For now, using random selection
+  // Fallback to other models
   return Math.random() < 0.5 ? AI_MODELS.GEMINI : AI_MODELS.DEEPSEEK;
 }
 
@@ -68,16 +82,34 @@ async function generateWithModel(model, prompt) {
       case AI_MODELS.DEEPSEEK:
         result = await deepseekModel.generateContent(prompt);
         break;
+      case AI_MODELS.TINYLLAMA:
+        if (!tinyLlamaModel || !tinyLlamaModel.isReady()) {
+          throw new Error('TinyLlama model not ready');
+        }
+        result = await tinyLlamaModel.generateContent(prompt);
+        break;
       default:
         throw new Error('Invalid model selected');
     }
     return await result.response.text();
   } catch (error) {
     console.error(`Error with ${model}:`, error);
-    // If one model fails, try the other one
-    const backupModel = model === AI_MODELS.GEMINI ? AI_MODELS.DEEPSEEK : AI_MODELS.GEMINI;
-    console.log(`Trying backup model: ${backupModel}`);
-    return generateWithModel(backupModel, prompt);
+    
+    // Fallback strategy: try other models
+    if (model === AI_MODELS.TINYLLAMA) {
+      console.log('TinyLlama failed, trying Gemini...');
+      try {
+        return await generateWithModel(AI_MODELS.GEMINI, prompt);
+      } catch (geminiError) {
+        console.log('Gemini failed, trying DeepSeek...');
+        return await generateWithModel(AI_MODELS.DEEPSEEK, prompt);
+      }
+    } else {
+      // If one model fails, try the other one
+      const backupModel = model === AI_MODELS.GEMINI ? AI_MODELS.DEEPSEEK : AI_MODELS.GEMINI;
+      console.log(`Trying backup model: ${backupModel}`);
+      return generateWithModel(backupModel, prompt);
+    }
   }
 }
 
@@ -669,6 +701,42 @@ function isSeverelyUnstable(input) {
     /i'm worthless/i,
     /i'm depressed to death/i,
     
+    // Additional crisis expressions
+    /i'm in a crisis/i,
+    /i'm having a crisis/i,
+    /i'm experiencing a crisis/i,
+    /i'm going through a crisis/i,
+    /i'm in an emergency/i,
+    /i'm having an emergency/i,
+    /i'm experiencing an emergency/i,
+    /i'm going through an emergency/i,
+    /i need help immediately/i,
+    /i need help urgently/i,
+    /i need help right now/i,
+    /i need help asap/i,
+    /i need help as soon as possible/i,
+    /i can't cope with this anymore/i,
+    /i can't handle this situation anymore/i,
+    /i can't deal with this anymore/i,
+    /i can't manage this anymore/i,
+    /i can't take this anymore/i,
+    /i can't bear this anymore/i,
+    /i can't stand this anymore/i,
+    /i can't endure this anymore/i,
+    /i'm completely helpless/i,
+    /i'm totally helpless/i,
+    /i'm absolutely helpless/i,
+    /i'm completely hopeless/i,
+    /i'm totally hopeless/i,
+    /i'm absolutely hopeless/i,
+    /i'm completely worthless/i,
+    /i'm totally worthless/i,
+    /i'm absolutely worthless/i,
+    /i'm depressed to the point of death/i,
+    /i'm so depressed i want to die/i,
+    /i'm so depressed i could die/i,
+    /i'm depressed enough to die/i,
+    
     // Academic crisis patterns
     /i'm going to fail my degree/i,
     /i'm going to fail my final year/i,
@@ -706,7 +774,55 @@ function isSeverelyUnstable(input) {
     /i'm being excluded/i,
     /social media is destroying me/i,
     /i can't handle the pressure/i,
-    /i'm a failure compared to others/i
+    /i'm a failure compared to others/i,
+    
+    // Additional suicidal ideation patterns
+    /i (want|wish|need|desire) to (end my existence|cease to exist|stop being alive)/i,
+    /i (want|wish|need|desire) to (end my suffering|stop my pain|end my agony)/i,
+    /i (want|wish|need|desire) to (end my torment|stop my suffering|end my distress)/i,
+    /i (want|wish|need|desire) to (end my misery|stop my pain|end my agony)/i,
+    /i (want|wish|need|desire) to (end my anguish|stop my hurt|end my hurt)/i,
+    /i (want|wish|need|desire) to (end my despair|stop my sadness|end my sadness)/i,
+    /i (want|wish|need|desire) to (end my grief|stop my mourning|end my mourning)/i,
+    /i (want|wish|need|desire) to (end my sorrow|stop my tears|end my tears)/i,
+    /i (want|wish|need|desire) to (end my heartache|stop my pain|end my pain)/i,
+    /i (want|wish|need|desire) to (end my loneliness|stop my isolation|end my isolation)/i,
+    
+    // Future tense additional patterns
+    /i'm going to (end my existence|cease to exist|stop being alive)/i,
+    /i'm going to (end my suffering|stop my pain|end my agony)/i,
+    /i'm going to (end my torment|stop my suffering|end my distress)/i,
+    /i'm going to (end my misery|stop my pain|end my agony)/i,
+    /i'm going to (end my anguish|stop my hurt|end my hurt)/i,
+    /i'm going to (end my despair|stop my sadness|end my sadness)/i,
+    /i'm going to (end my grief|stop my mourning|end my mourning)/i,
+    /i'm going to (end my sorrow|stop my tears|end my tears)/i,
+    /i'm going to (end my heartache|stop my pain|end my pain)/i,
+    /i'm going to (end my loneliness|stop my isolation|end my isolation)/i,
+    
+    // Planning additional patterns
+    /i (plan|intend|am planning|am intending) to (end my existence|cease to exist|stop being alive)/i,
+    /i (plan|intend|am planning|am intending) to (end my suffering|stop my pain|end my agony)/i,
+    /i (plan|intend|am planning|am intending) to (end my torment|stop my suffering|end my distress)/i,
+    /i (plan|intend|am planning|am intending) to (end my misery|stop my pain|end my agony)/i,
+    /i (plan|intend|am planning|am intending) to (end my anguish|stop my hurt|end my hurt)/i,
+    /i (plan|intend|am planning|am intending) to (end my despair|stop my sadness|end my sadness)/i,
+    /i (plan|intend|am planning|am intending) to (end my grief|stop my mourning|end my mourning)/i,
+    /i (plan|intend|am planning|am intending) to (end my sorrow|stop my tears|end my tears)/i,
+    /i (plan|intend|am planning|am intending) to (end my heartache|stop my pain|end my pain)/i,
+    /i (plan|intend|am planning|am intending) to (end my loneliness|stop my isolation|end my isolation)/i,
+    
+    // Means and methods additional patterns
+    /i (have|know|found) (a way|the means|how) to (end my existence|cease to exist|stop being alive)/i,
+    /i (have|know|found) (a way|the means|how) to (end my suffering|stop my pain|end my agony)/i,
+    /i (have|know|found) (a way|the means|how) to (end my torment|stop my suffering|end my distress)/i,
+    /i (have|know|found) (a way|the means|how) to (end my misery|stop my pain|end my agony)/i,
+    /i (have|know|found) (a way|the means|how) to (end my anguish|stop my hurt|end my hurt)/i,
+    /i (have|know|found) (a way|the means|how) to (end my despair|stop my sadness|end my sadness)/i,
+    /i (have|know|found) (a way|the means|how) to (end my grief|stop my mourning|end my mourning)/i,
+    /i (have|know|found) (a way|the means|how) to (end my sorrow|stop my tears|end my tears)/i,
+    /i (have|know|found) (a way|the means|how) to (end my heartache|stop my pain|end my pain)/i,
+    /i (have|know|found) (a way|the means|how) to (end my loneliness|stop my isolation|end my isolation)/i
   ];
   
   // Check for crisis patterns
@@ -876,6 +992,12 @@ const endSession = async (req, res) => {
 
 const generateContent = async (req, res) => {
   try {
+    // Initialize TinyLlama if not already done
+    if (tinyLlamaModel && !tinyLlamaModel.isReady()) {
+      console.log('🔄 Initializing TinyLlama model...');
+      await tinyLlamaModel.initialize();
+    }
+    
     const prompt = req.body.prompt;
     let { sessionId } = req.body;
 
@@ -975,36 +1097,72 @@ Please don't hesitate to reach out - you're taking an important step by seeking 
       });
       await newAiEntry.save();
 
-      // Find a therapist (first available)
-      const therapist = await User.findOne({ role: 'therapist' });
+      // Find the best available therapist for crisis intervention
+      const therapist = await User.findOne({ 
+        role: 'therapist',
+        isActive: { $ne: false } // Only active therapists
+      }).sort({ 
+        // Prioritize therapists with crisis intervention experience
+        'specializations': -1, // If specializations field exists
+        'createdAt': 1 // Then by earliest joined (more experience)
+      });
+      
       let appointment = null;
       let appointmentError = null;
+      
       if (therapist) {
         try {
-          // Book appointment for ASAP (next hour)
+          // Book appointment for ASAP (next available hour)
           const now = new Date();
-          const soon = new Date(now.getTime() + 60 * 60 * 1000);
+          const soon = new Date(now.getTime() + 60 * 60 * 1000); // Next hour
+          
           appointment = new Appointment({
-            title: 'Urgent Mental Health Support',
-            description: 'Auto-booked due to detected crisis in chat. Please reach out to the user as soon as possible.',
+            title: '🚨 URGENT: Crisis Intervention Session',
+            description: `CRISIS DETECTED: Auto-booked due to detected crisis in chat session ${sessionId}. User requires immediate professional intervention. Please reach out to the user as soon as possible.`,
             scheduledTime: soon,
             therapist: therapist._id,
             client: req.userId,
             status: 'pending',
+            priority: 'urgent',
+            crisisDetected: true,
+            sessionId: sessionId,
+            moodAtCrisis: session.mood || 'unknown'
           });
           await appointment.save();
+
+          console.log(`🚨 CRISIS: Auto-booked urgent appointment ${appointment._id} with therapist ${therapist._id} for user ${req.userId}`);
 
           // Email notification to therapist
           if (therapist.email) {
             await sendEmail({
               to: therapist.email,
-              subject: 'Urgent: Crisis Detected - Appointment Auto-Booked',
-              text: `A user in crisis has been detected by the AI. An urgent appointment has been auto-booked. Please check the platform and reach out to the user as soon as possible.`,
+              subject: '🚨 URGENT: Crisis Detected - Immediate Action Required',
+              text: `CRISIS ALERT: A user in crisis has been detected by the AI system.
+
+DETAILS:
+- User ID: ${req.userId}
+- Session ID: ${sessionId}
+- Crisis Type: ${prompt.substring(0, 100)}...
+- Initial Mood: ${session.mood || 'unknown'}
+- Appointment ID: ${appointment._id}
+- Scheduled Time: ${soon.toLocaleString()}
+
+ACTION REQUIRED:
+1. Check the platform immediately
+2. Contact the user as soon as possible
+3. Provide crisis intervention support
+4. Update appointment status when contact is made
+
+This is an automated alert from the therapy platform's crisis detection system.`,
             });
           }
         } catch (err) {
           appointmentError = err.message;
+          console.error('❌ Failed to create crisis appointment:', err);
         }
+      } else {
+        appointmentError = 'No available therapists found for crisis intervention';
+        console.error('❌ No therapists available for crisis intervention');
       }
 
       return res.json({

@@ -12,6 +12,23 @@ const appointmentSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'declined', 'completed', 'cancelled'], 
     default: 'pending' 
   },
+  priority: {
+    type: String,
+    enum: ['normal', 'urgent', 'crisis'],
+    default: 'normal'
+  },
+  crisisDetected: {
+    type: Boolean,
+    default: false
+  },
+  sessionId: {
+    type: String,
+    required: false
+  },
+  moodAtCrisis: {
+    type: String,
+    required: false
+  },
   createdDate: { type: Date, default: Date.now },
   approvedAt: Date,
   declinedAt: Date,

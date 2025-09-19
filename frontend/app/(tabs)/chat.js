@@ -14,6 +14,7 @@ import {
   Dimensions,
   Keyboard,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -60,9 +61,10 @@ export default function Chat() {
   const [isResetting, setIsResetting] = useState(false);
   const [typingText, setTypingText] = useState("");
   const [isTypingEffect, setIsTypingEffect] = useState(false);
-  const [inputBarHeight, setInputBarHeight] = useState(0);
   const [hasWelcomeMessage, setHasWelcomeMessage] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [chatLocked, setChatLocked] = useState(true);
 
   // User-specific storage keys
   const getChatHistoryKey = () => {
@@ -75,6 +77,12 @@ export default function Chat() {
     const userId = user?.id || user?._id || 'anonymous';
     const key = `ai_session_id_${userId}`;
     console.log('Using session ID key:', key, 'for user:', userId);
+    return key;
+  };
+  const getFirstTimeKey = () => {
+    const userId = user?.id || user?._id || 'anonymous';
+    const key = `first_time_chat_${userId}`;
+    console.log('Using first time key:', key, 'for user:', userId);
     return key;
   };
   
@@ -92,9 +100,6 @@ export default function Chat() {
   
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  // Animated bottom offset for input bar
-  const keyboardHeight = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Check if user is authenticated
@@ -126,50 +131,48 @@ export default function Chat() {
           
           const savedMessages = await AsyncStorage.getItem(getChatHistoryKey());
           const savedSession = await AsyncStorage.getItem(getSessionIdKey());
-        if (savedMessages) {
-          const parsedMessages = JSON.parse(savedMessages);
-          setMessages(parsedMessages);
-          setHasWelcomeMessage(parsedMessages.length > 0);
-        }
-        if (savedSession) setSessionId(savedSession);
-        else setShowMoodModal(true);
+          const isFirstTime = await AsyncStorage.getItem(getFirstTimeKey());
+          
+          // Check if this is a new user (first time opening chat)
+          if (!isFirstTime) {
+            setIsNewUser(true);
+            setShowMoodModal(true);
+            setChatLocked(true);
+            console.log('🆕 New user detected - showing mood modal');
+          } else if (savedSession) {
+            // Existing user with active session
+            setSessionId(savedSession);
+            setChatLocked(false);
+            console.log('👤 Existing user with active session');
+          } else {
+            // Existing user but no active session - show mood modal
+            setShowMoodModal(true);
+            setChatLocked(true);
+            console.log('🔄 Existing user needs new session - showing mood modal');
+          }
+          
+          if (savedMessages) {
+            const parsedMessages = JSON.parse(savedMessages);
+            setMessages(parsedMessages);
+            setHasWelcomeMessage(parsedMessages.length > 0);
+          }
       } catch (e) {
         console.error(e);
       }
     })();
     }
 
-    // keyboard listeners
-    const showEvt =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvt =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const subShow = Keyboard.addListener(showEvt, (e) => {
-      Animated.timing(keyboardHeight, {
-        toValue: e.endCoordinates.height,
-        duration: 250,
-        easing: Easing.ease,
-        useNativeDriver: false,
-      }).start();
+    // Auto-scroll to bottom when keyboard shows/hides
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     });
-    const subHide = Keyboard.addListener(hideEvt, () => {
-      Animated.timing(keyboardHeight, {
-        toValue: 0,
-        duration: 250,
-        easing: Easing.ease,
-        useNativeDriver: false,
-      }).start();
-      // scroll to bottom when keyboard hides
-      setTimeout(
-        () => flatListRef.current?.scrollToEnd({ animated: true }),
-        100
-      );
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     });
 
     return () => {
-      subShow.remove();
-      subHide.remove();
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
     };
   }, [token, router, user]);
 
@@ -298,6 +301,8 @@ export default function Chat() {
       return;
     }
     setShowMoodModal(false);
+    setChatLocked(false); // Unlock chat after mood selection
+    
     try {
       console.log('Starting session with token:', token);
       const res = await fetch(`${API_BASE_URL}/ai/start-session`, {
@@ -312,6 +317,13 @@ export default function Chat() {
       if (!res.ok) throw new Error(d.error || "start error");
       setSessionId(d.sessionId);
       await AsyncStorage.setItem(getSessionIdKey(), d.sessionId);
+      
+      // Mark user as no longer first-time
+      if (isNewUser) {
+        await AsyncStorage.setItem(getFirstTimeKey(), 'false');
+        setIsNewUser(false);
+        console.log('✅ User marked as no longer first-time');
+      }
       
       // Add welcome message based on mood
       const welcomeMessage = getWelcomeMessage(mood);
@@ -328,6 +340,7 @@ export default function Chat() {
     } catch (e) {
       console.error(e);
       Alert.alert("Error", "Could not start session.");
+      setChatLocked(true); // Re-lock chat if session creation fails
     }
   };
 
@@ -337,6 +350,7 @@ export default function Chat() {
       return;
     }
     setIsResetting(true);
+    setChatLocked(true); // Lock chat during reset
     try {
       if (sessionId) {
         await fetch(`${API_BASE_URL}/ai/end-session`, {
@@ -374,15 +388,24 @@ export default function Chat() {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
       <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
         {/* Mood Modal */}
         <Modal visible={showMoodModal} transparent animationType="fade">
           <View style={[styles.modalOverlay, { backgroundColor: colors.backgroundOverlay }]}>
             <Animated.View style={[styles.moodCard, { backgroundColor: colors.card }]}>
-              <Text style={[styles.moodTitle, { color: colors.textPrimary }]}>How are you feeling today?</Text>
+              <Text style={[styles.moodTitle, { color: colors.textPrimary }]}>
+                {isNewUser ? "Welcome! How are you feeling today?" : "How are you feeling today?"}
+              </Text>
               <Text style={[styles.moodSubtitle, { color: colors.accent }]}>
-                Scale 1 (worst) to 10 (best)
+                {isNewUser 
+                  ? "Let's start your first chat session by sharing your mood" 
+                  : "Scale 1 (worst) to 10 (best)"
+                }
               </Text>
               <Text style={styles.moodEmoji}>{moodEmojis[mood - 1]}</Text>
               <Slider
@@ -401,7 +424,9 @@ export default function Chat() {
                 style={[styles.moodButton, { backgroundColor: colors.accent }]}
                 onPress={handleStartSession}
         >
-                <Text style={styles.moodButtonText}>Start Chat</Text>
+                <Text style={styles.moodButtonText}>
+                  {isNewUser ? "Start My First Chat" : "Start Chat"}
+                </Text>
         </TouchableOpacity>
             </Animated.View>
           </View>
@@ -494,48 +519,55 @@ export default function Chat() {
             );
           }}
           keyExtractor={(_, i) => i.toString()}
-          contentContainerStyle={{ paddingBottom: inputBarHeight + 8 }}
+          contentContainerStyle={{ paddingBottom: 20 }}
           showsVerticalScrollIndicator={false}
         />
 
         {/* Input Bar */}
-        <Animated.View
+        <View
           style={[styles.inputWrapper, { 
-            bottom: keyboardHeight,
             borderTopColor: colors.border 
           }]}
         >
-          <View
-        style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
-            onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
-      >
-      <TextInput
-        style={[styles.textInput, { 
-          color: colors.textPrimary,
-          backgroundColor: colors.chatInput 
-        }]}
-          value={inputMessage}
-          onChangeText={setInputMessage}
-              placeholder="Type a message..."
-        placeholderTextColor={colors.textTertiary}
-          multiline
-              textAlignVertical="top"
-        />
-        <TouchableOpacity 
-          onPress={sendMessage}
-              style={[
-                styles.sendButton,
-            { backgroundColor: colors.chatSend },
-                (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
-              ]}
-          disabled={!inputMessage.trim() || isLoading}
-        >
-              <Ionicons name="send" size={24} color="#fff" />
-        </TouchableOpacity>
-          </View>
-        </Animated.View>
+          {chatLocked ? (
+            <View style={[styles.lockedInputContainer, { backgroundColor: colors.chatInput }]}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} />
+              <Text style={[styles.lockedInputText, { color: colors.textTertiary }]}>
+                {isNewUser ? "Select your mood to start chatting" : "Select your mood to continue"}
+              </Text>
+            </View>
+          ) : (
+            <View
+              style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
+            >
+              <TextInput
+                style={[styles.textInput, { 
+                  color: colors.textPrimary,
+                  backgroundColor: colors.chatInput 
+                }]}
+                value={inputMessage}
+                onChangeText={setInputMessage}
+                placeholder="Type a message..."
+                placeholderTextColor={colors.textTertiary}
+                multiline
+                textAlignVertical="top"
+              />
+              <TouchableOpacity 
+                onPress={sendMessage}
+                style={[
+                  styles.sendButton,
+                  { backgroundColor: colors.chatSend },
+                  (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
+                ]}
+                disabled={!inputMessage.trim() || isLoading}
+              >
+                <Ionicons name="send" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </LinearGradient>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -613,14 +645,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   inputWrapper: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
+    backgroundColor: 'transparent',
   },
   inputContainer: {
     flexDirection: "row",
@@ -628,6 +657,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 25,
+  },
+  lockedInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 25,
+    opacity: 0.7,
+  },
+  lockedInputText: {
+    fontSize: 14,
+    marginLeft: 8,
+    fontStyle: "italic",
   },
   textInput: { flex: 1, fontSize: 16, paddingVertical: 4 },
   sendButton: {

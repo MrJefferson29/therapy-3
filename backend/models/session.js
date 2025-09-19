@@ -14,7 +14,7 @@ const sessionSchema = new mongoose.Schema({
   },
   selectedModel: {
     type: String,
-    enum: ['gemini', 'deepseek'],
+    enum: ['gemini', 'deepseek', 'tinyllama'],
     default: 'gemini'
   },
   terminated: {
