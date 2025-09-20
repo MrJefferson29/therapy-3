@@ -7,6 +7,7 @@ class TinyLlamaAI {
         // Use Hugging Face model ID, but fallback to local path
         this.modelId = modelId;
         this.localModelPath = path.resolve(__dirname, '..', 'therapy-ai-tinyllama-clean');
+        this.workingModelPath = path.resolve(__dirname, '..', 'therapy-ai-working');
         this.model = null;
         this.tokenizer = null;
         this.isInitialized = false;
@@ -23,14 +24,37 @@ class TinyLlamaAI {
         
         try {
             console.log('🔄 Initializing TinyLlama model...');
-            console.log('💡 Note: @xenova/transformers has limitations with certain model formats');
-            console.log('💡 TinyLlama will be disabled - using fallback models (Gemini/DeepSeek)');
-            console.log('💡 This is normal and expected - your app will work perfectly with other models');
             
-            // For now, we'll disable TinyLlama due to @xenova/transformers limitations
-            // The system will fall back to Gemini/DeepSeek which work reliably
-            this.isInitialized = false;
-            return false;
+            // Try multiple approaches for loading the model
+            const approaches = [
+                {
+                    name: 'Working Model (Local)',
+                    load: () => this.loadWorkingModel()
+                },
+                {
+                    name: 'Hugging Face Direct',
+                    load: () => this.loadFromHuggingFace()
+                },
+                {
+                    name: 'Compatible Model (Fallback)',
+                    load: () => this.loadCompatibleModel()
+                }
+            ];
+            
+            for (const approach of approaches) {
+                try {
+                    console.log(`🔄 Trying ${approach.name}...`);
+                    this.model = await approach.load();
+                    this.isInitialized = true;
+                    console.log(`✅ TinyLlama model initialized successfully using ${approach.name}`);
+                    return true;
+                } catch (error) {
+                    console.log(`⚠️ ${approach.name} failed: ${error.message}`);
+                    continue;
+                }
+            }
+            
+            throw new Error('All loading approaches failed');
             
         } catch (error) {
             console.error('❌ Failed to initialize TinyLlama model:', error.message);
@@ -39,6 +63,45 @@ class TinyLlamaAI {
             this.isInitialized = false;
             return false;
         }
+    }
+    
+    async loadWorkingModel() {
+        console.log('📁 Loading working model from local files...');
+        
+        // Check if working model files exist
+        const modelFiles = ['config.json', 'model.safetensors', 'tokenizer.json'];
+        const missingFiles = modelFiles.filter(file => 
+            !fs.existsSync(path.join(this.workingModelPath, file))
+        );
+        
+        if (missingFiles.length > 0) {
+            throw new Error(`Missing working model files: ${missingFiles.join(', ')}`);
+        }
+        
+        return await pipeline(
+            'text-generation',
+            this.workingModelPath,
+            {
+                device: 'cpu',
+                dtype: 'float32',
+                use_onnx: false
+            }
+        );
+    }
+    
+    async loadCompatibleModel() {
+        console.log('🌐 Loading compatible model from Hugging Face...');
+        const compatibleModelId = 'Xenova/distilgpt2';
+        
+        return await pipeline(
+            'text-generation',
+            compatibleModelId,
+            {
+                device: 'cpu',
+                dtype: 'float32',
+                use_onnx: false
+            }
+        );
     }
     
     async loadFromHuggingFace() {
