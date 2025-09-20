@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * TinyLlama Model Download Script using Python gdown
- * More reliable for Google Drive downloads
+ * TinyLlama Model Download Script
+ * Handles both local development and deployment scenarios
  */
 
 const fs = require('fs');
@@ -22,8 +22,8 @@ const MODEL_FILES = {
     'generation_config.json': '1JDXlv73VxUudYkeG-vqBh1yB9Zqecj3d'
 };
 
-console.log('🚀 TinyLlama Model Download Script (Python gdown)');
-console.log('================================================');
+console.log('🚀 TinyLlama Model Setup Script');
+console.log('================================');
 
 // Create model directory
 function createModelDirectory() {
@@ -35,76 +35,12 @@ function createModelDirectory() {
     }
 }
 
-// Check if Python and gdown are available
-async function checkPython() {
-    try {
-        await execAsync('python --version');
-        console.log('✅ Python is available');
-        
-        try {
-            await execAsync('python -c "import gdown"');
-            console.log('✅ gdown is available');
-            return true;
-        } catch (error) {
-            console.log('⚠️ gdown not found, installing...');
-            await execAsync('pip install gdown');
-            console.log('✅ gdown installed');
-            return true;
-        }
-    } catch (error) {
-        console.log('❌ Python not found');
-        return false;
-    }
-}
-
-// Download a single file using gdown
-async function downloadFile(fileId, filename) {
-    const filePath = path.join(MODEL_DIR, filename);
-    // Convert Windows path to forward slashes for Python
-    const pythonPath = filePath.replace(/\\/g, '/');
-    
-    console.log(`📥 Downloading ${filename}...`);
-    
-    try {
-        const command = `python -c "import gdown; gdown.download('https://drive.google.com/uc?id=${fileId}', '${pythonPath}', quiet=False)"`;
-        await execAsync(command);
-        
-        // Check if file was downloaded
-        if (fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
-            const stats = fs.statSync(filePath);
-            console.log(`✅ Downloaded ${filename} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
-            return true;
-        } else {
-            console.log(`❌ Failed to download ${filename} - file is empty or missing`);
-            return false;
-        }
-    } catch (error) {
-        console.error(`❌ Failed to download ${filename}:`, error.message);
-        return false;
-    }
-}
-
-// Download all model files
-async function downloadAllFiles() {
-    console.log('📥 Starting model file downloads...');
-    
-    // Download files one by one
-    for (const [filename, fileId] of Object.entries(MODEL_FILES)) {
-        const success = await downloadFile(fileId, filename);
-        if (!success) {
-            return false;
-        }
-    }
-    
-    console.log('\n✅ All model files downloaded successfully!');
-    return true;
-}
-
-// Verify downloaded files
-function verifyFiles() {
-    console.log('\n🔍 Verifying downloaded files...');
+// Check if all required files exist and are valid
+function checkExistingFiles() {
+    console.log('🔍 Checking for existing model files...');
     
     const requiredFiles = Object.keys(MODEL_FILES);
+    const existingFiles = [];
     const missingFiles = [];
     
     requiredFiles.forEach(filename => {
@@ -113,6 +49,7 @@ function verifyFiles() {
             const stats = fs.statSync(filePath);
             if (stats.size > 0) {
                 console.log(`✅ ${filename} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+                existingFiles.push(filename);
             } else {
                 console.log(`❌ ${filename} - EMPTY FILE`);
                 missingFiles.push(filename);
@@ -123,12 +60,84 @@ function verifyFiles() {
         }
     });
     
-    if (missingFiles.length > 0) {
-        console.log(`\n❌ Missing or empty files: ${missingFiles.join(', ')}`);
+    return { existingFiles, missingFiles };
+}
+
+// Download a single file using gdown with retry logic
+async function downloadFile(fileId, filename, retries = 3) {
+    const filePath = path.join(MODEL_DIR, filename);
+    const pythonPath = filePath.replace(/\\/g, '/');
+    
+    console.log(`📥 Downloading ${filename}...`);
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            console.log(`   Attempt ${attempt}/${retries}`);
+            
+            const command = `python -c "import gdown; gdown.download('https://drive.google.com/uc?id=${fileId}', '${pythonPath}', quiet=False)"`;
+            await execAsync(command, { timeout: 300000 }); // 5 minute timeout
+            
+            // Check if file was downloaded
+            if (fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
+                const stats = fs.statSync(filePath);
+                console.log(`✅ Downloaded ${filename} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+                return true;
+            } else {
+                console.log(`❌ Downloaded ${filename} is empty or missing`);
+                if (attempt < retries) {
+                    console.log(`   Retrying in 5 seconds...`);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+            }
+        } catch (error) {
+            console.log(`❌ Attempt ${attempt} failed: ${error.message}`);
+            if (attempt < retries) {
+                console.log(`   Retrying in 10 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 10000));
+            }
+        }
+    }
+    
+    console.error(`❌ Failed to download ${filename} after ${retries} attempts`);
+    return false;
+}
+
+// Download missing files
+async function downloadMissingFiles(missingFiles) {
+    if (missingFiles.length === 0) {
+        console.log('✅ All files already exist, no download needed');
+        return true;
+    }
+    
+    console.log(`📥 Downloading ${missingFiles.length} missing files...`);
+    
+    // Check if Python and gdown are available
+    try {
+        await execAsync('python --version');
+        console.log('✅ Python is available');
+        
+        try {
+            await execAsync('python -c "import gdown"');
+            console.log('✅ gdown is available');
+        } catch (error) {
+            console.log('⚠️ gdown not found, installing...');
+            await execAsync('pip install gdown');
+            console.log('✅ gdown installed');
+        }
+    } catch (error) {
+        console.log('❌ Python not found - cannot download files');
         return false;
     }
     
-    console.log('\n✅ All model files verified!');
+    // Download files one by one
+    for (const filename of missingFiles) {
+        const fileId = MODEL_FILES[filename];
+        const success = await downloadFile(fileId, filename);
+        if (!success) {
+            return false;
+        }
+    }
+    
     return true;
 }
 
@@ -137,39 +146,36 @@ async function main() {
     try {
         createModelDirectory();
         
-        // Check if Python is available
-        const pythonAvailable = await checkPython();
-        if (!pythonAvailable) {
-            console.log('❌ Python is required for this download method');
-            console.log('💡 Alternative: Use the Node.js download script or upload files manually');
-            process.exit(1);
+        // Check existing files
+        const { existingFiles, missingFiles } = checkExistingFiles();
+        
+        if (missingFiles.length === 0) {
+            console.log('\n🎉 All model files are ready!');
+            return;
         }
         
-        // Check if files already exist and are valid
-        const existingFiles = Object.keys(MODEL_FILES).filter(filename => {
-            const filePath = path.join(MODEL_DIR, filename);
-            return fs.existsSync(filePath) && fs.statSync(filePath).size > 0;
-        });
+        console.log(`\n📥 Need to download ${missingFiles.length} files: ${missingFiles.join(', ')}`);
         
-        if (existingFiles.length === Object.keys(MODEL_FILES).length) {
-            console.log('✅ All model files already exist, skipping download');
-            if (verifyFiles()) {
-                console.log('🎉 TinyLlama model is ready!');
-                return;
+        // Try to download missing files
+        const downloadSuccess = await downloadMissingFiles(missingFiles);
+        
+        if (downloadSuccess) {
+            // Verify all files are now present
+            const { missingFiles: stillMissing } = checkExistingFiles();
+            if (stillMissing.length === 0) {
+                console.log('\n🎉 TinyLlama model setup complete!');
+            } else {
+                console.log(`\n❌ Still missing files: ${stillMissing.join(', ')}`);
+                console.log('💡 TinyLlama will be disabled - using fallback models');
             }
-        }
-        
-        const success = await downloadAllFiles();
-        if (success && verifyFiles()) {
-            console.log('🎉 TinyLlama model setup complete!');
         } else {
-            console.log('❌ Model setup failed');
-            process.exit(1);
+            console.log('\n❌ Failed to download model files');
+            console.log('💡 TinyLlama will be disabled - using fallback models');
         }
         
     } catch (error) {
         console.error('❌ Error:', error.message);
-        process.exit(1);
+        console.log('💡 TinyLlama will be disabled - using fallback models');
     }
 }
 
@@ -178,4 +184,5 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { downloadAllFiles, verifyFiles, createModelDirectory };
+module.exports = { main, checkExistingFiles, createModelDirectory };
+
