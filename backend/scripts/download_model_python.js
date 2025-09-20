@@ -60,11 +60,13 @@ async function checkPython() {
 // Download a single file using gdown
 async function downloadFile(fileId, filename) {
     const filePath = path.join(MODEL_DIR, filename);
+    // Convert Windows path to forward slashes for Python
+    const pythonPath = filePath.replace(/\\/g, '/');
     
     console.log(`📥 Downloading ${filename}...`);
     
     try {
-        const command = `python -c "import gdown; gdown.download('https://drive.google.com/uc?id=${fileId}', '${filePath}', quiet=False)"`;
+        const command = `python -c "import gdown; gdown.download('https://drive.google.com/uc?id=${fileId}', '${pythonPath}', quiet=False)"`;
         await execAsync(command);
         
         // Check if file was downloaded
