@@ -17,8 +17,8 @@ const aiSchema = new mongoose.Schema({
     },
     model: {
         type: String,
-        enum: ['gemini', 'deepseek'],
-        default: 'gemini'
+        enum: ['llama2', 'gemini', 'deepseek'],
+        default: 'llama2'
     }
 }, { timestamps: true });
 

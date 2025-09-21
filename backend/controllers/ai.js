@@ -3,6 +3,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
 const path = require("path");
 const DeepseekAI = require("../services/deepseekAI");
+const Llama2AI = require("../services/llama2AI");
 const Ai = require("../models/ai");
 const Session = require("../models/session");
 const intents = require('../intents.json');
@@ -41,21 +42,44 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 const deepseekModel = new DeepseekAI(process.env.DEEPSEEK_API_KEY);
 
-// Model selection strategy
+// Initialize Llama 2 model (primary model)
+const llama2Model = new Llama2AI(
+  process.env.HUGGINGFACE_API_KEY,
+  process.env.LLAMA2_MODEL_URL || "your-username/therapy-llama2-7b" // Replace with your trained model
+);
+
+// Model selection strategy - Gemini is primary with enhanced intent guidance, Llama 2 is fallback
 const AI_MODELS = {
-  GEMINI: 'gemini',
-  DEEPSEEK: 'deepseek'
+  GEMINI: 'gemini',  // Primary - enhanced with intent guidance
+  LLAMA2: 'llama2',  // Fallback - custom trained model
+  DEEPSEEK: 'deepseek'  // Last resort
 };
 
 function selectModel() {
-  // You can implement different selection strategies:
-  // 1. Random selection
-  // 2. Round-robin
-  // 3. Based on load/performance
-  // 4. Based on specific use cases
-  
-  // For now, using random selection
-  return Math.random() < 0.5 ? AI_MODELS.GEMINI : AI_MODELS.DEEPSEEK;
+  // Gemini is the primary model with enhanced intent guidance
+  return AI_MODELS.GEMINI;
+}
+
+// Enhanced Gemini function with dynamic intent guidance
+async function generateWithEnhancedGemini(prompt, intentContext = null) {
+  try {
+    // Extract user input from the full prompt
+    const userInputMatch = prompt.match(/User: ([\s\S]*?)(?=AI:|$)/);
+    const userInput = userInputMatch ? userInputMatch[1].trim() : prompt;
+
+    // Get dynamic intent guidance (not exact matches)
+    const guidance = getIntentGuidance(userInput);
+
+    // Build enhanced prompt with guidance
+    const enhancedPrompt = buildEnhancedGeminiPrompt(prompt, guidance);
+
+    const result = await geminiModel.generateContent(enhancedPrompt);
+    return result;
+  } catch (error) {
+    console.error('Enhanced Gemini error:', error);
+    // Fallback to regular Gemini
+    return await geminiModel.generateContent(prompt);
+  }
 }
 
 async function generateWithModel(model, prompt) {
@@ -63,7 +87,11 @@ async function generateWithModel(model, prompt) {
     let result;
     switch (model) {
       case AI_MODELS.GEMINI:
-        result = await geminiModel.generateContent(prompt);
+        // Use enhanced Gemini with intent guidance
+        result = await generateWithEnhancedGemini(prompt);
+        break;
+      case AI_MODELS.LLAMA2:
+        result = await llama2Model.generateContent(prompt);
         break;
       case AI_MODELS.DEEPSEEK:
         result = await deepseekModel.generateContent(prompt);
@@ -74,10 +102,18 @@ async function generateWithModel(model, prompt) {
     return await result.response.text();
   } catch (error) {
     console.error(`Error with ${model}:`, error);
-    // If one model fails, try the other one
-    const backupModel = model === AI_MODELS.GEMINI ? AI_MODELS.DEEPSEEK : AI_MODELS.GEMINI;
-    console.log(`Trying backup model: ${backupModel}`);
-    return generateWithModel(backupModel, prompt);
+
+    // Fallback strategy: Gemini -> Llama2 -> DeepSeek
+    if (model === AI_MODELS.GEMINI) {
+      console.log('Trying backup model: Llama2');
+      return generateWithModel(AI_MODELS.LLAMA2, prompt);
+    } else if (model === AI_MODELS.LLAMA2) {
+      console.log('Trying backup model: DeepSeek');
+      return generateWithModel(AI_MODELS.DEEPSEEK, prompt);
+    } else {
+      // If DeepSeek also fails, throw the error
+      throw error;
+    }
   }
 }
 
@@ -178,6 +214,151 @@ function normalize(text) {
     .replace(/[.,!?;:()\[\]{}"']/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+// Dynamic intent guidance function - provides context rather than exact responses
+function getIntentGuidance(userInput) {
+  const normalizedInput = normalize(userInput);
+  let guidance = {
+    context: '',
+    suggestedApproaches: [],
+    keyTopics: [],
+    therapeuticFocus: ''
+  };
+
+  // Analyze input for therapeutic context
+  if (normalizedInput.match(/(stress|stressed|overwhelm|pressure|anxious|worry)/)) {
+    guidance.context = 'stress and anxiety management';
+    guidance.suggestedApproaches = [
+      'grounding techniques',
+      'breathing exercises',
+      'cognitive restructuring',
+      'problem-solving strategies'
+    ];
+    guidance.keyTopics = ['coping mechanisms', 'stress reduction', 'emotional regulation'];
+    guidance.therapeuticFocus = 'Help the user identify specific stressors and develop practical coping strategies';
+  }
+
+  else if (normalizedInput.match(/(depress|depressed|sad|hopeless|worthless|empty)/)) {
+    guidance.context = 'depression and mood support';
+    guidance.suggestedApproaches = [
+      'behavioral activation',
+      'self-compassion exercises',
+      'gratitude practices',
+      'social connection support'
+    ];
+    guidance.keyTopics = ['mood improvement', 'self-care', 'meaningful activities'];
+    guidance.therapeuticFocus = 'Validate feelings while gently encouraging small positive actions';
+  }
+
+  else if (normalizedInput.match(/(study|academic|grade|cgpa|exam|test|assignment|lecturer)/)) {
+    guidance.context = 'academic stress and performance anxiety';
+    guidance.suggestedApproaches = [
+      'study skill development',
+      'time management techniques',
+      'realistic goal setting',
+      'academic counseling referrals'
+    ];
+    guidance.keyTopics = ['academic pressure', 'study strategies', 'work-life balance'];
+    guidance.therapeuticFocus = 'Address academic concerns while promoting healthy study habits and self-compassion';
+  }
+
+  else if (normalizedInput.match(/(family|parent|expectation|pressure|culture|tradition)/)) {
+    guidance.context = 'family and cultural expectations';
+    guidance.suggestedApproaches = [
+      'boundary setting',
+      'cultural identity exploration',
+      'communication skills',
+      'values clarification'
+    ];
+    guidance.keyTopics = ['family dynamics', 'cultural adjustment', 'personal boundaries'];
+    guidance.therapeuticFocus = 'Help navigate family expectations while supporting personal growth and autonomy';
+  }
+
+  else if (normalizedInput.match(/(friend|social|lonely|isolated|relationship|partner)/)) {
+    guidance.context = 'social connections and relationships';
+    guidance.suggestedApproaches = [
+      'social skill building',
+      'community involvement',
+      'healthy relationship patterns',
+      'self-acceptance work'
+    ];
+    guidance.keyTopics = ['social anxiety', 'relationship skills', 'belonging'];
+    guidance.therapeuticFocus = 'Support social connection while addressing underlying barriers to relationships';
+  }
+
+  else if (normalizedInput.match(/(sleep|insomnia|tired|exhaust|energy)/)) {
+    guidance.context = 'sleep and energy management';
+    guidance.suggestedApproaches = [
+      'sleep hygiene education',
+      'relaxation techniques',
+      'energy management strategies',
+      'underlying cause exploration'
+    ];
+    guidance.keyTopics = ['sleep quality', 'rest', 'energy levels'];
+    guidance.therapeuticFocus = 'Address sleep concerns and explore factors affecting energy and rest';
+  }
+
+  else if (normalizedInput.match(/(self.?esteem|confidence|worth|value|good.?enough)/)) {
+    guidance.context = 'self-esteem and self-worth';
+    guidance.suggestedApproaches = [
+      'self-compassion practices',
+      'cognitive restructuring',
+      'achievement recognition',
+      'values-based living'
+    ];
+    guidance.keyTopics = ['self-acceptance', 'positive self-talk', 'personal strengths'];
+    guidance.therapeuticFocus = 'Build self-esteem through compassionate self-reflection and realistic self-assessment';
+  }
+
+  else if (normalizedInput.match(/(future|career|job|graduate|after.?college|what.?next)/)) {
+    guidance.context = 'career and future planning anxiety';
+    guidance.suggestedApproaches = [
+      'career exploration',
+      'goal setting',
+      'uncertainty tolerance',
+      'skill development'
+    ];
+    guidance.keyTopics = ['career planning', 'future anxiety', 'life transitions'];
+    guidance.therapeuticFocus = 'Address future concerns while building confidence in decision-making and planning';
+  }
+
+  // Default guidance for general conversations
+  if (!guidance.context) {
+    guidance.context = 'general mental health and wellness support';
+    guidance.suggestedApproaches = [
+      'active listening',
+      'validation of feelings',
+      'exploration of concerns',
+      'resource provision'
+    ];
+    guidance.keyTopics = ['emotional support', 'wellness', 'personal growth'];
+    guidance.therapeuticFocus = 'Provide supportive listening and help identify areas where additional support might be beneficial';
+  }
+
+  return guidance;
+}
+
+// Build enhanced prompt with dynamic intent guidance
+function buildEnhancedGeminiPrompt(originalPrompt, guidance) {
+  const enhancedPrompt = `${THERAPIST_SYSTEM_PROMPT}
+
+CURRENT CONVERSATION CONTEXT:
+- Primary therapeutic focus: ${guidance.therapeuticFocus}
+- Key topics to address: ${guidance.keyTopics.join(', ')}
+- Suggested approaches: ${guidance.suggestedApproaches.join(', ')}
+
+IMPORTANT GUIDANCE:
+- Use the intent context as flexible guidance, not rigid rules
+- Adapt responses based on the specific situation and user's unique needs
+- Combine therapeutic techniques with genuine, conversational responses
+- Avoid repetitive or formulaic responses
+- Focus on understanding the individual's experience
+- Provide personalized support rather than generic advice
+
+${originalPrompt}`;
+
+  return enhancedPrompt;
 }
 
 function matchIntent(userInput) {
@@ -1101,57 +1282,8 @@ Please don't hesitate to reach out - you're taking an important step by seeking 
       }
     }
 
-    // Check if this is a vague response
-    const isVague = isVagueResponse(prompt);
-    console.log(`User input: "${prompt}", isVague: ${isVague}`);
-    
-    // For vague responses, prioritize the vague-response intent
-    if (isVague) {
-      // Look specifically for vague-response intent first
-      const vagueIntent = intents.intents.find(intent => intent.tag === 'vague-responses');
-      if (vagueIntent) {
-        const normalizedInput = normalize(prompt);
-        console.log(`Looking for vague response match. Normalized input: "${normalizedInput}"`);
-        for (const pattern of vagueIntent.patterns) {
-          const normalizedPattern = normalize(pattern);
-          console.log(`Checking pattern: "${normalizedPattern}"`);
-          if (normalizedInput === normalizedPattern) {
-            console.log(`Found exact match for vague response!`);
-            const responses = vagueIntent.resonses || vagueIntent.responses;
-            if (responses && responses.length > 0) {
-              const matchedResponse = responses[Math.floor(Math.random() * responses.length)];
-              const newAiEntry = new Ai({
-                prompt: prompt,
-                response: matchedResponse,
-                session: sessionId,
-              });
-              await newAiEntry.save();
-              return res.json({ text: matchedResponse, sessionId });
-            }
-          }
-        }
-      }
-    }
-    
-    // Try general intent matching for non-vague responses
-    if (!isVague) {
-      console.log('Attempting intent matching for non-vague response...');
-      const matchedResponse = matchIntent(prompt);
-      if (matchedResponse) {
-        console.log('Intent match found! Using intent response instead of AI generation.');
-        const newAiEntry = new Ai({
-          prompt: prompt,
-          response: matchedResponse,
-          session: sessionId,
-        });
-        await newAiEntry.save();
-        return res.json({ text: matchedResponse, sessionId });
-      } else {
-        console.log('No intent match found, falling back to AI generation...');
-      }
-    } else {
-      console.log('Input marked as vague, skipping general intent matching...');
-    }
+    // Skip rigid intent matching - use enhanced Gemini with dynamic guidance instead
+    console.log('Using enhanced Gemini with dynamic intent guidance...');
 
     // Build the contextual prompt
     const fullPrompt = buildContextualPrompt(historyPrompt, prompt, isVague, assessmentState);
@@ -1230,14 +1362,17 @@ Return ONLY the JSON object, no extra text or explanation.`;
   }
 };
 
-module.exports = { 
-  generateContent, 
-  startSession, 
-  endSession, 
-  selfCareHomeContent, 
-  isSeverelyUnstable, 
+module.exports = {
+  generateContent,
+  startSession,
+  endSession,
+  selfCareHomeContent,
+  isSeverelyUnstable,
   injectUniversityStudentKnowledge,
   calculatePHQ9Score,
   calculateGAD7Score,
-  determineSupportPlan
+  determineSupportPlan,
+  getIntentGuidance,
+  buildEnhancedGeminiPrompt,
+  THERAPIST_SYSTEM_PROMPT
 };
