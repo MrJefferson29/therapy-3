@@ -130,9 +130,15 @@ export default function Chat() {
           const parsedMessages = JSON.parse(savedMessages);
           setMessages(parsedMessages);
           setHasWelcomeMessage(parsedMessages.length > 0);
+          // Show mood modal if no messages exist (first time or after reset)
+          if (parsedMessages.length === 0) {
+            setShowMoodModal(true);
+          }
+        } else {
+          // No saved messages, show mood modal for first time
+          setShowMoodModal(true);
         }
         if (savedSession) setSessionId(savedSession);
-        else setShowMoodModal(true);
       } catch (e) {
         console.error(e);
       }
@@ -350,7 +356,9 @@ export default function Chat() {
       }
       setMessages([]);
       setHasWelcomeMessage(false);
+      setSessionId(null); // Clear session ID for fresh start
       await AsyncStorage.removeItem(getChatHistoryKey());
+      await AsyncStorage.removeItem(getSessionIdKey()); // Also clear saved session ID
       setShowMoodModal(true);
     } catch (e) {
       console.error(e);
@@ -500,9 +508,9 @@ export default function Chat() {
 
         {/* Input Bar */}
         <Animated.View
-          style={[styles.inputWrapper, { 
-            bottom: keyboardHeight,
-            borderTopColor: colors.border 
+          style={[styles.inputWrapper, {
+            bottom: Animated.add(keyboardHeight, insets.bottom + 10),
+            borderTopColor: colors.border
           }]}
         >
           <View
@@ -616,7 +624,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: 10,
+    bottom: 0, // Will be overridden by inline styles
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderTopWidth: 1,

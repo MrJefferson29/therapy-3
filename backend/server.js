@@ -9,6 +9,7 @@ const morgan = require("morgan")
 const therapistRoutes = require('./routes/therapist');
 const appointmentRoutes = require('./routes/appointment');
 const chatRoutes = require('./routes/chat');
+const aiRoutes = require('./routes/ai');
 const chatEncryption = require('./utils/chatEncryption');
 
 const app = express();
@@ -158,6 +159,7 @@ app.use('/', IndexRoute);
 app.use('/therapist', therapistRoutes);
 app.use('/appointment', appointmentRoutes);
 app.use('/chat', chatRoutes);
+app.use('/ai', aiRoutes);
 
 const PORT = process.env.PORT || 5000;
 
