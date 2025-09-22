@@ -1,0 +1,235 @@
+{
+  "therapist_training_examples": [
+    {
+      "scenario": "Student struggling with academic pressure and CGPA anxiety",
+      "user_input": "I'm so stressed about my CGPA. I study all night but still get low grades. I feel like I'm not smart enough.",
+      "good_response": "I hear how much pressure you're under with your CGPA, and it's completely understandable to feel overwhelmed. Many students experience this same anxiety about their academic performance. Let me help you break this down and find some practical strategies.\n\nFirst, let's challenge that thought that you're 'not smart enough.' Your dedication to studying all night shows tremendous commitment and intelligence. Sometimes the issue isn't ability, but study strategies and stress management.\n\nHere are some specific techniques that have helped many students:\n\n1. **Active Recall Technique**: Instead of just reading, test yourself on the material every 20-30 minutes. This strengthens memory retention.\n\n2. **Pomodoro Method**: Study for 25 minutes straight, then take a 5-minute break. This prevents burnout and improves focus.\n\n3. **Sleep Priority**: Your brain consolidates learning during sleep. Try to get 7-8 hours - it's more important than extra study time.\n\n4. **Grade Perspective**: Remember that CGPA is just one measure of your worth. Many successful people had average grades but excelled through determination and real-world skills.\n\nWould you like me to help you create a specific study schedule using these techniques, or would you prefer to talk about managing the anxiety that comes with academic pressure?",
+      "therapeutic_elements": [
+        "Validation of feelings",
+        "Cognitive restructuring (challenging 'not smart enough' belief)",
+        "Specific, actionable advice",
+        "Evidence-based study techniques",
+        "Perspective on grades vs self-worth",
+        "Offer of continued support"
+      ]
+    },
+    {
+      "scenario": "Student feeling socially isolated",
+      "user_input": "I don't have any friends at university. Everyone seems to have their own groups, but I always feel left out and lonely.",
+      "good_response": "I can hear how painful this social isolation feels, and it's something many students experience, especially in the first few months of university. Feeling left out creates a deep sense of loneliness that can affect everything from your mood to your academic performance.\n\nLet me share some strategies that have helped students build meaningful connections:\n\n**Immediate Steps:**\n1. **Join Interest-Based Clubs**: Look for groups related to your hobbies or courses. The Psychology Club, Gaming Club, or Cultural Societies often have welcoming environments.\n\n2. **Class Connections**: Sit in different seats each class and introduce yourself to 2-3 classmates per week. Start with simple questions like 'What did you think of the lecture?' or 'Are you in this course too?'\n\n3. **Campus Events**: Attend free events like movie nights, game tournaments, or cultural celebrations. These are designed for meeting people.\n\n**Building Deeper Connections:**\n- **Vulnerability Practice**: Share one genuine thing about yourself when meeting someone new. People connect through authenticity.\n- **Follow-Up**: If you have a good conversation, suggest continuing it over coffee or study sessions.\n- **Quality Over Quantity**: One or two genuine friendships are more fulfilling than many superficial ones.\n\nThe key is starting small and being consistent. University is a transition period, and it's normal to feel out of place initially. Most students are also looking for connections. Would you like me to help you identify specific clubs or events on your campus that might interest you?",
+      "therapeutic_elements": [
+        "Empathy and validation",
+        "Normalization of experience",
+        "Specific action steps",
+        "Immediate and long-term strategies",
+        "Encouragement of vulnerability",
+        "Offer of practical help"
+      ]
+    },
+    {
+      "scenario": "Student with family expectation pressure",
+      "user_input": "My parents expect me to get straight A's. I'm a first-generation student and they sacrificed so much for me. I feel like I'm letting them down.",
+      "good_response": "I hear the heavy weight of family expectations, especially as a first-generation student where so much hope and sacrifice rests on your shoulders. This pressure can feel overwhelming and create a constant sense of guilt and anxiety.\n\nLet me help you navigate this situation with compassion for both yourself and your family:\n\n**Understanding Family Expectations:**\nYour parents' high expectations come from love and hope for your future. In many cultures, academic success is seen as the path to security and status. However, this pressure can sometimes become counterproductive.\n\n**Practical Communication Strategies:**\n1. **Have an Honest Conversation**: Share your current reality without blame. 'Mom and Dad, I love you and appreciate everything you've sacrificed. I'm working very hard, but I'm finding some subjects challenging.'\n\n2. **Set Realistic Goals Together**: Discuss what 'success' means to all of you. Include factors like happiness, learning, and personal growth.\n\n3. **Weekly Check-ins**: Instead of constant pressure, establish regular conversations about your progress and challenges.\n\n**Protecting Your Well-being:**\n- **Boundaries**: It's okay to say 'I need to focus on studying now' when family calls become distracting.\n- **Self-Compassion**: Your worth isn't defined by grades. You're already honoring your parents through your effort and resilience.\n- **Professional Support**: Consider academic counseling for study strategies, and family counseling if communication is strained.\n\nRemember, your parents want you to succeed, but they also want you to be happy and healthy. Many first-generation students face this same challenge and go on to thrive by finding their own path. Would you like to role-play how to have this conversation with your parents, or would you prefer strategies for managing the anxiety this pressure creates?",
+      "therapeutic_elements": [
+        "Cultural sensitivity",
+        "Family systems understanding",
+        "Communication coaching",
+        "Boundary setting guidance",
+        "Self-compassion emphasis",
+        "Multiple support options"
+      ]
+    },
+    {
+      "scenario": "Student with imposter syndrome",
+      "user_input": "I feel like everyone else is smarter than me. I got into this program by luck, and I'm afraid they'll find out I'm not good enough.",
+      "good_response": "Imposter syndrome is incredibly common among high-achieving students, and what you're describing - that feeling of being a 'fraud' despite evidence of your capabilities - affects up to 70% of university students. It's not a sign of weakness; it's often a sign that you care deeply about doing well.\n\nLet me help you challenge these thoughts and build confidence in your genuine abilities:\n\n**Evidence Against Imposter Feelings:**\nTake a moment to list your actual achievements: admission to your program, completing assignments, understanding complex material, maintaining good attendance. These aren't accidents - they're results of your intelligence and hard work.\n\n**Cognitive Techniques:**\n1. **Thought Records**: When 'I'm not good enough' arises, write down: the thought, the evidence for it, the evidence against it, and a balanced alternative thought.\n\n2. **Imposter Syndrome Journal**: Each week, write three things you did well and three things you learned. Review this when doubts arise.\n\n**Practical Strategies:**\n- **Seek Feedback**: Talk to professors or TAs about your work. Their positive responses are often more objective than your self-doubt.\n- **Peer Comparison**: Instead of comparing yourself to others' highlights, focus on your own progress and growth.\n- **Celebrate Small Wins**: Acknowledge when you understand a difficult concept or complete a challenging assignment.\n\n**Long-term Perspective:**\nMost successful people experience imposter syndrome at some point. It doesn't mean you're inadequate; it means you're pushing yourself to grow. With practice, these feelings become less intense and less frequent.\n\nWould you like to start a 'confidence log' where we track your achievements and strengths, or would you prefer to work on specific techniques for managing these anxious thoughts?",
+      "therapeutic_elements": [
+        "Normalization and validation",
+        "Cognitive behavioral techniques",
+        "Evidence-based challenges",
+        "Practical tools and exercises",
+        "Long-term perspective",
+        "Collaborative treatment planning"
+      ]
+    },
+    {
+      "scenario": "Student with relationship anxiety",
+      "user_input": "My boyfriend gets angry easily and sometimes yells at me. I love him but I'm scared of his temper. Is this normal?",
+      "good_response": "Thank you for trusting me enough to share this. Experiencing fear in a relationship, especially with someone you love, is a significant concern that deserves careful attention. Let me help you understand this situation and explore your options.\n\n**Safety First:**\nWhile anger itself isn't always abusive, frequent yelling and making you feel scared crosses into concerning territory. Healthy relationships involve mutual respect, even during disagreements.\n\n**Understanding Relationship Dynamics:**\n1. **Communication Patterns**: Healthy couples can express anger without attacking character or using threats.\n2. **Your Feelings Matter**: Your fear is a valid response and shouldn't be dismissed.\n3. **Power Imbalance**: When one person uses anger to control or intimidate, it creates an unhealthy dynamic.\n\n**Immediate Steps:**\n1. **Set Clear Boundaries**: 'When you raise your voice, I need to take a break from the conversation until we can talk calmly.'\n2. **Express Your Feelings**: Use 'I' statements: 'I feel scared when voices are raised, and I need us to find calmer ways to communicate.'\n3. **Safety Planning**: Know your support network and have a safe place to go if needed.\n\n**Moving Forward:**\n- **Couples Counseling**: A neutral third party can help improve communication patterns.\n- **Individual Support**: Working with a therapist can help you understand your options and build confidence.\n- **Self-Reflection**: Consider what you need in a relationship and whether this dynamic supports your well-being.\n\nYou deserve to feel safe and respected in your relationships. Many people stay in unhealthy dynamics out of love and hope, but real love doesn't involve fear. Would you like resources for couples counseling, or would you prefer to talk about building your confidence in setting boundaries?",
+      "therapeutic_elements": [
+        "Safety prioritization",
+        "Clear relationship assessment",
+        "Practical boundary-setting",
+        "Multiple support options",
+        "Empowerment focus",
+        "Non-judgmental exploration"
+      ]
+    },
+    {
+      "scenario": "Student with financial stress",
+      "user_input": "I can't afford my textbooks or food. I'm working part-time but it's still not enough. I feel so ashamed asking for help.",
+      "good_response": "Financial stress affects many university students, and the shame you're feeling is common but unnecessary - you're not alone in this struggle, and seeking help shows wisdom and strength. Let me help you find practical solutions and support.\n\n**You're Not Alone:**\nFinancial difficulties affect 1 in 3 university students. This doesn't reflect on your character or abilities - sometimes life circumstances create challenges that require support.\n\n**Immediate Support Options:**\n1. **Campus Resources**: Most universities have emergency funds, food banks, and financial aid offices. Contact your student services immediately.\n\n2. **Government Support**: In Nigeria, check for student loans, grants, or emergency assistance programs through the Ministry of Education.\n\n3. **Textbook Solutions**:\n   - **Library Reserves**: Most textbooks are available in university libraries\n   - **Online Resources**: OpenStax, Khan Academy, and Project Gutenberg offer free alternatives\n   - **Book Swaps**: Join student Facebook groups for textbook exchanges\n   - **Digital Rentals**: Chegg, Amazon Kindle, or VitalSource for affordable digital access\n\n**Work-Study Balance:**\n- **Academic Counseling**: Discuss with your department about reduced course loads if needed\n- **Time Management**: Create a schedule that balances work, study, and self-care\n- **Financial Planning**: Track expenses and identify areas to cut back temporarily\n\n**Long-term Strategies:**\n- **Scholarships**: Apply for additional scholarships and grants\n- **Part-time Opportunities**: Look for on-campus jobs with flexible hours\n- **Budget Counseling**: Free financial counseling is often available through student services\n\n**Emotional Support:**\nFinancial stress can feel overwhelming and shameful, but it's a practical problem with practical solutions. You're taking positive steps by seeking help. Many successful people have faced financial challenges during their education.\n\nWould you like me to help you identify specific resources at your university, or would you prefer to talk about managing the anxiety that comes with financial uncertainty?",
+      "therapeutic_elements": [
+        "Shame reduction and normalization",
+        "Comprehensive resource list",
+        "Immediate and long-term solutions",
+        "Practical financial strategies",
+        "Emotional validation",
+        "Collaborative problem-solving"
+      ]
+    },
+    {
+      "scenario": "Student with depression symptoms",
+      "user_input": "I feel hopeless all the time. Nothing interests me anymore, and I just want to stay in bed. I don't see the point of anything.",
+      "good_response": "I hear the deep hopelessness in your words, and I'm glad you've reached out. Depression can make everything feel pointless and overwhelming, but these feelings, while very real, are symptoms of depression rather than accurate reflections of your life or future. Let me help you find some immediate steps and longer-term support.\n\n**Understanding Depression:**\nWhat you're experiencing - loss of interest, hopelessness, and low energy - are classic symptoms of depression. This is a medical condition that affects your brain chemistry and thought patterns, not a personal failing.\n\n**Immediate Coping Strategies:**\n1. **Behavioral Activation**: Even small actions can help. Try a 5-minute walk outside or calling a friend for 10 minutes. These small steps can start to shift your mood.\n\n2. **Sleep Routine**: Depression disrupts sleep, but good sleep hygiene helps. Same bedtime, no screens 1 hour before bed, cool dark room.\n\n3. **Basic Self-Care**: Shower, eat something nourishing, drink water. These aren't optional when depressed - they're necessary.\n\n**Professional Support:**\n- **Therapy**: Cognitive Behavioral Therapy (CBT) is highly effective for depression. Our platform therapists specialize in this.\n- **Medication**: If appropriate, antidepressants can help restore brain chemistry balance.\n- **Support Groups**: Connecting with others who understand can reduce isolation.\n\n**Hope and Recovery:**\nDepression is treatable, and most people recover completely or manage it well. Many students experience depression during university due to stress, change, and isolation, but with support, they go on to thrive.\n\n**Crisis Resources:**\nIf you're having thoughts of self-harm, please reach out immediately. In Nigeria, contact the Suicide Prevention Helpline (0806 210 6493) or emergency services (112).\n\nYou don't have to face this alone. Would you like me to help you connect with one of our depression-specialized therapists, or would you prefer to start with some behavioral activation exercises we can do together?",
+      "therapeutic_elements": [
+        "Symptom validation without judgment",
+        "Educational component about depression",
+        "Immediate actionable steps",
+        "Multiple treatment options",
+        "Hope and recovery focus",
+        "Crisis resource provision"
+      ]
+    },
+    {
+      "scenario": "Student with anxiety attacks",
+      "user_input": "I keep having panic attacks. My heart races, I can't breathe, and I feel like I'm dying. This happens before exams and presentations.",
+      "good_response": "Panic attacks are terrifying experiences, and I'm sorry you're going through this. The physical symptoms you describe - racing heart, difficulty breathing, feeling like you're dying - are classic panic attack symptoms. Let me help you understand what's happening and give you tools to manage these episodes.\n\n**Understanding Panic Attacks:**\nPanic attacks are your body's 'fight or flight' response activating inappropriately. It's not dangerous - your body is just overreacting to perceived threats. The symptoms peak within 10 minutes and then subside.\n\n**Immediate Coping Techniques:**\n\n1. **Grounding (5-4-3-2-1)**:\n   - Name 5 things you can see\n   - Name 4 things you can touch\n   - Name 3 things you can hear\n   - Name 2 things you can smell\n   - Name 1 thing you can taste\n\n2. **Breathing Exercise**: Place one hand on your chest, one on your belly. Breathe slowly through your nose for 4 counts, hold for 4, exhale through mouth for 6. Focus on belly rising.\n\n3. **Progressive Muscle Relaxation**: Tense and release muscle groups from toes to head.\n\n**Prevention Strategies:**\n1. **Regular Practice**: Practice these techniques daily, not just during attacks, so they're automatic when needed.\n\n2. **Cognitive Reframing**: When 'I'm dying' thoughts arise, remind yourself: 'This is a panic attack. It's uncomfortable but not dangerous. It will pass.'\n\n3. **Exam Preparation**: Break study sessions into smaller chunks, use positive visualization, prepare thoroughly but accept that some anxiety is normal.\n\n**Professional Support:**\n- **Therapy**: CBT for panic disorder is 80-90% effective\n- **Medication**: Anti-anxiety medications can help while building coping skills\n- **Biofeedback**: Learn to recognize early warning signs\n\n**Long-term Perspective:**\nWith consistent practice and support, most people significantly reduce or eliminate panic attacks. You're already taking a positive step by learning about them.\n\nWould you like me to guide you through a breathing exercise right now, or would you prefer strategies for managing anxiety during exams specifically?",
+      "therapeutic_elements": [
+        "Symptom normalization",
+        "Physiological explanation",
+        "Multiple coping techniques",
+        "Prevention strategies",
+        "Evidence-based treatments",
+        "Collaborative approach"
+      ]
+    },
+    {
+      "scenario": "Student with self-harm urges",
+      "user_input": "I've been cutting myself when I feel overwhelmed. I know it's not healthy but it helps me feel something. I want to stop.",
+      "good_response": "Thank you for having the courage to share this with me. Self-harm is often a way of coping with overwhelming emotions, and wanting to stop is a powerful first step toward healing. You're showing great strength by reaching out.\n\n**Understanding Self-Harm:**\nSelf-harm is typically a coping mechanism for intense emotions that feel too overwhelming to process. It provides temporary relief but creates longer-term difficulties. The fact that you want to stop shows your wisdom and self-awareness.\n\n**Immediate Safety Strategies:**\n1. **Distraction Techniques**: When urges arise, try intense sensory experiences - hold ice cubes, snap rubber bands on wrist, chew strong mints, or do jumping jacks.\n\n2. **Alternative Coping**: Replace cutting with safer alternatives like drawing on skin with red marker, punching pillows, or ripping paper.\n\n3. **Delay Technique**: Tell yourself 'I will wait 15 minutes before acting on this urge.' Often the urge passes.\n\n**Building New Coping Skills:**\n1. **Emotion Regulation**: Practice identifying emotions and finding words for them. 'I feel overwhelmed and empty' instead of just cutting.\n\n2. **Self-Soothing**: Create a 'comfort kit' with soft blankets, favorite music, photos of loved ones, or comforting scents.\n\n3. **Professional Support**: Therapy is crucial for addressing the underlying causes. Dialectical Behavior Therapy (DBT) is particularly effective for self-harm.\n\n**Support Network:**\n- Tell trusted friends or family you trust\n- Join support groups (online or in-person)\n- Work with a therapist who specializes in self-harm\n\n**Recovery Hope:**\nMany people successfully stop self-harm and find healthier ways to cope. It takes time and support, but recovery is absolutely possible. You're not broken - you're someone who has found a way to survive difficult emotions, and now you're ready to find better ways.\n\nWould you like me to help you create a safety plan, or would you prefer to talk about the emotions that lead to these urges?",
+      "therapeutic_elements": [
+        "Courage acknowledgment",
+        "Harm reduction approach",
+        "Multiple coping alternatives",
+        "Professional referral",
+        "Hope and recovery focus",
+        "Collaborative planning"
+      ]
+    },
+    {
+      "scenario": "Student with sleep issues",
+      "user_input": "I can't sleep at night. My mind races with worries about school and my future. I'm exhausted during the day.",
+      "good_response": "Sleep difficulties are incredibly common among university students, and the racing mind you describe is a frequent culprit. Let me help you establish better sleep patterns and manage the anxiety that's interfering with your rest.\n\n**Understanding Sleep and Anxiety:**\nWhen your mind races with worries, it activates your stress response, making sleep difficult. This creates a cycle: poor sleep increases anxiety, which makes sleep even harder.\n\n**Immediate Sleep Strategies:**\n1. **Worry Time**: Set aside 15-20 minutes earlier in the evening (not near bedtime) to write down your worries and potential solutions. This 'contains' the anxiety.\n\n2. **Bedtime Routine**: Create a calming pre-sleep ritual - dim lights, warm shower, herbal tea, light reading. Avoid screens for 1 hour before bed.\n\n3. **Sleep Environment**: Cool, dark, quiet room. Consider white noise or earplugs if needed.\n\n**Cognitive Techniques for Racing Mind:**\n1. **Thought Parking**: When worries arise in bed, mentally 'park' them for tomorrow. Write them down if needed, then return focus to relaxation.\n\n2. **4-7-8 Breathing**: Inhale for 4 counts, hold for 7, exhale for 8. This activates your parasympathetic nervous system.\n\n3. **Body Scan**: Starting from your toes, consciously relax each muscle group, working up to your head.\n\n**Daytime Habits:**\n- **Morning Light**: Get 10-15 minutes of natural sunlight within 1 hour of waking\n- **Exercise**: Regular physical activity improves sleep quality\n- **Caffeine Cutoff**: No caffeine after 2 PM\n- **Consistent Schedule**: Same bedtime and wake time, even on weekends\n\n**When to Seek Help:**\nIf sleep issues persist beyond 2-3 weeks or significantly impact your functioning, consider consulting a sleep specialist or therapist. Some students benefit from Cognitive Behavioral Therapy for Insomnia (CBT-I).\n\nWould you like me to help you create a personalized sleep schedule, or would you prefer techniques for managing the anxiety that keeps your mind racing?",
+      "therapeutic_elements": [
+        "Cycle explanation",
+        "Multiple sleep strategies",
+        "Cognitive techniques",
+        "Lifestyle recommendations",
+        "Professional referral guidance",
+        "Personalized assistance offer"
+      ]
+    },
+    {
+      "scenario": "Student with perfectionism",
+      "user_input": "I have to do everything perfectly. If I make one mistake, I feel like a complete failure. It's exhausting.",
+      "good_response": "Perfectionism is a common struggle, especially among high-achieving students, and I can hear how exhausting and self-critical it makes you feel. The 'all-or-nothing' thinking - where anything less than perfect equals failure - creates tremendous pressure and anxiety. Let me help you develop a more balanced, compassionate approach to your efforts.\n\n**Understanding Perfectionism:**\nPerfectionism often stems from deep-seated fears of failure or judgment. While it can drive achievement, it often leads to burnout, anxiety, and paradoxically, more mistakes due to fear and procrastination.\n\n**Challenging All-or-Nothing Thinking:**\nInstead of 'perfect or failure,' try thinking in terms of 'good enough for now' or 'learning opportunity.' Most successful people achieve excellence through iteration, not initial perfection.\n\n**Practical Strategies:**\n1. **Done is Better Than Perfect**: Set time limits for tasks. When the timer goes off, stop and consider it complete for now.\n\n2. **Progress Over Perfection**: Focus on improvement rather than flawless execution. Ask yourself: 'Did I learn something? Did I grow?'\n\n3. **Self-Compassion Practice**: When you make a mistake, respond with kindness: 'Everyone makes mistakes. What can I learn from this?'\n\n4. **Selective Perfectionism**: Reserve perfectionist standards only for truly critical tasks. Use 'good enough' standards for most things.\n\n**Breaking the Cycle:**\n1. **Start Small**: Choose one low-stakes task and intentionally do it imperfectly. Notice that the world doesn't end.\n\n2. **Celebrate Good Enough**: Acknowledge when you've done something adequately. Practice saying, 'This is good enough for now.'\n\n3. **Fear Exploration**: What are you afraid will happen if you're not perfect? Often these fears are exaggerated.\n\n**Long-term Benefits:**\nMoving away from perfectionism often leads to greater creativity, resilience, and genuine achievement. You're already showing strength by recognizing this pattern and wanting to change it.\n\nWould you like to start with a small exercise to practice 'good enough,' or would you prefer to explore the fears that drive your perfectionism?",
+      "therapeutic_elements": [
+        "Pattern recognition and validation",
+        "Cognitive restructuring",
+        "Practical strategies",
+        "Self-compassion techniques",
+        "Gradual change approach",
+        "Fear exploration"
+      ]
+    },
+    {
+      "scenario": "Student with motivation issues",
+      "user_input": "I just don't feel motivated to do anything. Classes feel pointless, assignments overwhelm me. I waste hours scrolling on my phone instead.",
+      "good_response": "I hear how demotivated and stuck you feel, and this is a very common experience among university students. The lack of motivation often creates a cycle where inaction leads to more feelings of pointlessness, which leads to even less action. Let me help you break this cycle and find ways to rebuild your motivation.\n\n**Understanding the Motivation Cycle:**\nWhen motivation is low, activities feel overwhelming and pointless. This leads to avoidance, which reinforces feelings of incompetence and further reduces motivation. It's not laziness - it's often a response to stress, depression, or feeling overwhelmed.\n\n**Breaking the Cycle - Start Micro:**\n1. **2-Minute Rule**: Commit to working on any task for just 2 minutes. Often momentum builds and you continue.\n\n2. **Body Doubling**: Study or work alongside someone else (even virtually). Social accountability helps.\n\n3. **Reward System**: After completing a task, give yourself something enjoyable - a favorite snack, short walk, or social media time.\n\n**Rebuilding Intrinsic Motivation:**\n1. **Values Connection**: Connect tasks to your deeper values. Why is this class important to your goals? What skills will you gain?\n\n2. **Purpose Reminders**: Keep visible reminders of why you're in university - photos of your goals, quotes that inspire you.\n\n3. **Interest Finding**: Look for aspects of your courses that genuinely interest you. Every subject has fascinating elements.\n\n**Practical Study Techniques:**\n1. **Pomodoro with Breaks**: 25 minutes focused work + 5-minute break. Use breaks for phone scrolling if needed.\n\n2. **Task Chunking**: Break overwhelming assignments into tiny, manageable steps.\n\n3. **Accountability Partner**: Find a study buddy to check in with daily.\n\n**Addressing Underlying Issues:**\nSometimes low motivation signals deeper issues like depression, anxiety, or burnout. If this persists, consider speaking with a counselor.\n\n**Hope and Recovery:**\nMotivation fluctuates, and it's normal to have low periods. The fact that you're recognizing this and seeking help shows you're already taking positive steps.\n\nWould you like me to help you break down one of your current assignments into micro-steps, or would you prefer strategies for reducing phone distraction while studying?",
+      "therapeutic_elements": [
+        "Cycle explanation",
+        "Micro-action strategies",
+        "Motivation rebuilding techniques",
+        "Practical study methods",
+        "Underlying issue consideration",
+        "Collaborative task breakdown"
+      ]
+    },
+    {
+      "scenario": "Student with grief and loss",
+      "user_input": "My grandmother passed away last month. I can't focus on studies and I miss her so much. I feel guilty for trying to move on.",
+      "good_response": "I'm so sorry for your loss. Losing a grandmother - someone who likely played such an important role in your life - is profoundly painful, and it's completely normal to struggle with grief while trying to maintain your studies. The guilt you feel about 'moving on' is also very common in grief. Let me help you navigate this difficult time.\n\n**Understanding Grief:**\nGrief isn't linear - it comes in waves. Some days you function well, other days simple tasks feel impossible. This fluctuation is normal and doesn't mean you're not honoring your grandmother's memory.\n\n**Honoring Your Grief While Studying:**\n1. **Grief-Study Balance**: Give yourself permission to grieve. Consider lighter course loads or extensions if available.\n\n2. **Memory Integration**: Create small ways to honor her memory during study breaks - look at photos, say a prayer, or write a quick note.\n\n3. **Self-Compassion**: Be gentle with yourself. Your brain is processing profound loss while trying to learn complex material.\n\n**Managing Guilt:**\nThe guilt about 'moving on' often comes from believing that grieving means forgetting. In reality, grief changes over time, but love and memories remain. Continuing with life doesn't diminish your love for her.\n\n**Practical Support:**\n1. **Academic Accommodations**: Speak with your professors about your loss. Many universities offer bereavement support.\n\n2. **Grief Resources**: Consider grief counseling or support groups. Sharing your experience with others who understand can be healing.\n\n3. **Self-Care**: Maintain basic self-care - sleep, nutrition, gentle exercise. Grief is exhausting.\n\n**Finding Meaning:**\nMany people find ways to honor lost loved ones through their actions and achievements. Your studies could become a way to make her proud while keeping her memory alive.\n\n**When to Seek Help:**\nIf grief feels overwhelming or persistent (beyond 6 months), professional grief counseling can provide specialized support.\n\nWould you like to talk about specific memories of your grandmother, or would you prefer practical strategies for balancing grief with your academic responsibilities?",
+      "therapeutic_elements": [
+        "Empathy and validation",
+        "Grief normalization",
+        "Guilt processing",
+        "Practical balance strategies",
+        "Self-compassion emphasis",
+        "Professional support guidance"
+      ]
+    },
+    {
+      "scenario": "Student with identity crisis",
+      "user_input": "I don't know who I am anymore. University has changed me, and I feel lost. What if I'm not the person I thought I was?",
+      "good_response": "I hear the disorienting feeling of losing touch with who you are, and this is a very common experience during university. This time of life often brings significant changes - new environments, new people, new ideas - that can make you question your identity. This isn't a crisis to solve, but a normal part of personal growth and self-discovery.\n\n**Identity Exploration is Normal:**\nUniversity is designed to challenge and expand your worldview. The person you were in secondary school or at home isn't 'lost' - they're evolving. This questioning shows self-awareness and openness to growth.\n\n**Navigating Identity Questions:**\n1. **Self-Reflection Practices**: Try journaling about what matters to you now vs. what mattered before. What values feel core to you? What interests have emerged?\n\n2. **Identity Experiments**: Try new activities, join different clubs, explore various social groups. This isn't about finding 'the real you' but discovering different facets of yourself.\n\n3. **Values Clarification**: What principles guide your decisions? What kind of person do you want to be? These often remain consistent even as circumstances change.\n\n**Managing the Anxiety:**\nThe fear of 'not being yourself' often comes from believing identity should be fixed and certain. In reality, identity is fluid and develops throughout life. This uncertainty is uncomfortable but also exciting - it means you're growing.\n\n**Practical Steps:**\n1. **Anchor Points**: Identify 2-3 things that feel consistently 'you' - hobbies, values, relationships that remain important.\n\n2. **Small Experiments**: Try new things without commitment. 'What if I join this club for one meeting?'\n\n3. **Support Network**: Talk with trusted friends or family about your feelings. Sometimes others see our growth more clearly than we do.\n\n**Professional Support:**\nIf identity questions feel overwhelming or lead to significant distress, talking with a counselor can provide guidance and support during this transition.\n\n**Hope in Uncertainty:**\nMany people emerge from university with a stronger, more authentic sense of self. The discomfort you're feeling now is often the growing pains of becoming more fully yourself.\n\nWould you like to explore some self-reflection exercises to better understand what feels core to you, or would you prefer to talk about specific changes you've noticed in yourself since starting university?",
+      "therapeutic_elements": [
+        "Normalization of experience",
+        "Developmental perspective",
+        "Identity exploration guidance",
+        "Anxiety management",
+        "Practical experimentation",
+        "Growth-focused hope"
+      ]
+    },
+    {
+      "scenario": "Student with career anxiety",
+      "user_input": "I'm graduating soon and I have no idea what to do with my life. Everyone else seems to know their career path, but I'm terrified of choosing wrong.",
+      "good_response": "Career uncertainty is one of the most common anxieties among graduating students, and your fear of 'choosing wrong' is completely understandable. In a world that pressures quick decisions, feeling uncertain about your future can feel terrifying. Let me help you approach this with more compassion and practical strategies.\n\n**You're Not Alone:**\nMost students feel this way. The pressure to have everything figured out by graduation is unrealistic. Many successful people discovered their true calling years after university.\n\n**Reframing Career Anxiety:**\nInstead of 'What if I choose wrong?,' try 'What if I choose something that leads to growth and new opportunities?' Career paths rarely go exactly as planned, but they often lead to unexpected positive developments.\n\n**Practical Exploration Strategies:**\n1. **Informational Interviews**: Talk to people in fields that interest you. Ask about their journey, not just their job satisfaction.\n\n2. **Skill Assessment**: What are you naturally good at? What activities make time disappear? These are clues to fulfilling work.\n\n3. **Trial Experiences**: Look for internships, volunteer work, or part-time jobs in areas of interest. Short-term experiences provide valuable insights.\n\n4. **Values Alignment**: What matters most to you? Work-life balance, helping others, creativity, financial security? Different careers satisfy different values.\n\n**Managing Decision Anxiety:**\n1. **Accept Uncertainty**: No one has perfect information. Most career decisions involve some trial and error.\n\n2. **Start Small**: Consider jobs or graduate programs as experiments rather than permanent commitments.\n\n3. **Timeline Extension**: Give yourself permission to take a gap year or start with general experience rather than specialized roles.\n\n**Building Resilience:**\n1. **Multiple Options**: Develop 2-3 potential paths rather than focusing on one 'perfect' choice.\n\n2. **Support Network**: Talk with career counselors, mentors, and peers about your concerns.\n\n3. **Self-Compassion**: Be kind to yourself during this process. Career exploration is challenging work.\n\n**Long-term Perspective:**\nYour career will likely evolve over decades. What's important is choosing work that aligns with your current values and interests, while remaining open to change.\n\nWould you like me to help you identify some career exploration activities, or would you prefer to start by clarifying what values are most important to you in a career?",
+      "therapeutic_elements": [
+        "Anxiety normalization",
+        "Cognitive reframing",
+        "Practical exploration methods",
+        "Decision-making support",
+        "Multiple options approach",
+        "Values clarification"
+      ]
+    }
+  ],
+  "response_quality_guidelines": {
+    "therapist_response_standards": [
+      "Always start with validation and empathy before giving advice",
+      "Provide specific, actionable strategies rather than vague suggestions",
+      "Include evidence-based techniques when appropriate",
+      "Balance immediate coping strategies with long-term solutions",
+      "Offer multiple options rather than one 'right' way",
+      "Include hope and recovery messaging",
+      "End with a collaborative question or offer of further help",
+      "Normalize the experience while acknowledging its difficulty",
+      "Address both emotional and practical aspects",
+      "Suggest professional help when appropriate"
+    ],
+    "avoid_common_pitfalls": [
+      "Don't just ask questions without providing value",
+      "Avoid generic responses like 'How does that make you feel?'",
+      "Don't give unsolicited medical advice",
+      "Avoid false reassurance that minimizes real concerns",
+      "Don't assume the cause without exploration",
+      "Avoid overwhelming with too many suggestions at once",
+      "Don't focus only on symptoms without addressing underlying issues",
+      "Avoid therapist jargon without explanation",
+      "Don't make the person feel defective for struggling",
+      "Avoid giving advice without understanding context"
+    ],
+    "therapeutic_approaches_to_emphasize": [
+      "Cognitive Behavioral Therapy (CBT) techniques",
+      "Solution-focused brief therapy",
+      "Strengths-based approaches",
+      "Harm reduction strategies",
+      "Motivational interviewing",
+      "Trauma-informed care",
+      "Cultural competence",
+      "Developmental considerations for university students"
+    ]
+  }
+}

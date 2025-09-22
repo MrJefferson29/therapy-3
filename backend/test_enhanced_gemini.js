@@ -1,128 +1,140 @@
 require('dotenv').config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const fs = require("fs");
-const path = require("path");
+const ENHANCED_THERAPIST_SYSTEM_PROMPT = require("./training_data/enhanced_therapist_prompt");
 
-// Import the enhanced functions
-const { getIntentGuidance, buildEnhancedGeminiPrompt, THERAPIST_SYSTEM_PROMPT } = require('./controllers/ai');
+// Initialize Gemini with enhanced therapist prompt
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
+const geminiModel = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  systemInstruction: ENHANCED_THERAPIST_SYSTEM_PROMPT
+});
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Test prompts covering different categories
+const testPrompts = {
+  mental_health: [
+    "I'm feeling really anxious about my upcoming exams. My heart races and I can't sleep.",
+    "I've been feeling depressed for weeks. Nothing interests me anymore and I just want to stay in bed.",
+    "I think I have social anxiety. I'm terrified of talking to new people and avoid social situations.",
+    "I'm having panic attacks. My chest hurts, I can't breathe, and I feel like I'm dying.",
+    "I feel worthless and like I'm not good enough for anything. I hate myself.",
+    "I'm struggling with self-harm urges. I know it's not healthy but it helps me feel something."
+  ],
 
-// Enhanced Gemini function with dynamic intent guidance
-async function generateWithEnhancedGemini(prompt, intentContext = null) {
+  financial: [
+    "I'm broke and can't afford my textbooks or food. I'm working part-time but it's not enough.",
+    "How do I create a budget as a student? I keep overspending on unnecessary things.",
+    "I'm in debt from student loans. How do I manage this stress?",
+    "I need to find scholarships or financial aid. Where should I start looking?",
+    "My parents can't help me financially anymore. How do I become independent?"
+  ],
+
+  academic: [
+    "I'm failing my courses and don't know what to do. I study but nothing sticks.",
+    "I have so much coursework I feel overwhelmed. How do I manage my time better?",
+    "My CGPA is dropping and my parents will be disappointed. I'm scared.",
+    "I can't focus on studying. My mind wanders and I get distracted easily.",
+    "I'm struggling with a particular subject. Should I drop it or keep trying?",
+    "I have writer's block for my assignments. How do I overcome this?"
+  ],
+
+  vague: [
+    "I don't know what's wrong with me. I just feel off.",
+    "Everything feels hard right now. I don't know why.",
+    "I'm not sure what I need help with. Things just feel wrong.",
+    "I feel lost and confused about everything.",
+    "Something's bothering me but I can't explain it.",
+    "I just need someone to talk to. I feel alone."
+  ]
+};
+
+async function testGeminiWithPrompt(prompt, category, index) {
   try {
-    // Extract user input from the full prompt
-    const userInputMatch = prompt.match(/User: ([\s\S]*?)(?=AI:|$)/);
-    const userInput = userInputMatch ? userInputMatch[1].trim() : prompt;
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`TEST ${index + 1}: ${category.toUpperCase()} - ${prompt.substring(0, 50)}...`);
+    console.log(`${'='.repeat(60)}`);
 
-    // Get dynamic intent guidance (not exact matches)
-    const guidance = getIntentGuidance(userInput);
+    const result = await geminiModel.generateContent(prompt);
+    const response = await result.response.text();
 
-    // Build enhanced prompt with guidance
-    const enhancedPrompt = buildEnhancedGeminiPrompt(prompt, guidance);
+    console.log(`\n🤖 GEMINI RESPONSE:`);
+    console.log(`${'-'.repeat(40)}`);
+    console.log(response);
+    console.log(`${'-'.repeat(40)}`);
 
-    const result = await geminiModel.generateContent(enhancedPrompt);
-    return result;
+    return { success: true, response, category, prompt };
+
   } catch (error) {
-    console.error('Enhanced Gemini error:', error);
-    // Fallback to regular Gemini
-    return await geminiModel.generateContent(prompt);
+    console.error(`❌ Error testing prompt: ${error.message}`);
+    return { success: false, error: error.message, category, prompt };
   }
 }
 
-async function testEnhancedGemini() {
-  console.log('🧪 Testing Enhanced Gemini AI with Dynamic Intent Guidance\n');
-  console.log('=' .repeat(70));
+async function runComprehensiveTest() {
+  console.log(`🚀 TESTING ENHANCED GEMINI MODEL WITH THERAPIST TRAINING`);
+  console.log(`📋 System Prompt: ${ENHANCED_THERAPIST_SYSTEM_PROMPT.length} characters`);
+  console.log(`🎯 Model: Gemini 1.5 Flash with Enhanced Therapist Training`);
+  console.log(`\n${'='.repeat(80)}`);
 
-  // Test prompts covering different scenarios
-  const testPrompts = [
-    // Therapy-related for university students
-    {
-      category: "🎓 Academic Stress",
-      prompt: "I'm feeling overwhelmed with my CGPA and upcoming exams. I can't sleep at night worrying about failing."
-    },
-    {
-      category: "👨‍👩‍👧‍👦 Family Pressure",
-      prompt: "My parents expect me to get straight A's but I'm struggling. I feel like I'm disappointing everyone."
-    },
-    {
-      category: "😰 Anxiety & Depression",
-      prompt: "I feel worthless and like nothing I do matters. I'm having trouble getting out of bed."
-    },
-    {
-      category: "🤝 Social Isolation",
-      prompt: "I don't have any friends at university. Everyone seems to have their groups but I feel left out."
-    },
+  const results = {
+    mental_health: [],
+    financial: [],
+    academic: [],
+    vague: []
+  };
 
-    // Study-related
-    {
-      category: "📚 Study Techniques",
-      prompt: "How can I study more effectively? I read my notes but forget everything during exams."
-    },
-    {
-      category: "⏰ Time Management",
-      prompt: "I have so many assignments due but I keep procrastinating. How can I manage my time better?"
-    },
-    {
-      category: "💰 Financial Stress",
-      prompt: "I'm working part-time while studying but still can't afford my textbooks and food."
-    },
+  let totalTests = 0;
+  let successfulTests = 0;
 
-    // Completely irrelevant topics
-    {
-      category: "🍕 Random - Food",
-      prompt: "What's the best pizza topping combination?"
-    },
-    {
-      category: "⚽ Random - Sports",
-      prompt: "Who do you think will win the next World Cup?"
-    },
-    {
-      category: "🎬 Random - Entertainment",
-      prompt: "Can you recommend some good movies about artificial intelligence?"
-    },
-    {
-      category: "🛠️ Random - Technical",
-      prompt: "How do I fix a leaky faucet?"
-    }
-  ];
+  // Test each category
+  for (const [category, prompts] of Object.entries(testPrompts)) {
+    console.log(`\n📂 TESTING CATEGORY: ${category.toUpperCase()}`);
+    console.log(`${'='.repeat(50)}`);
 
-  for (let i = 0; i < testPrompts.length; i++) {
-    const testCase = testPrompts[i];
-    console.log(`\n${i + 1}. ${testCase.category}`);
-    console.log(`Prompt: "${testCase.prompt}"`);
+    for (let i = 0; i < prompts.length; i++) {
+      const result = await testGeminiWithPrompt(prompts[i], category, i);
+      results[category].push(result);
 
-    try {
-      // Get intent guidance for this prompt
-      const guidance = getIntentGuidance(testCase.prompt);
-      console.log(`Intent Context: ${guidance.context}`);
-      console.log(`Therapeutic Focus: ${guidance.therapeuticFocus}`);
-
-      // Format as therapy prompt
-      const therapyPrompt = `${THERAPIST_SYSTEM_PROMPT}\n\nUser: ${testCase.prompt}\nAI:`;
-
-      // Generate response
-      const result = await generateWithEnhancedGemini(therapyPrompt);
-      const response = await result.response.text();
-
-      console.log(`Response: ${response.substring(0, 200)}...`);
-      console.log('-'.repeat(50));
+      totalTests++;
+      if (result.success) successfulTests++;
 
       // Add delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-    } catch (error) {
-      console.error(`❌ Error with prompt ${i + 1}:`, error.message);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
-  console.log('\n🎉 Enhanced Gemini Testing Complete!');
-  console.log('\n📊 Analysis:');
-  console.log('- Therapy prompts should show contextual understanding and therapeutic guidance');
-  console.log('- Study prompts should provide practical advice with emotional support');
-  console.log('- Irrelevant prompts should receive friendly, helpful responses');
-  console.log('- Responses should vary even for similar topics (no exact duplicates)');
+  // Summary
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`📊 TEST SUMMARY`);
+  console.log(`${'='.repeat(80)}`);
+  console.log(`Total Tests: ${totalTests}`);
+  console.log(`Successful: ${successfulTests}`);
+  console.log(`Failed: ${totalTests - successfulTests}`);
+  console.log(`Success Rate: ${((successfulTests / totalTests) * 100).toFixed(1)}%`);
+
+  console.log(`\n📈 RESULTS BY CATEGORY:`);
+  for (const [category, categoryResults] of Object.entries(results)) {
+    const successCount = categoryResults.filter(r => r.success).length;
+    console.log(`  ${category}: ${successCount}/${categoryResults.length} successful`);
+  }
+
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`✅ ENHANCED GEMINI TESTING COMPLETE`);
+  console.log(`${'='.repeat(80)}`);
+
+  return results;
 }
 
-testEnhancedGemini().catch(console.error);
+// Run test if called directly
+if (require.main === module) {
+  runComprehensiveTest()
+    .then(() => {
+      console.log('\n🎉 All tests completed successfully!');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('\n❌ Test suite failed:', error);
+      process.exit(1);
+    });
+}
+
+module.exports = { runComprehensiveTest, testGeminiWithPrompt };
