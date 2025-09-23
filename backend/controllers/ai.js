@@ -17,7 +17,15 @@ const THERAPIST_SYSTEM_PROMPT = ENHANCED_THERAPIST_SYSTEM_PROMPT;
 
 // Initialize AI models
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const geminiModel = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    maxOutputTokens: 150, // Limit response length to ~100-150 words
+    temperature: 0.7,
+    topP: 0.8,
+    topK: 40,
+  },
+});
 const deepseekModel = new DeepseekAI(process.env.DEEPSEEK_API_KEY);
 
 // Initialize Llama 2 model (primary model)
@@ -144,6 +152,9 @@ CONVERSATION HISTORY:
 ${historyPrompt}
 
 User: ${prompt}
+
+IMPORTANT: Keep your response CONCISE and INTERACTIVE. Aim for 2-4 sentences maximum. Focus on providing immediate comfort and one practical suggestion. Keep conversations flowing naturally by asking one thoughtful question at the end. Avoid long explanations - be direct and helpful.
+
 AI:`;
 
     // Generate response using the selected model
