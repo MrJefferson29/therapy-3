@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  View, 
-  TextInput, 
-  StyleSheet, 
-  FlatList, 
-  ActivityIndicator, 
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
   TouchableOpacity,
   Alert,
   Animated,
@@ -13,6 +13,7 @@ import {
   Text,
   Dimensions,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -93,8 +94,6 @@ export default function Chat() {
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Animated bottom offset for input bar
-  const keyboardHeight = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Check if user is authenticated
@@ -144,39 +143,6 @@ export default function Chat() {
       }
     })();
     }
-
-    // keyboard listeners
-    const showEvt =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvt =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const subShow = Keyboard.addListener(showEvt, (e) => {
-      Animated.timing(keyboardHeight, {
-        toValue: e.endCoordinates.height,
-        duration: 250,
-        easing: Easing.ease,
-        useNativeDriver: false,
-      }).start();
-    });
-    const subHide = Keyboard.addListener(hideEvt, () => {
-      Animated.timing(keyboardHeight, {
-        toValue: 0,
-        duration: 250,
-        easing: Easing.ease,
-        useNativeDriver: false,
-      }).start();
-      // scroll to bottom when keyboard hides
-      setTimeout(
-        () => flatListRef.current?.scrollToEnd({ animated: true }),
-        100
-      );
-    });
-
-    return () => {
-      subShow.remove();
-      subHide.remove();
-    };
   }, [token, router, user]);
 
   // fade in new messages
@@ -370,20 +336,28 @@ export default function Chat() {
   // Show loading screen while checking authentication
   if (isAuthChecking) {
     return (
-      <View style={styles.container}>
-        <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
+        <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.container}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.loadingText, { color: colors.textPrimary }]}>Loading chat...</Text>
           </View>
         </LinearGradient>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.container}>
         {/* Mood Modal */}
         <Modal visible={showMoodModal} transparent animationType="fade">
           <View style={[styles.modalOverlay, { backgroundColor: colors.backgroundOverlay }]}>
@@ -405,12 +379,12 @@ export default function Chat() {
                 thumbTintColor={colors.primary}
               />
               <Text style={[styles.moodValue, { color: colors.textPrimary }]}>Your mood: {mood}</Text>
-        <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.moodButton, { backgroundColor: colors.accent }]}
                 onPress={handleStartSession}
-        >
+              >
                 <Text style={styles.moodButtonText}>Start Chat</Text>
-        </TouchableOpacity>
+              </TouchableOpacity>
             </Animated.View>
           </View>
         </Modal>
@@ -502,48 +476,49 @@ export default function Chat() {
             );
           }}
           keyExtractor={(_, i) => i.toString()}
-          contentContainerStyle={{ paddingBottom: inputBarHeight + 8 }}
+          contentContainerStyle={{ paddingBottom: 10 }}
           showsVerticalScrollIndicator={false}
         />
 
         {/* Input Bar */}
-        <Animated.View
+        <View
           style={[styles.inputWrapper, {
-            bottom: Animated.add(keyboardHeight, insets.bottom + 10),
             borderTopColor: colors.border
           }]}
         >
           <View
-        style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
+            style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
             onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
-      >
-      <TextInput
-        style={[styles.textInput, { 
-          color: colors.textPrimary,
-          backgroundColor: colors.chatInput 
-        }]}
-          value={inputMessage}
-          onChangeText={setInputMessage}
+          >
+            <TextInput
+              style={[styles.textInput, {
+                color: colors.textPrimary,
+                backgroundColor: colors.chatInput
+              }]}
+              value={inputMessage}
+              onChangeText={setInputMessage}
               placeholder="Type a message..."
-        placeholderTextColor={colors.textTertiary}
-          multiline
+              placeholderTextColor={colors.textTertiary}
+              multiline
               textAlignVertical="top"
-        />
-        <TouchableOpacity 
-          onPress={sendMessage}
+              blurOnSubmit={false}
+              returnKeyType="default"
+            />
+            <TouchableOpacity
+              onPress={sendMessage}
               style={[
                 styles.sendButton,
-            { backgroundColor: colors.chatSend },
+                { backgroundColor: colors.chatSend },
                 (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
               ]}
-          disabled={!inputMessage.trim() || isLoading}
-        >
+              disabled={!inputMessage.trim() || isLoading}
+            >
               <Ionicons name="send" size={24} color="#fff" />
-        </TouchableOpacity>
+            </TouchableOpacity>
           </View>
         </Animated.View>
       </LinearGradient>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -621,14 +596,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   inputWrapper: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0, // Will be overridden by inline styles
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
+    backgroundColor: 'transparent',
   },
   inputContainer: {
     flexDirection: "row",
