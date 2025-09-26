@@ -16,9 +16,9 @@ const ENHANCED_THERAPIST_SYSTEM_PROMPT = require("../training_data/enhanced_ther
 const THERAPIST_SYSTEM_PROMPT = ENHANCED_THERAPIST_SYSTEM_PROMPT;
 
 // Initialize AI models
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "YOUR_NEW_API_KEY_HERE");
 const geminiModel = genAI.getGenerativeModel({
-  model: "gemini-1.5-pro",
+  model: "gemini-1.5-flash",
   generationConfig: {
     maxOutputTokens: 150, // Limit response length to ~100-150 words
     temperature: 0.7,
@@ -31,7 +31,7 @@ const deepseekModel = new DeepseekAI(process.env.DEEPSEEK_API_KEY);
 // Initialize Llama 2 model (primary model)
 const llama2Model = new Llama2AI(
   process.env.HUGGINGFACE_API_KEY,
-  process.env.LLAMA2_MODEL_URL || "your-username/therapy-llama2-7b" // Replace with your trained model
+  process.env.LLAMA2_MODEL_URL || "meta-llama/Llama-2-7b-chat-hf" // Use working Llama2 model
 );
 
 // Model selection strategy - Gemini is primary with enhanced therapist training, Llama 2 is fallback
