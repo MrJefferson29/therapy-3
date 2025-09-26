@@ -516,7 +516,7 @@ export default function Chat() {
               <Ionicons name="send" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
-        </Animated.View>
+        </View>
       </LinearGradient>
     </KeyboardAvoidingView>
   );

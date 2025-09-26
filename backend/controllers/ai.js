@@ -18,7 +18,7 @@ const THERAPIST_SYSTEM_PROMPT = ENHANCED_THERAPIST_SYSTEM_PROMPT;
 // Initialize AI models
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAn0cFp4NCF9MGzRXT_hJUk62lycLdyrBY");
 const geminiModel = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-1.5-flash-002",
   generationConfig: {
     maxOutputTokens: 150, // Limit response length to ~100-150 words
     temperature: 0.7,
