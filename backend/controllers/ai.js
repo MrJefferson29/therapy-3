@@ -749,12 +749,17 @@ const generateContent = async (req, res) => {
           
           // Generate crisis-specific response based on level and type
           let crisisResponse;
+          const therapistName = availableTherapist.firstName && availableTherapist.lastName 
+            ? `${availableTherapist.firstName} ${availableTherapist.lastName}` 
+            : availableTherapist.username;
+          const appointmentTime = crisisAppointment.scheduledTime.toLocaleString();
+          
           if (crisisAnalysis.level >= 5) {
-            crisisResponse = `I'm extremely concerned about your safety. This is a critical situation and I've immediately connected you with a professional therapist who will be available within ${urgencyMinutes} minutes. Please stay safe - help is on the way right now. You're not alone.`;
+            crisisResponse = `I'm extremely concerned about your safety. This is a critical situation and I've immediately booked an emergency session for you with ${therapistName} (${availableTherapist.email}) who will be available within ${urgencyMinutes} minutes at ${appointmentTime}. Please stay safe - help is on the way right now. You're not alone.`;
           } else if (crisisAnalysis.level >= 4) {
-            crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. I've immediately connected you with a professional therapist who will be available within ${urgencyMinutes} minutes. Please stay safe and know that help is on the way. You're not alone in this.`;
+            crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. I've immediately booked an urgent session for you with ${therapistName} (${availableTherapist.email}) who will be available within ${urgencyMinutes} minutes at ${appointmentTime}. Please stay safe and know that help is on the way. You're not alone in this.`;
           } else {
-            crisisResponse = `I'm concerned about what you're sharing. I've connected you with a professional therapist who will be available within ${urgencyMinutes} minutes. Please know that help is available and you don't have to face this alone.`;
+            crisisResponse = `I'm concerned about what you're sharing. I've booked a support session for you with ${therapistName} (${availableTherapist.email}) who will be available within ${urgencyMinutes} minutes at ${appointmentTime}. Please know that help is available and you don't have to face this alone.`;
           }
           
           // Save the crisis interaction with detailed analysis
@@ -780,7 +785,10 @@ const generateContent = async (req, res) => {
             crisisType: crisisAnalysis.type,
             crisisConfidence: crisisAnalysis.confidence,
             therapistAssigned: availableTherapist.username,
+            therapistName: therapistName,
+            therapistEmail: availableTherapist.email,
             appointmentScheduled: crisisAppointment.scheduledTime,
+            appointmentId: crisisAppointment._id,
             urgencyMinutes: urgencyMinutes
           });
         }
