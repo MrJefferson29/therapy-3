@@ -113,8 +113,8 @@ const endSession = async (req, res) => {
   }
 };
 
-// Crisis detection function
-const isSeverelyUnstable = (input) => {
+// Advanced crisis detection with AI-powered analysis
+const analyzeCrisisLevel = async (input, conversationHistory = []) => {
   const normalized = input.toLowerCase();
   
   // Define context patterns that indicate harmless usage
@@ -174,146 +174,188 @@ const isSeverelyUnstable = (input) => {
   // Check for harmless patterns first
   for (const pattern of harmlessPatterns) {
     if (pattern.test(normalized)) {
-      return false; // This is harmless usage
+      return { level: 0, type: 'harmless', confidence: 0.95 };
     }
   }
 
+  // Advanced crisis patterns with severity levels
   const crisisPatterns = [
-    // Suicidal ideation - specific and direct
-    /i want to die/i,
-    /i want to kill myself/i,
-    /i want to end my life/i,
-    /i want to commit suicide/i,
-    /i'm going to kill myself/i,
-    /i'm going to end it all/i,
-    /i'm going to commit suicide/i,
-    /i plan to kill myself/i,
-    /i plan to end my life/i,
-    /i'm thinking about suicide/i,
-    /i'm thinking about killing myself/i,
-    /i'm considering suicide/i,
-    /i'm considering killing myself/i,
-    /suicide is the only way/i,
-    /killing myself is the only way/i,
-    /ending my life is the only way/i,
-    /i have no reason to live/i,
-    /i don't want to live anymore/i,
-    /i wish i was dead/i,
-    /i wish i could die/i,
-    /i hope i die/i,
-    /i want to be dead/i,
-    /i want to disappear/i,
-    /i want to vanish/i,
-    /i want to cease to exist/i,
+    // CRITICAL LEVEL (Level 5) - Immediate danger
+    { pattern: /i'm going to kill myself (right now|tonight|today)/i, level: 5, type: 'suicidal_immediate', confidence: 0.98 },
+    { pattern: /i have a plan to kill myself/i, level: 5, type: 'suicidal_planned', confidence: 0.95 },
+    { pattern: /i'm going to overdose (right now|tonight|today)/i, level: 5, type: 'overdose_immediate', confidence: 0.95 },
+    { pattern: /i have pills ready to take/i, level: 5, type: 'overdose_planned', confidence: 0.90 },
+    { pattern: /i'm cutting myself right now/i, level: 5, type: 'selfharm_active', confidence: 0.90 },
+    { pattern: /i'm bleeding and won't stop/i, level: 5, type: 'selfharm_medical', confidence: 0.95 },
     
-    // Self-harm - specific and direct
-    /i want to hurt myself/i,
-    /i want to cut myself/i,
-    /i want to harm myself/i,
-    /i'm going to hurt myself/i,
-    /i'm going to cut myself/i,
-    /i'm going to harm myself/i,
-    /i plan to hurt myself/i,
-    /i plan to cut myself/i,
-    /i plan to harm myself/i,
-    /i'm thinking about hurting myself/i,
-    /i'm thinking about cutting myself/i,
-    /i'm thinking about harming myself/i,
-    /i'm considering hurting myself/i,
-    /i'm considering cutting myself/i,
-    /i'm considering harming myself/i,
-    /i need to hurt myself/i,
-    /i need to cut myself/i,
-    /i need to harm myself/i,
-    /hurting myself is the only way/i,
-    /cutting myself is the only way/i,
-    /harming myself is the only way/i,
+    // HIGH LEVEL (Level 4) - Serious risk
+    { pattern: /i want to kill myself/i, level: 4, type: 'suicidal_ideation', confidence: 0.90 },
+    { pattern: /i want to end my life/i, level: 4, type: 'suicidal_ideation', confidence: 0.90 },
+    { pattern: /i want to commit suicide/i, level: 4, type: 'suicidal_ideation', confidence: 0.90 },
+    { pattern: /i'm going to kill myself/i, level: 4, type: 'suicidal_intent', confidence: 0.85 },
+    { pattern: /i'm going to end it all/i, level: 4, type: 'suicidal_intent', confidence: 0.85 },
+    { pattern: /i plan to kill myself/i, level: 4, type: 'suicidal_planned', confidence: 0.85 },
+    { pattern: /i plan to end my life/i, level: 4, type: 'suicidal_planned', confidence: 0.85 },
+    { pattern: /suicide is the only way/i, level: 4, type: 'suicidal_desperate', confidence: 0.80 },
+    { pattern: /killing myself is the only way/i, level: 4, type: 'suicidal_desperate', confidence: 0.80 },
+    { pattern: /ending my life is the only way/i, level: 4, type: 'suicidal_desperate', confidence: 0.80 },
+    { pattern: /i want to overdose/i, level: 4, type: 'overdose_intent', confidence: 0.85 },
+    { pattern: /i want to take too many pills/i, level: 4, type: 'overdose_intent', confidence: 0.85 },
+    { pattern: /i want to poison myself/i, level: 4, type: 'overdose_intent', confidence: 0.85 },
+    { pattern: /i want to hurt myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i want to cut myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i want to harm myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
     
-    // Overdose and substance abuse - specific and direct
-    /i want to overdose/i,
-    /i want to take too many pills/i,
-    /i want to poison myself/i,
-    /i'm going to overdose/i,
-    /i'm going to take too many pills/i,
-    /i'm going to poison myself/i,
-    /i plan to overdose/i,
-    /i plan to take too many pills/i,
-    /i plan to poison myself/i,
-    /i'm thinking about overdosing/i,
-    /i'm thinking about taking too many pills/i,
-    /i'm thinking about poisoning myself/i,
-    /i'm considering overdosing/i,
-    /i'm considering taking too many pills/i,
-    /i'm considering poisoning myself/i,
-    /i need to overdose/i,
-    /i need to take too many pills/i,
-    /i need to poison myself/i,
-    /overdosing is the only way/i,
-    /taking too many pills is the only way/i,
-    /poisoning myself is the only way/i,
+    // MODERATE-HIGH LEVEL (Level 3) - Concerning thoughts
+    { pattern: /i'm thinking about suicide/i, level: 3, type: 'suicidal_thoughts', confidence: 0.75 },
+    { pattern: /i'm thinking about killing myself/i, level: 3, type: 'suicidal_thoughts', confidence: 0.75 },
+    { pattern: /i'm considering suicide/i, level: 3, type: 'suicidal_consideration', confidence: 0.70 },
+    { pattern: /i'm considering killing myself/i, level: 3, type: 'suicidal_consideration', confidence: 0.70 },
+    { pattern: /i have no reason to live/i, level: 3, type: 'hopelessness', confidence: 0.70 },
+    { pattern: /i don't want to live anymore/i, level: 3, type: 'hopelessness', confidence: 0.70 },
+    { pattern: /i wish i was dead/i, level: 3, type: 'death_wish', confidence: 0.65 },
+    { pattern: /i wish i could die/i, level: 3, type: 'death_wish', confidence: 0.65 },
+    { pattern: /i hope i die/i, level: 3, type: 'death_wish', confidence: 0.65 },
+    { pattern: /i want to be dead/i, level: 3, type: 'death_wish', confidence: 0.65 },
+    { pattern: /i want to disappear/i, level: 3, type: 'escape_fantasy', confidence: 0.60 },
+    { pattern: /i want to vanish/i, level: 3, type: 'escape_fantasy', confidence: 0.60 },
+    { pattern: /i want to cease to exist/i, level: 3, type: 'escape_fantasy', confidence: 0.60 },
+    { pattern: /i'm thinking about hurting myself/i, level: 3, type: 'selfharm_thoughts', confidence: 0.70 },
+    { pattern: /i'm thinking about cutting myself/i, level: 3, type: 'selfharm_thoughts', confidence: 0.70 },
+    { pattern: /i'm thinking about harming myself/i, level: 3, type: 'selfharm_thoughts', confidence: 0.70 },
+    { pattern: /i'm considering hurting myself/i, level: 3, type: 'selfharm_consideration', confidence: 0.65 },
+    { pattern: /i'm considering cutting myself/i, level: 3, type: 'selfharm_consideration', confidence: 0.65 },
+    { pattern: /i'm considering harming myself/i, level: 3, type: 'selfharm_consideration', confidence: 0.65 },
+    { pattern: /i'm thinking about overdosing/i, level: 3, type: 'overdose_thoughts', confidence: 0.70 },
+    { pattern: /i'm thinking about taking too many pills/i, level: 3, type: 'overdose_thoughts', confidence: 0.70 },
+    { pattern: /i'm thinking about poisoning myself/i, level: 3, type: 'overdose_thoughts', confidence: 0.70 },
     
-    // Trauma and abuse - specific and direct
-    /i was raped/i,
-    /i was sexually assaulted/i,
-    /i was physically abused/i,
-    /i was emotionally abused/i,
-    /i was verbally abused/i,
-    /i was psychologically abused/i,
-    /i was molested/i,
-    /i was assaulted/i,
-    /i was molested/i,
-    /i was abused/i,
-    /i was in an accident/i,
-    /i was in combat/i,
-    /i was in a disaster/i,
-    /i'm having flashbacks/i,
-    /i'm having nightmares/i,
-    /i have ptsd/i,
-    /i have post traumatic stress/i,
+    // MODERATE LEVEL (Level 2) - Warning signs
+    { pattern: /i'm helpless/i, level: 2, type: 'helplessness', confidence: 0.60 },
+    { pattern: /i'm hopeless/i, level: 2, type: 'hopelessness', confidence: 0.60 },
+    { pattern: /i'm worthless/i, level: 2, type: 'worthlessness', confidence: 0.60 },
+    { pattern: /i can't cope anymore/i, level: 2, type: 'coping_failure', confidence: 0.65 },
+    { pattern: /i can't handle this anymore/i, level: 2, type: 'overwhelmed', confidence: 0.65 },
+    { pattern: /i'm in crisis/i, level: 2, type: 'crisis_declaration', confidence: 0.70 },
+    { pattern: /i'm having an emergency/i, level: 2, type: 'emergency_declaration', confidence: 0.70 },
+    { pattern: /i need immediate help/i, level: 2, type: 'urgent_help_request', confidence: 0.75 },
+    { pattern: /i need urgent help/i, level: 2, type: 'urgent_help_request', confidence: 0.75 },
+    { pattern: /i need help now/i, level: 2, type: 'urgent_help_request', confidence: 0.75 },
+    { pattern: /i'm depressed to death/i, level: 2, type: 'severe_depression', confidence: 0.70 },
     
-    // Crisis and emergency - specific and direct
-    /i'm in crisis/i,
-    /i'm having an emergency/i,
-    /i need immediate help/i,
-    /i need urgent help/i,
-    /i need help now/i,
-    /i can't cope anymore/i,
-    /i can't handle this anymore/i,
-    /i'm helpless/i,
-    /i'm hopeless/i,
-    /i'm worthless/i,
-    /i'm depressed to death/i
+    // TRAUMA AND ABUSE (Level 3-4)
+    { pattern: /i was raped/i, level: 4, type: 'sexual_assault', confidence: 0.90 },
+    { pattern: /i was sexually assaulted/i, level: 4, type: 'sexual_assault', confidence: 0.90 },
+    { pattern: /i was physically abused/i, level: 3, type: 'physical_abuse', confidence: 0.80 },
+    { pattern: /i was emotionally abused/i, level: 3, type: 'emotional_abuse', confidence: 0.75 },
+    { pattern: /i was verbally abused/i, level: 3, type: 'verbal_abuse', confidence: 0.75 },
+    { pattern: /i was psychologically abused/i, level: 3, type: 'psychological_abuse', confidence: 0.75 },
+    { pattern: /i was molested/i, level: 4, type: 'sexual_abuse', confidence: 0.90 },
+    { pattern: /i was assaulted/i, level: 3, type: 'physical_assault', confidence: 0.80 },
+    { pattern: /i was abused/i, level: 3, type: 'general_abuse', confidence: 0.75 },
+    { pattern: /i'm having flashbacks/i, level: 3, type: 'ptsd_symptoms', confidence: 0.70 },
+    { pattern: /i'm having nightmares/i, level: 2, type: 'ptsd_symptoms', confidence: 0.60 },
+    { pattern: /i have ptsd/i, level: 2, type: 'ptsd_diagnosis', confidence: 0.65 },
+    { pattern: /i have post traumatic stress/i, level: 2, type: 'ptsd_diagnosis', confidence: 0.65 }
   ];
   
-  // Check for crisis patterns
-  for (const pattern of crisisPatterns) {
+  // Check for crisis patterns and calculate weighted score
+  let maxLevel = 0;
+  let crisisType = 'none';
+  let confidence = 0;
+  let matchedPatterns = [];
+  
+  for (const { pattern, level, type, confidence: patternConfidence } of crisisPatterns) {
     if (pattern.test(normalized)) {
-      return true; // This is a genuine crisis
-    }
-  }
-  
-  // Additional context check for ambiguous words
-  const ambiguousWords = ['die', 'died', 'dying', 'kill', 'killed', 'killing', 'suicide', 'overdose'];
-  const foundAmbiguous = ambiguousWords.filter(word => normalized.includes(word));
-  
-  if (foundAmbiguous.length > 0) {
-    // Check if these words are used in a concerning context
-    const concerningContexts = [
-      /i (want|wish|plan|going to) (die|kill)/i,
-      /i (want|wish|plan|going to) (myself|my life)/i,
-      /(die|kill) (myself|my life)/i,
-      /(suicide|overdose) (attempt|plan|thought)/i,
-      /(attempt|plan|thought) (suicide|overdose)/i
-    ];
-    
-    for (const context of concerningContexts) {
-      if (context.test(normalized)) {
-        return true; // This is concerning
+      matchedPatterns.push({ level, type, confidence: patternConfidence });
+      if (level > maxLevel) {
+        maxLevel = level;
+        crisisType = type;
+        confidence = patternConfidence;
       }
     }
   }
   
-  return false; // No crisis detected
+  // Contextual analysis - check conversation history for escalation
+  let escalationScore = 0;
+  if (conversationHistory.length > 0) {
+    const recentMessages = conversationHistory.slice(-5); // Last 5 messages
+    const negativeEmotions = ['sad', 'depressed', 'anxious', 'angry', 'frustrated', 'hopeless', 'worthless'];
+    const crisisWords = ['die', 'kill', 'hurt', 'end', 'suicide', 'overdose', 'crisis'];
+    
+    for (const msg of recentMessages) {
+      const msgText = msg.toLowerCase();
+      const negativeCount = negativeEmotions.filter(emotion => msgText.includes(emotion)).length;
+      const crisisCount = crisisWords.filter(word => msgText.includes(word)).length;
+      escalationScore += (negativeCount * 0.1) + (crisisCount * 0.2);
+    }
+  }
+  
+  // Sentiment analysis using keyword scoring
+  const negativeKeywords = {
+    'die': 0.8, 'death': 0.7, 'kill': 0.8, 'suicide': 0.9, 'overdose': 0.8,
+    'hurt': 0.6, 'harm': 0.6, 'cut': 0.7, 'bleed': 0.8, 'pain': 0.5,
+    'hopeless': 0.6, 'worthless': 0.6, 'helpless': 0.6, 'desperate': 0.7,
+    'crisis': 0.7, 'emergency': 0.7, 'urgent': 0.6, 'immediate': 0.6,
+    'end': 0.5, 'stop': 0.4, 'quit': 0.4, 'give up': 0.6
+  };
+  
+  let sentimentScore = 0;
+  for (const [keyword, weight] of Object.entries(negativeKeywords)) {
+    if (normalized.includes(keyword)) {
+      sentimentScore += weight;
+    }
+  }
+  
+  // Intensity indicators
+  const intensityWords = ['really', 'so', 'very', 'extremely', 'completely', 'totally', 'absolutely'];
+  let intensityMultiplier = 1;
+  for (const word of intensityWords) {
+    if (normalized.includes(word)) {
+      intensityMultiplier += 0.2;
+    }
+  }
+  
+  // Time urgency indicators
+  const urgencyWords = ['now', 'today', 'tonight', 'right now', 'immediately', 'asap'];
+  let urgencyMultiplier = 1;
+  for (const word of urgencyWords) {
+    if (normalized.includes(word)) {
+      urgencyMultiplier += 0.3;
+    }
+  }
+  
+  // Calculate final crisis score
+  const baseScore = maxLevel;
+  const contextualScore = escalationScore * 0.5;
+  const sentimentScoreNormalized = Math.min(sentimentScore / 3, 2); // Cap at 2
+  const finalScore = (baseScore + contextualScore + sentimentScoreNormalized) * intensityMultiplier * urgencyMultiplier;
+  
+  // Determine crisis level
+  let crisisLevel = 0;
+  if (finalScore >= 4.5) crisisLevel = 5; // Critical
+  else if (finalScore >= 3.5) crisisLevel = 4; // High
+  else if (finalScore >= 2.5) crisisLevel = 3; // Moderate-High
+  else if (finalScore >= 1.5) crisisLevel = 2; // Moderate
+  else if (finalScore >= 0.8) crisisLevel = 1; // Low
+  
+  return {
+    level: crisisLevel,
+    type: crisisType,
+    confidence: Math.min(confidence + (finalScore * 0.1), 0.95),
+    score: finalScore,
+    escalationScore,
+    sentimentScore,
+    matchedPatterns,
+    intensityMultiplier,
+    urgencyMultiplier
+  };
+};
+
+// Legacy function for backward compatibility
+const isSeverelyUnstable = (input) => {
+  const analysis = analyzeCrisisLevel(input);
+  return analysis.level >= 3; // Moderate-High level or above
 };
 
 // Function to find available therapists without sessions in the next hour
@@ -353,22 +395,22 @@ const findAvailableTherapist = async () => {
 };
 
 // Function to automatically book a crisis session
-const bookCrisisSession = async (userId, therapistId) => {
+const bookCrisisSession = async (userId, therapistId, urgencyMinutes = 30, crisisAnalysis = null) => {
   try {
     const Appointment = require('../models/appointment');
     const Chat = require('../models/chat');
     
-    // Schedule the session for 30 minutes from now
-    const scheduledTime = new Date(Date.now() + 30 * 60 * 1000);
+    // Schedule the session based on urgency
+    const scheduledTime = new Date(Date.now() + urgencyMinutes * 60 * 1000);
     
     const appointment = new Appointment({
       title: 'Crisis Support Session',
-      description: 'Automatically scheduled crisis support session. User is experiencing a mental health crisis and needs immediate professional support.',
+      description: `Automatically scheduled crisis support session. User is experiencing a mental health crisis (Level ${crisisAnalysis?.level || 'Unknown'}) and needs immediate professional support.`,
       scheduledTime: scheduledTime,
       therapist: therapistId,
       client: userId,
       status: 'approved', // Auto-approve crisis sessions
-      notes: 'Crisis session - automatically scheduled due to detected mental health crisis'
+      notes: `Crisis session - automatically scheduled due to detected mental health crisis. Level: ${crisisAnalysis?.level || 'Unknown'}, Type: ${crisisAnalysis?.type || 'Unknown'}, Confidence: ${crisisAnalysis?.confidence || 'Unknown'}`
     });
     
     await appointment.save();
@@ -394,57 +436,188 @@ const bookCrisisSession = async (userId, therapistId) => {
   }
 };
 
+// Function to send crisis email notification
+const sendCrisisEmailNotification = async (therapist, userId, crisisAnalysis, appointment) => {
+  try {
+    const sendEmail = require('../utils/sendEmail');
+    const User = require('../models/user');
+    
+    // Get user details
+    const user = await User.findById(userId);
+    if (!user) {
+      console.error('User not found for crisis notification');
+      return;
+    }
+    
+    // Determine urgency level
+    const urgencyLevel = crisisAnalysis.level >= 5 ? 'CRITICAL' : 
+                        crisisAnalysis.level >= 4 ? 'HIGH' : 
+                        crisisAnalysis.level >= 3 ? 'MODERATE' : 'LOW';
+    
+    // Create email content
+    const subject = `🚨 ${urgencyLevel} CRISIS ALERT - Immediate Action Required`;
+    const text = `
+URGENT CRISIS NOTIFICATION
+
+A user has been detected as experiencing a mental health crisis and has been automatically assigned to you for immediate support.
+
+CRISIS DETAILS:
+- Crisis Level: ${crisisAnalysis.level}/5 (${urgencyLevel})
+- Crisis Type: ${crisisAnalysis.type}
+- Confidence Score: ${Math.round(crisisAnalysis.confidence * 100)}%
+- Detection Time: ${new Date().toLocaleString()}
+
+USER INFORMATION:
+- Username: ${user.username}
+- Email: ${user.email}
+- User ID: ${userId}
+
+APPOINTMENT DETAILS:
+- Scheduled Time: ${appointment.scheduledTime.toLocaleString()}
+- Status: Auto-approved (Crisis Session)
+- Meeting Link: [To be provided by therapist]
+
+IMMEDIATE ACTION REQUIRED:
+1. Respond to the user immediately via the chat system
+2. Confirm your availability for the scheduled session
+3. Provide appropriate crisis intervention support
+4. Follow up with ongoing care as needed
+
+This is an automated crisis detection system. Please prioritize this case immediately.
+
+Best regards,
+Zensui AI Crisis Detection System
+    `;
+    
+    // Send email to therapist
+    await sendEmail({
+      to: therapist.email,
+      subject: subject,
+      text: text
+    });
+    
+    console.log(`Crisis email notification sent to therapist: ${therapist.email}`);
+    
+    // Also send notification to admin (if configured)
+    if (process.env.ADMIN_EMAIL) {
+      const adminSubject = `🚨 CRISIS ALERT - User ${user.username} - Level ${crisisAnalysis.level}`;
+      const adminText = `
+ADMIN CRISIS NOTIFICATION
+
+A crisis has been detected and a therapist has been automatically assigned.
+
+CRISIS DETAILS:
+- User: ${user.username} (${user.email})
+- Crisis Level: ${crisisAnalysis.level}/5
+- Crisis Type: ${crisisAnalysis.type}
+- Therapist Assigned: ${therapist.username} (${therapist.email})
+- Scheduled Time: ${appointment.scheduledTime.toLocaleString()}
+
+Please monitor this situation and ensure appropriate follow-up.
+
+Best regards,
+Zensui AI Crisis Detection System
+      `;
+      
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL,
+        subject: adminSubject,
+        text: adminText
+      });
+      
+      console.log(`Crisis email notification sent to admin: ${process.env.ADMIN_EMAIL}`);
+    }
+    
+  } catch (error) {
+    console.error('Error sending crisis email notification:', error);
+  }
+};
+
 const generateContent = async (req, res) => {
   try {
     const prompt = req.body.prompt;
     let { sessionId } = req.body;
 
-    // Check for crisis in the user's message
-    const isCrisis = isSeverelyUnstable(prompt);
+    // Advanced crisis detection with conversation history
+    const crisisPreviousMessages = await Ai.find({ session: sessionId }).sort({ createdAt: 1 });
+    const conversationHistory = crisisPreviousMessages.map(msg => msg.prompt);
+    const crisisAnalysis = await analyzeCrisisLevel(prompt, conversationHistory);
     
-    if (isCrisis) {
-      console.log('🚨 CRISIS DETECTED:', prompt);
+    if (crisisAnalysis.level >= 3) { // Moderate-High level or above
+      console.log('🚨 CRISIS DETECTED:', {
+        level: crisisAnalysis.level,
+        type: crisisAnalysis.type,
+        confidence: crisisAnalysis.confidence,
+        score: crisisAnalysis.score,
+        prompt: prompt.substring(0, 100) + '...'
+      });
       
       // Find an available therapist
       const availableTherapist = await findAvailableTherapist();
       
       if (availableTherapist) {
-        // Book a crisis session
-        const crisisAppointment = await bookCrisisSession(req.userId, availableTherapist._id);
+        // Book a crisis session with urgency based on crisis level
+        const urgencyMinutes = crisisAnalysis.level >= 5 ? 15 : crisisAnalysis.level >= 4 ? 30 : 45;
+        const crisisAppointment = await bookCrisisSession(req.userId, availableTherapist._id, urgencyMinutes, crisisAnalysis);
         
         if (crisisAppointment) {
           console.log('✅ Crisis session booked with therapist:', availableTherapist.username);
           
-          // Return crisis response with session info
-          const crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. I've immediately connected you with a professional therapist who will be available within 30 minutes. Please stay safe and know that help is on the way. You're not alone in this.`;
+          // Generate crisis-specific response based on level and type
+          let crisisResponse;
+          if (crisisAnalysis.level >= 5) {
+            crisisResponse = `I'm extremely concerned about your safety. This is a critical situation and I've immediately connected you with a professional therapist who will be available within ${urgencyMinutes} minutes. Please stay safe - help is on the way right now. You're not alone.`;
+          } else if (crisisAnalysis.level >= 4) {
+            crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. I've immediately connected you with a professional therapist who will be available within ${urgencyMinutes} minutes. Please stay safe and know that help is on the way. You're not alone in this.`;
+          } else {
+            crisisResponse = `I'm concerned about what you're sharing. I've connected you with a professional therapist who will be available within ${urgencyMinutes} minutes. Please know that help is available and you don't have to face this alone.`;
+          }
           
-          // Save the crisis interaction
+          // Save the crisis interaction with detailed analysis
           const newAiEntry = new Ai({
             prompt: prompt,
             response: crisisResponse,
             session: sessionId,
-            isCrisis: true
+            isCrisis: true,
+            crisisLevel: crisisAnalysis.level,
+            crisisType: crisisAnalysis.type,
+            crisisConfidence: crisisAnalysis.confidence
           });
           await newAiEntry.save();
+          
+          // Send email notification to therapist
+          await sendCrisisEmailNotification(availableTherapist, req.userId, crisisAnalysis, crisisAppointment);
           
           return res.json({ 
             text: crisisResponse,
             sessionId: sessionId,
             crisisDetected: true,
+            crisisLevel: crisisAnalysis.level,
+            crisisType: crisisAnalysis.type,
+            crisisConfidence: crisisAnalysis.confidence,
             therapistAssigned: availableTherapist.username,
-            appointmentScheduled: crisisAppointment.scheduledTime
+            appointmentScheduled: crisisAppointment.scheduledTime,
+            urgencyMinutes: urgencyMinutes
           });
         }
       }
       
       // If no therapist available, still provide crisis response
-      const crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. Please reach out to a crisis helpline immediately: National Suicide Prevention Lifeline: 988. You're not alone, and help is available right now.`;
+      let crisisResponse;
+      if (crisisAnalysis.level >= 5) {
+        crisisResponse = `I'm extremely concerned about your safety. This is a critical situation. Please call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately. You're not alone, and help is available right now.`;
+      } else {
+        crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. Please reach out to a crisis helpline immediately: National Suicide Prevention Lifeline: 988. You're not alone, and help is available right now.`;
+      }
       
       const newAiEntry = new Ai({
         prompt: prompt,
         response: crisisResponse,
         session: sessionId,
-        isCrisis: true
+        isCrisis: true,
+        crisisLevel: crisisAnalysis.level,
+        crisisType: crisisAnalysis.type,
+        crisisConfidence: crisisAnalysis.confidence
       });
       await newAiEntry.save();
       
@@ -452,6 +625,9 @@ const generateContent = async (req, res) => {
         text: crisisResponse,
         sessionId: sessionId,
         crisisDetected: true,
+        crisisLevel: crisisAnalysis.level,
+        crisisType: crisisAnalysis.type,
+        crisisConfidence: crisisAnalysis.confidence,
         therapistAssigned: null
       });
     }
@@ -475,11 +651,11 @@ const generateContent = async (req, res) => {
     if (session.terminated) return res.status(400).json({ error: "Session is terminated" });
 
     // Fetch all previous messages for this session, ordered by creation time
-    const previousMessages = await Ai.find({ session: sessionId }).sort({ createdAt: 1 });
+    const sessionPreviousMessages = await Ai.find({ session: sessionId }).sort({ createdAt: 1 });
 
     // Build the conversation history as a prompt
     let historyPrompt = '';
-    previousMessages.forEach(msg => {
+    sessionPreviousMessages.forEach(msg => {
       historyPrompt += `User: ${msg.prompt}\nAI: ${msg.response}\n`;
     });
 

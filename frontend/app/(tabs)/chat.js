@@ -214,7 +214,14 @@ export default function Chat() {
         text: data.text, 
         sender: "bot", 
         time: new Date().toISOString(),
-        model: data.model // Store which model was used
+        model: data.model, // Store which model was used
+        crisisDetected: data.crisisDetected || false,
+        crisisLevel: data.crisisLevel || 0,
+        crisisType: data.crisisType || 'none',
+        crisisConfidence: data.crisisConfidence || 0,
+        therapistAssigned: data.therapistAssigned || null,
+        appointmentScheduled: data.appointmentScheduled || null,
+        urgencyMinutes: data.urgencyMinutes || null
       };
       
       // Update messages with both user message and bot response
@@ -224,7 +231,66 @@ export default function Chat() {
       // Save the complete updated message history
       await saveMessagesToStorage(updatedWithResponse);
 
-      // Danger handling: if AI detects crisis, redirect to therapist selection
+      // Advanced crisis handling with detailed response
+      if (data.crisisDetected) {
+        const crisisLevel = data.crisisLevel || 0;
+        const therapistAssigned = data.therapistAssigned;
+        const appointmentScheduled = data.appointmentScheduled;
+        const urgencyMinutes = data.urgencyMinutes;
+        
+        let alertTitle, alertMessage, alertButtons;
+        
+        if (crisisLevel >= 5) {
+          // Critical crisis
+          alertTitle = "🚨 CRITICAL CRISIS DETECTED";
+          alertMessage = therapistAssigned 
+            ? `IMMEDIATE HELP: A professional therapist has been assigned and will be available within ${urgencyMinutes} minutes. Please stay safe - help is on the way right now!`
+            : `IMMEDIATE HELP NEEDED: Please call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately.`;
+          alertButtons = [
+            { text: "Call 911", onPress: () => {
+              Alert.alert("Emergency", "Please call 911 immediately");
+            }},
+            { text: "Call 988", onPress: () => {
+              Alert.alert("Crisis Line", "Please call 988 - National Suicide Prevention Lifeline");
+            }},
+            { text: "View Therapist", onPress: () => router.push("/MyTherapist") }
+          ];
+        } else if (crisisLevel >= 4) {
+          // High crisis
+          alertTitle = "⚠️ CRISIS DETECTED";
+          alertMessage = therapistAssigned 
+            ? `URGENT SUPPORT: A professional therapist has been assigned and will be available within ${urgencyMinutes} minutes. Help is on the way!`
+            : `URGENT SUPPORT NEEDED: Please reach out to a crisis helpline immediately.`;
+          alertButtons = [
+            { text: "Call 988", onPress: () => {
+              Alert.alert("Crisis Line", "Please call 988 - National Suicide Prevention Lifeline");
+            }},
+            { text: "View Therapist", onPress: () => router.push("/MyTherapist") },
+            { text: "Continue Chat", style: "cancel" }
+          ];
+        } else if (crisisLevel >= 3) {
+          // Moderate-High crisis
+          alertTitle = "⚠️ CONCERNING MESSAGE DETECTED";
+          alertMessage = therapistAssigned 
+            ? `SUPPORT AVAILABLE: A professional therapist has been assigned and will be available within ${urgencyMinutes} minutes. You don't have to face this alone.`
+            : `SUPPORT AVAILABLE: Please know that help is available and you don't have to face this alone.`;
+          alertButtons = [
+            { text: "View Therapist", onPress: () => router.push("/MyTherapist") },
+            { text: "Continue Chat", style: "cancel" }
+          ];
+        }
+        
+        if (alertTitle) {
+          Alert.alert(alertTitle, alertMessage, alertButtons, { cancelable: false });
+        }
+        
+        // Show crisis indicator in chat
+        if (crisisLevel >= 3) {
+          console.log(`Crisis detected: Level ${crisisLevel}, Type: ${data.crisisType}, Confidence: ${data.crisisConfidence}`);
+        }
+      }
+
+      // Legacy danger handling for backward compatibility
       if (data.danger) {
         let alertMsg = "We detected you may need urgent support. Redirecting you to a therapist.";
         if (data.appointment && data.appointment.scheduledTime) {
