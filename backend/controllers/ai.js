@@ -34,6 +34,13 @@ const llama2Model = new Llama2AI(
   process.env.LLAMA2_MODEL_URL || "meta-llama/Llama-2-7b-chat-hf" // Use working Llama2 model
 );
 
+// Check which models are available
+const AVAILABLE_MODELS = {
+  GEMINI: process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "YOUR_NEW_API_KEY_HERE",
+  LLAMA2: process.env.HUGGINGFACE_API_KEY,
+  DEEPSEEK: process.env.DEEPSEEK_API_KEY
+};
+
 // Model selection strategy - Gemini is primary with enhanced therapist training, Llama 2 is fallback
 const AI_MODELS = {
   GEMINI: 'gemini',  // Primary - enhanced therapist with directive responses
@@ -42,12 +49,24 @@ const AI_MODELS = {
 };
 
 function selectModel() {
-  // Gemini is the primary model with enhanced therapist training
+  // Select the first available model in priority order: Gemini -> Llama2 -> DeepSeek
+  if (AVAILABLE_MODELS.GEMINI) return AI_MODELS.GEMINI;
+  if (AVAILABLE_MODELS.LLAMA2) return AI_MODELS.LLAMA2;
+  if (AVAILABLE_MODELS.DEEPSEEK) return AI_MODELS.DEEPSEEK;
+
+  // If no models are available, return Gemini as default (will fall back to manual response)
   return AI_MODELS.GEMINI;
 }
 
 async function generateWithModel(model, prompt) {
   try {
+    // Check if the model is available
+    if ((model === AI_MODELS.GEMINI && !AVAILABLE_MODELS.GEMINI) ||
+        (model === AI_MODELS.LLAMA2 && !AVAILABLE_MODELS.LLAMA2) ||
+        (model === AI_MODELS.DEEPSEEK && !AVAILABLE_MODELS.DEEPSEEK)) {
+      throw new Error(`Model ${model} is not available (missing API key)`);
+    }
+
     let result;
     switch (model) {
       case AI_MODELS.GEMINI:
@@ -66,18 +85,66 @@ async function generateWithModel(model, prompt) {
   } catch (error) {
     console.error(`Error with ${model}:`, error);
 
-    // Fallback strategy: Gemini -> Llama2 -> DeepSeek
-    if (model === AI_MODELS.GEMINI) {
+    // Check if it's a payment/credit error (402) or other API limit error
+    const isPaymentError = error.response?.status === 402 ||
+                          error.response?.status === 429 ||
+                          error.message?.includes('insufficient credits') ||
+                          error.message?.includes('Payment Required') ||
+                          error.message?.includes('missing API key');
+
+    if (isPaymentError) {
+      console.log(`Payment/credit or configuration error with ${model}, trying fallback...`);
+    }
+
+    // Fallback strategy: try next available model
+    if (model === AI_MODELS.GEMINI && AVAILABLE_MODELS.LLAMA2) {
       console.log('Trying backup model: Llama2');
       return generateWithModel(AI_MODELS.LLAMA2, prompt);
-    } else if (model === AI_MODELS.LLAMA2) {
+    } else if (model === AI_MODELS.GEMINI && AVAILABLE_MODELS.DEEPSEEK) {
+      console.log('Trying backup model: DeepSeek');
+      return generateWithModel(AI_MODELS.DEEPSEEK, prompt);
+    } else if (model === AI_MODELS.LLAMA2 && AVAILABLE_MODELS.DEEPSEEK) {
       console.log('Trying backup model: DeepSeek');
       return generateWithModel(AI_MODELS.DEEPSEEK, prompt);
     } else {
-      // If DeepSeek also fails, throw the error
-      throw error;
+      // If all available models fail, provide a helpful fallback response
+      console.log('All available AI models failed, providing fallback response');
+      return generateFallbackResponse(prompt);
     }
   }
+}
+
+// Fallback response generator when all AI models fail
+function generateFallbackResponse(prompt) {
+  // Check if this is a crisis-related prompt
+  const crisisKeywords = ['suicide', 'kill myself', 'end my life', 'crisis', 'emergency', 'suicidal', 'kill myself', 'want to die', 'end it all'];
+  const isCrisis = crisisKeywords.some(keyword =>
+    prompt.toLowerCase().includes(keyword)
+  );
+
+  if (isCrisis) {
+    return "I'm here to help you through this difficult time. Your safety is the most important thing right now. Please reach out to emergency services (911) or the National Suicide Prevention Lifeline at 988 immediately. You're not alone, and help is available 24/7. A professional therapist will be assigned to support you as soon as possible.";
+  }
+
+  // General fallback responses based on common therapy topics
+  const anxietyKeywords = ['anxious', 'anxiety', 'worried', 'panic', 'stress'];
+  const depressionKeywords = ['depressed', 'sad', 'hopeless', 'worthless', 'tired'];
+  const relationshipKeywords = ['relationship', 'partner', 'friend', 'family', 'conflict'];
+
+  if (anxietyKeywords.some(k => prompt.toLowerCase().includes(k))) {
+    return "I understand you're feeling anxious right now. Try this simple breathing exercise: inhale for 4 counts, hold for 4, exhale for 4. This can help calm your nervous system. Remember that anxiety is temporary and you're stronger than you think.";
+  }
+
+  if (depressionKeywords.some(k => prompt.toLowerCase().includes(k))) {
+    return "I'm sorry you're feeling this way. Depression can make everything seem overwhelming, but small steps matter. Try going for a short walk outside or calling a friend. You're not alone in this, and things can get better with time and support.";
+  }
+
+  if (relationshipKeywords.some(k => prompt.toLowerCase().includes(k))) {
+    return "Relationships can be challenging. Communication is key - try expressing your feelings using 'I' statements. If things feel overwhelming, consider talking to a trusted friend or counselor who can offer objective perspective.";
+  }
+
+  // Default supportive response
+  return "I hear you and I'm here to support you. While I'm experiencing technical difficulties right now, please know that your feelings are valid and important. Consider reaching out to a mental health professional or trusted support person. You're taking a positive step by seeking help.";
 }
 
 const startSession = async (req, res) => {
@@ -254,6 +321,9 @@ const analyzeCrisisLevel = async (input, conversationHistory = []) => {
     { pattern: /i am worthless and want to die/i, level: 3, type: 'worthlessness_suicidal', confidence: 0.80 },
     { pattern: /i can't cope anymore and want to die/i, level: 3, type: 'coping_failure_suicidal', confidence: 0.85 },
     { pattern: /i can't handle this anymore and want to die/i, level: 3, type: 'overwhelmed_suicidal', confidence: 0.85 },
+    { pattern: /i am suicidal/i, level: 4, type: 'suicidal_current', confidence: 0.90 },
+    { pattern: /i feel suicidal/i, level: 4, type: 'suicidal_feeling', confidence: 0.90 },
+    { pattern: /i'm suicidal/i, level: 4, type: 'suicidal_current', confidence: 0.90 },
 
     // MODERATE LEVEL (Level 2) - Warning signs
     { pattern: /i'm helpless/i, level: 2, type: 'helplessness', confidence: 0.60 },
@@ -622,9 +692,26 @@ const generateContent = async (req, res) => {
     let { sessionId } = req.body;
 
     // Advanced crisis detection with conversation history
-    const crisisPreviousMessages = await Ai.find({ session: sessionId }).sort({ createdAt: 1 });
-    const conversationHistory = crisisPreviousMessages.map(msg => msg.prompt);
+    console.log('🔍 Starting crisis detection...');
+    console.log('Session ID:', sessionId);
+    console.log('User ID:', req.userId);
+    console.log('Prompt:', prompt.substring(0, 100) + '...');
+    
+    let conversationHistory = [];
+    if (sessionId) {
+      const crisisPreviousMessages = await Ai.find({ session: sessionId }).sort({ createdAt: 1 });
+      conversationHistory = crisisPreviousMessages.map(msg => msg.prompt);
+      console.log('Previous messages found:', crisisPreviousMessages.length);
+    } else {
+      console.log('No session ID provided, using empty conversation history');
+    }
+    
     const crisisAnalysis = await analyzeCrisisLevel(prompt, conversationHistory);
+    console.log('Crisis analysis result:', {
+      level: crisisAnalysis.level,
+      type: crisisAnalysis.type,
+      confidence: crisisAnalysis.confidence
+    });
     
     if (crisisAnalysis.level >= 3) { // Moderate-High level or above
       console.log('🚨 CRISIS DETECTED:', {
@@ -639,7 +726,9 @@ const generateContent = async (req, res) => {
       
       // Find an available therapist
       console.log('🔍 Searching for available therapist...');
+      console.log('About to call findAvailableTherapist()...');
       const availableTherapist = await findAvailableTherapist();
+      console.log('findAvailableTherapist() returned:', availableTherapist ? `${availableTherapist.username} (${availableTherapist._id})` : 'null');
       
       if (availableTherapist) {
         console.log(`✅ Found available therapist: ${availableTherapist.username} (${availableTherapist._id})`);
@@ -848,5 +937,8 @@ module.exports = {
   analyzeCrisisLevel,
   findAvailableTherapist,
   bookCrisisSession,
-  sendCrisisEmailNotification
+  sendCrisisEmailNotification,
+  generateWithModel,
+  AI_MODELS,
+  generateFallbackResponse
 };
