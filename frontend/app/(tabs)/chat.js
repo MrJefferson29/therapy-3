@@ -220,7 +220,10 @@ export default function Chat() {
         crisisType: data.crisisType || 'none',
         crisisConfidence: data.crisisConfidence || 0,
         therapistAssigned: data.therapistAssigned || null,
+        therapistName: data.therapistName || null,
+        therapistEmail: data.therapistEmail || null,
         appointmentScheduled: data.appointmentScheduled || null,
+        appointmentId: data.appointmentId || null,
         urgencyMinutes: data.urgencyMinutes || null
       };
       
@@ -235,7 +238,10 @@ export default function Chat() {
       if (data.crisisDetected) {
         const crisisLevel = data.crisisLevel || 0;
         const therapistAssigned = data.therapistAssigned;
+        const therapistName = data.therapistName;
+        const therapistEmail = data.therapistEmail;
         const appointmentScheduled = data.appointmentScheduled;
+        const appointmentId = data.appointmentId;
         const urgencyMinutes = data.urgencyMinutes;
         
         let alertTitle, alertMessage, alertButtons;
@@ -244,7 +250,7 @@ export default function Chat() {
           // Critical crisis
           alertTitle = "🚨 CRITICAL CRISIS DETECTED";
           alertMessage = therapistAssigned 
-            ? `IMMEDIATE HELP: A professional therapist has been assigned and will be available within ${urgencyMinutes} minutes. Please stay safe - help is on the way right now!`
+            ? `IMMEDIATE HELP: An emergency session has been booked with ${therapistName} (${therapistEmail}) and will be available within ${urgencyMinutes} minutes. Please stay safe - help is on the way right now!`
             : `IMMEDIATE HELP NEEDED: Please call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately.`;
           alertButtons = [
             { text: "Call 911", onPress: () => {
@@ -259,7 +265,7 @@ export default function Chat() {
           // High crisis
           alertTitle = "⚠️ CRISIS DETECTED";
           alertMessage = therapistAssigned 
-            ? `URGENT SUPPORT: A professional therapist has been assigned and will be available within ${urgencyMinutes} minutes. Help is on the way!`
+            ? `URGENT SUPPORT: An urgent session has been booked with ${therapistName} (${therapistEmail}) and will be available within ${urgencyMinutes} minutes. Help is on the way!`
             : `URGENT SUPPORT NEEDED: Please reach out to a crisis helpline immediately.`;
           alertButtons = [
             { text: "Call 988", onPress: () => {
@@ -272,7 +278,7 @@ export default function Chat() {
           // Moderate-High crisis
           alertTitle = "⚠️ CONCERNING MESSAGE DETECTED";
           alertMessage = therapistAssigned 
-            ? `SUPPORT AVAILABLE: A professional therapist has been assigned and will be available within ${urgencyMinutes} minutes. You don't have to face this alone.`
+            ? `SUPPORT AVAILABLE: A support session has been booked with ${therapistName} (${therapistEmail}) and will be available within ${urgencyMinutes} minutes. You don't have to face this alone.`
             : `SUPPORT AVAILABLE: Please know that help is available and you don't have to face this alone.`;
           alertButtons = [
             { text: "View Therapist", onPress: () => router.push("/MyTherapist") },
@@ -287,6 +293,11 @@ export default function Chat() {
         // Show crisis indicator in chat
         if (crisisLevel >= 3) {
           console.log(`Crisis detected: Level ${crisisLevel}, Type: ${data.crisisType}, Confidence: ${data.crisisConfidence}`);
+          if (therapistAssigned) {
+            console.log(`Therapist assigned: ${therapistName} (${therapistEmail})`);
+            console.log(`Appointment scheduled: ${appointmentScheduled}`);
+            console.log(`Appointment ID: ${appointmentId}`);
+          }
         }
       }
 
