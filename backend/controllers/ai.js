@@ -358,36 +358,61 @@ const isSeverelyUnstable = (input) => {
   return analysis.level >= 3; // Moderate-High level or above
 };
 
-// Function to find available therapists without sessions in the next hour
+// Function to find available therapists without sessions in the next 24 hours
 const findAvailableTherapist = async () => {
   try {
     const User = require('../models/user');
     const Appointment = require('../models/appointment');
     
-    // Get current time and one hour from now
+    // Get current time and 24 hours from now
     const now = new Date();
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+    const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    console.log('🔍 Searching for available therapists...');
+    console.log('Current time:', now.toISOString());
+    console.log('Searching until:', twentyFourHoursFromNow.toISOString());
     
     // Find all therapists
     const therapists = await User.find({ role: 'therapist' });
+    console.log(`Found ${therapists.length} therapists in the system`);
     
-    // Find therapists who don't have appointments in the next hour
+    if (therapists.length === 0) {
+      console.log('❌ No therapists found in the system');
+      return null;
+    }
+    
+    // Find therapists who don't have appointments in the next 24 hours
     const availableTherapists = [];
     
     for (const therapist of therapists) {
+      console.log(`Checking therapist: ${therapist.username} (${therapist._id})`);
+      
       const hasUpcomingSession = await Appointment.findOne({
         therapist: therapist._id,
         status: { $in: ['pending', 'approved'] },
-        scheduledTime: { $gte: now, $lte: oneHourFromNow }
+        scheduledTime: { $gte: now, $lte: twentyFourHoursFromNow }
       });
       
       if (!hasUpcomingSession) {
+        console.log(`✅ Therapist ${therapist.username} is available`);
         availableTherapists.push(therapist);
+      } else {
+        console.log(`❌ Therapist ${therapist.username} has upcoming session:`, hasUpcomingSession.scheduledTime);
       }
     }
     
+    console.log(`Found ${availableTherapists.length} available therapists out of ${therapists.length} total`);
+    
     // Return the first available therapist, or null if none available
-    return availableTherapists.length > 0 ? availableTherapists[0] : null;
+    const selectedTherapist = availableTherapists.length > 0 ? availableTherapists[0] : null;
+    
+    if (selectedTherapist) {
+      console.log(`🎯 Selected therapist: ${selectedTherapist.username} (${selectedTherapist._id})`);
+    } else {
+      console.log('❌ No available therapists found');
+    }
+    
+    return selectedTherapist;
   } catch (error) {
     console.error('Error finding available therapist:', error);
     return null;
@@ -397,13 +422,23 @@ const findAvailableTherapist = async () => {
 // Function to automatically book a crisis session
 const bookCrisisSession = async (userId, therapistId, urgencyMinutes = 30, crisisAnalysis = null) => {
   try {
+    console.log('📅 Starting crisis session booking process...');
+    console.log('Parameters:', {
+      userId,
+      therapistId,
+      urgencyMinutes,
+      crisisLevel: crisisAnalysis?.level,
+      crisisType: crisisAnalysis?.type
+    });
+    
     const Appointment = require('../models/appointment');
     const Chat = require('../models/chat');
     
     // Schedule the session based on urgency
     const scheduledTime = new Date(Date.now() + urgencyMinutes * 60 * 1000);
+    console.log(`⏰ Scheduling session for: ${scheduledTime.toISOString()}`);
     
-    const appointment = new Appointment({
+    const appointmentData = {
       title: 'Crisis Support Session',
       description: `Automatically scheduled crisis support session. User is experiencing a mental health crisis (Level ${crisisAnalysis?.level || 'Unknown'}) and needs immediate professional support.`,
       scheduledTime: scheduledTime,
@@ -411,13 +446,28 @@ const bookCrisisSession = async (userId, therapistId, urgencyMinutes = 30, crisi
       client: userId,
       status: 'approved', // Auto-approve crisis sessions
       notes: `Crisis session - automatically scheduled due to detected mental health crisis. Level: ${crisisAnalysis?.level || 'Unknown'}, Type: ${crisisAnalysis?.type || 'Unknown'}, Confidence: ${crisisAnalysis?.confidence || 'Unknown'}`
-    });
+    };
     
+    console.log('📝 Creating appointment with data:', appointmentData);
+    
+    const appointment = new Appointment(appointmentData);
     await appointment.save();
+    
+    console.log('✅ Appointment created successfully:', {
+      appointmentId: appointment._id,
+      scheduledTime: appointment.scheduledTime,
+      status: appointment.status
+    });
     
     // Create a chat message notification
     const roomId = [userId, therapistId].sort().join('_');
     const notificationMessage = `🚨 CRISIS ALERT: A crisis support session has been automatically scheduled for ${scheduledTime.toLocaleString()}. Please respond immediately.`;
+    
+    console.log('💬 Creating chat notification:', {
+      roomId,
+      therapistId,
+      message: notificationMessage.substring(0, 50) + '...'
+    });
     
     const chatMessage = new Chat({
       roomId,
@@ -428,10 +478,18 @@ const bookCrisisSession = async (userId, therapistId, urgencyMinutes = 30, crisi
     });
     
     await chatMessage.save();
+    console.log('✅ Chat notification created successfully');
     
     return appointment;
   } catch (error) {
-    console.error('Error booking crisis session:', error);
+    console.error('❌ Error booking crisis session:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      userId,
+      therapistId,
+      urgencyMinutes
+    });
     return null;
   }
 };
@@ -549,19 +607,31 @@ const generateContent = async (req, res) => {
         type: crisisAnalysis.type,
         confidence: crisisAnalysis.confidence,
         score: crisisAnalysis.score,
-        prompt: prompt.substring(0, 100) + '...'
+        prompt: prompt.substring(0, 100) + '...',
+        userId: req.userId,
+        sessionId: sessionId
       });
       
       // Find an available therapist
+      console.log('🔍 Searching for available therapist...');
       const availableTherapist = await findAvailableTherapist();
       
       if (availableTherapist) {
+        console.log(`✅ Found available therapist: ${availableTherapist.username} (${availableTherapist._id})`);
+        
         // Book a crisis session with urgency based on crisis level
         const urgencyMinutes = crisisAnalysis.level >= 5 ? 15 : crisisAnalysis.level >= 4 ? 30 : 45;
+        console.log(`📅 Booking crisis session with urgency: ${urgencyMinutes} minutes`);
+        
         const crisisAppointment = await bookCrisisSession(req.userId, availableTherapist._id, urgencyMinutes, crisisAnalysis);
         
         if (crisisAppointment) {
-          console.log('✅ Crisis session booked with therapist:', availableTherapist.username);
+          console.log('✅ Crisis session booked successfully:', {
+            appointmentId: crisisAppointment._id,
+            therapist: availableTherapist.username,
+            scheduledTime: crisisAppointment.scheduledTime,
+            userId: req.userId
+          });
           
           // Generate crisis-specific response based on level and type
           let crisisResponse;
@@ -749,5 +819,9 @@ module.exports = {
   generateContent,
   startSession,
   endSession,
-  selfCareHomeContent
+  selfCareHomeContent,
+  analyzeCrisisLevel,
+  findAvailableTherapist,
+  bookCrisisSession,
+  sendCrisisEmailNotification
 };
