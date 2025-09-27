@@ -23,6 +23,22 @@ const aiSchema = new mongoose.Schema({
     isCrisis: {
         type: Boolean,
         default: false
+    },
+    crisisLevel: {
+        type: Number,
+        min: 0,
+        max: 5,
+        default: 0
+    },
+    crisisType: {
+        type: String,
+        default: 'none'
+    },
+    crisisConfidence: {
+        type: Number,
+        min: 0,
+        max: 1,
+        default: 0
     }
 }, { timestamps: true });
 
