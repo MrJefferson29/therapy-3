@@ -229,7 +229,32 @@ const analyzeCrisisLevel = async (input, conversationHistory = []) => {
     { pattern: /i'm thinking about overdosing/i, level: 3, type: 'overdose_thoughts', confidence: 0.70 },
     { pattern: /i'm thinking about taking too many pills/i, level: 3, type: 'overdose_thoughts', confidence: 0.70 },
     { pattern: /i'm thinking about poisoning myself/i, level: 3, type: 'overdose_thoughts', confidence: 0.70 },
-    
+
+    // ADDITIONAL FLEXIBLE PATTERNS (Level 3-4) - Handle variations and combinations
+    { pattern: /i am thinking about suicide/i, level: 3, type: 'suicidal_thoughts', confidence: 0.75 },
+    { pattern: /i am thinking about killing myself/i, level: 3, type: 'suicidal_thoughts', confidence: 0.75 },
+    { pattern: /i am considering suicide/i, level: 3, type: 'suicidal_consideration', confidence: 0.70 },
+    { pattern: /i am considering killing myself/i, level: 3, type: 'suicidal_consideration', confidence: 0.70 },
+    { pattern: /i am going to kill myself/i, level: 4, type: 'suicidal_intent', confidence: 0.85 },
+    { pattern: /i am going to end it all/i, level: 4, type: 'suicidal_intent', confidence: 0.85 },
+    { pattern: /i plan to kill myself/i, level: 4, type: 'suicidal_planned', confidence: 0.85 },
+    { pattern: /i plan to end my life/i, level: 4, type: 'suicidal_planned', confidence: 0.85 },
+    { pattern: /i want to kill myself/i, level: 4, type: 'suicidal_ideation', confidence: 0.90 },
+    { pattern: /i want to end my life/i, level: 4, type: 'suicidal_ideation', confidence: 0.90 },
+    { pattern: /i want to commit suicide/i, level: 4, type: 'suicidal_ideation', confidence: 0.90 },
+    { pattern: /i am going to hurt myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i am going to harm myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i am going to cut myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i want to hurt myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i want to cut myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i want to harm myself/i, level: 4, type: 'selfharm_intent', confidence: 0.80 },
+    { pattern: /i feel hopeless and want to die/i, level: 3, type: 'hopelessness_suicidal', confidence: 0.80 },
+    { pattern: /i am hopeless and want to die/i, level: 3, type: 'hopelessness_suicidal', confidence: 0.80 },
+    { pattern: /i feel worthless and want to die/i, level: 3, type: 'worthlessness_suicidal', confidence: 0.80 },
+    { pattern: /i am worthless and want to die/i, level: 3, type: 'worthlessness_suicidal', confidence: 0.80 },
+    { pattern: /i can't cope anymore and want to die/i, level: 3, type: 'coping_failure_suicidal', confidence: 0.85 },
+    { pattern: /i can't handle this anymore and want to die/i, level: 3, type: 'overwhelmed_suicidal', confidence: 0.85 },
+
     // MODERATE LEVEL (Level 2) - Warning signs
     { pattern: /i'm helpless/i, level: 2, type: 'helplessness', confidence: 0.60 },
     { pattern: /i'm hopeless/i, level: 2, type: 'hopelessness', confidence: 0.60 },
