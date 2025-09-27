@@ -19,6 +19,10 @@ const aiSchema = new mongoose.Schema({
         type: String,
         enum: ['llama2', 'gemini', 'deepseek'],
         default: 'llama2'
+    },
+    isCrisis: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 
