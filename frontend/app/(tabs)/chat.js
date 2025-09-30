@@ -415,8 +415,8 @@ export default function Chat() {
     return (
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={"padding"}
+        keyboardVerticalOffset={insets.bottom || 0}
       >
         <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.container}>
           <View style={styles.loadingContainer}>
@@ -431,8 +431,8 @@ export default function Chat() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      behavior={"padding"}
+      keyboardVerticalOffset={insets.bottom || 0}
     >
       <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.container}>
         {/* Mood Modal */}
@@ -495,6 +495,7 @@ export default function Chat() {
       <FlatList
         ref={flatListRef}
         data={messages}
+        keyboardShouldPersistTaps="handled"
           renderItem={({ item, index }) => {
             const isLast = index === messages.length - 1 && isTypingEffect;
             const showText =
@@ -553,14 +554,15 @@ export default function Chat() {
             );
           }}
           keyExtractor={(_, i) => i.toString()}
-          contentContainerStyle={{ paddingBottom: 10 }}
+          contentContainerStyle={{ paddingBottom: (inputBarHeight || 0) + (insets.bottom || 0) + 10 }}
           showsVerticalScrollIndicator={false}
         />
 
         {/* Input Bar */}
         <View
           style={[styles.inputWrapper, {
-            borderTopColor: colors.border
+            borderTopColor: colors.border,
+            paddingBottom: (insets.bottom || 0) + 8
           }]}
         >
           <View
@@ -570,7 +572,9 @@ export default function Chat() {
             <TextInput
               style={[styles.textInput, {
                 color: colors.textPrimary,
-                backgroundColor: colors.chatInput
+                backgroundColor: colors.chatInput,
+                lineHeight: 20,
+                maxHeight: 128
               }]}
               value={inputMessage}
               onChangeText={setInputMessage}
@@ -580,6 +584,9 @@ export default function Chat() {
               textAlignVertical="top"
               blurOnSubmit={false}
               returnKeyType="default"
+              numberOfLines={6}
+              scrollEnabled
+              onFocus={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)}
             />
             <TouchableOpacity
               onPress={sendMessage}
