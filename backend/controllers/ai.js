@@ -890,8 +890,42 @@ AI:`;
 };
 
 const selfCareHomeContent = async (req, res) => {
+  // Local fallback content factory to ensure the app always has data
+  const buildFallbackSelfCare = () => {
+    const today = new Date();
+    const dateLabel = today.toLocaleDateString('en-US', { weekday: 'long' });
+    return {
+      quote: "Small steps count. Be gentle with yourself today.",
+      focus: {
+        tip: "Take 5 minutes to breathe slowly: inhale 4s, hold 4s, exhale 6s. Repeat.",
+        duration: 300,
+      },
+      article: {
+        title: `${dateLabel} Reset: A Quick Self‑Care Check‑In`,
+        summary: "A short guide to reset your day with calm and intention.",
+        icon: 'leaf-outline',
+        body: [
+          "Self-care doesn’t have to be elaborate. Begin with one mindful breath. Notice the air filling your lungs, your shoulders softening, and your jaw relaxing.",
+          "Pick one easy win: drink a glass of water, step outside for a minute, or write down one thing you’re grateful for. These micro-actions nudge your nervous system toward balance.",
+          "Close with intention: ask yourself, ‘What is one kind thing I can do for myself next?’ Keep it small, specific, and doable today."
+        ].join("\n\n"),
+        links: [
+          { title: 'Box Breathing (Navy SEALs)', url: 'https://www.healthline.com/health/box-breathing' },
+          { title: '5-Minute Mindfulness', url: 'https://www.mindful.org/meditation/mindfulness-getting-started/' }
+        ],
+        related: ['Breathe to Reset', 'Tiny Habits for Calm', 'Gratitude in 2 Minutes']
+      }
+    };
+  };
+
   try {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // If Gemini is not available, return fallback immediately
+    if (!AVAILABLE_MODELS.GEMINI) {
+      return res.json(buildFallbackSelfCare());
+    }
+
     const prompt = `
 You are a wellness and self-care assistant for a mobile app. For the date ${today}, generate a JSON object with the following fields:
 
@@ -909,31 +943,37 @@ You are a wellness and self-care assistant for a mobile app. For the date ${toda
 
 Return ONLY the JSON object, no extra text or explanation.`;
 
-    const result = await geminiModel.generateContent(prompt);
-    const text = await result.response.text();
-
     let data;
     try {
-      data = JSON.parse(text);
-    } catch (e) {
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) {
-        data = JSON.parse(match[0]);
-      } else {
-        throw new Error('AI did not return valid JSON');
+      const result = await geminiModel.generateContent(prompt);
+      const text = await result.response.text();
+
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+          data = JSON.parse(match[0]);
+        } else {
+          throw new Error('AI did not return valid JSON');
+        }
       }
+    } catch (modelError) {
+      console.warn('Gemini unavailable or failed for self-care; using fallback.', modelError?.message || modelError);
+      return res.json(buildFallbackSelfCare());
     }
 
     if (typeof data.focus === 'string') {
       data.focus = { tip: data.focus, duration: 300 };
     }
-    if (!data.focus.duration) {
-      data.focus.duration = 300;
+    if (!data.focus?.duration) {
+      data.focus = { ...(data.focus || {}), duration: 300 };
     }
-    res.json(data);
+
+    return res.json(data);
   } catch (error) {
     console.error('Error generating self-care home content:', error);
-    res.status(500).json({ error: 'Failed to generate self-care home content' });
+    return res.json(buildFallbackSelfCare());
   }
 };
 
