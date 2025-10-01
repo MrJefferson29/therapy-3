@@ -25,6 +25,7 @@ import moment from "moment";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
+import KeyboardShift from "../../components/KeyboardShift";
 
 const API_BASE_URL = "https://therapy-3.onrender.com";
 const TOKEN_KEY = "token";
@@ -428,12 +429,55 @@ export default function Chat() {
     );
   }
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={"padding"}
-      keyboardVerticalOffset={insets.bottom || 0}
+  // Create the input component for KeyboardShift
+  const inputComponent = (
+    <View
+      style={[styles.inputWrapper, {
+        borderTopColor: colors.border,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+      }]}
     >
+      <View
+        style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
+        onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
+      >
+        <TextInput
+          style={[styles.textInput, {
+            color: colors.textPrimary,
+            backgroundColor: colors.chatInput,
+            lineHeight: 20,
+            maxHeight: 128
+          }]}
+          value={inputMessage}
+          onChangeText={setInputMessage}
+          placeholder="Type a message..."
+          placeholderTextColor={colors.textTertiary}
+          multiline
+          textAlignVertical="top"
+          blurOnSubmit={false}
+          returnKeyType="default"
+          numberOfLines={6}
+          scrollEnabled
+          onFocus={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)}
+        />
+        <TouchableOpacity
+          onPress={sendMessage}
+          style={[
+            styles.sendButton,
+            { backgroundColor: colors.chatSend },
+            (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
+          ]}
+          disabled={!inputMessage.trim() || isLoading}
+        >
+          <Ionicons name="send" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <KeyboardShift inputComponent={inputComponent} style={styles.container}>
       <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.container}>
         {/* Mood Modal */}
         <Modal visible={showMoodModal} transparent animationType="fade">
@@ -554,55 +598,11 @@ export default function Chat() {
             );
           }}
           keyExtractor={(_, i) => i.toString()}
-          contentContainerStyle={{ paddingBottom: (inputBarHeight || 0) + (insets.bottom || 0) + 10 }}
+          contentContainerStyle={{ paddingBottom: 100 }} // Fixed padding to account for input area
           showsVerticalScrollIndicator={false}
         />
-
-        {/* Input Bar */}
-        <View
-          style={[styles.inputWrapper, {
-            borderTopColor: colors.border,
-            paddingBottom: (insets.bottom || 0) + 8
-          }]}
-        >
-          <View
-            style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
-            onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
-          >
-            <TextInput
-              style={[styles.textInput, {
-                color: colors.textPrimary,
-                backgroundColor: colors.chatInput,
-                lineHeight: 20,
-                maxHeight: 128
-              }]}
-              value={inputMessage}
-              onChangeText={setInputMessage}
-              placeholder="Type a message..."
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              textAlignVertical="top"
-              blurOnSubmit={false}
-              returnKeyType="default"
-              numberOfLines={6}
-              scrollEnabled
-              onFocus={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)}
-            />
-            <TouchableOpacity
-              onPress={sendMessage}
-              style={[
-                styles.sendButton,
-                { backgroundColor: colors.chatSend },
-                (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
-              ]}
-              disabled={!inputMessage.trim() || isLoading}
-            >
-              <Ionicons name="send" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
       </LinearGradient>
-    </KeyboardAvoidingView>
+    </KeyboardShift>
   );
 }
 
@@ -680,8 +680,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   inputWrapper: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
     backgroundColor: 'transparent',

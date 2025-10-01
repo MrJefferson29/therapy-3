@@ -10,6 +10,7 @@ import AppointmentMessage from '../../components/AppointmentMessage';
 import AppointmentApprovalModal from '../../components/AppointmentApprovalModal';
 import AppointmentRequestButton from '../../components/AppointmentRequestButton';
 import chatEncryption from '../../utils/chatEncryption';
+import KeyboardShift from '../../components/KeyboardShift';
 
 const API_URL = 'https://therapy-3.onrender.com';
 const socket = io(API_URL, {
@@ -536,8 +537,48 @@ export default function ChatWithTherapist() {
   console.log('📊 Messages state:', messages);
   console.log('🔗 Combined messages:', combinedMessages);
 
+  // Create the input component for KeyboardShift
+  const inputComponent = (
+    <View style={[styles.inputWrapper, { 
+      backgroundColor: isDark ? 'rgba(42,42,42,0.9)' : 'rgba(255,255,255,0.9)',
+      borderTopColor: isDark ? '#454545' : '#ddd',
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+    }]}>
+      <View style={[styles.inputContainer, { backgroundColor: isDark ? '#353535' : '#fff' }]}>
+        <TextInput
+          style={[styles.textInput, { 
+            color: isDark ? '#E8E8E8' : '#303030',
+            backgroundColor: isDark ? '#353535' : '#fff'
+          }]}
+          value={input}
+          onChangeText={setInput}
+          placeholder="Type a message..."
+          placeholderTextColor={isDark ? '#B0B0B0' : "#888"}
+          multiline
+          textAlignVertical="top"
+        />
+        <TouchableOpacity 
+          onPress={sendMessage}
+          style={[
+            styles.sendButton,
+            { backgroundColor: isDark ? '#4BBE8A' : '#075E54' },
+            (!input.trim() || isLoading) && { opacity: 0.5 }
+          ]}
+          disabled={!input.trim() || isLoading}
+        >
+          {isLoading ? (
+            <Text style={{ color: '#fff', fontSize: 12 }}>...</Text>
+          ) : (
+          <Ionicons name="send" size={24} color="#fff" />
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#ece5dd' }]}>
+    <KeyboardShift inputComponent={inputComponent} style={[styles.container, { backgroundColor: isDark ? '#1A1A1A' : '#ece5dd' }]}>
       <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.gradient}>
         {/* Header */}
         <LinearGradient colors={colors.gradientPrimary} style={styles.header}>
@@ -571,62 +612,20 @@ export default function ChatWithTherapist() {
           </TouchableOpacity>
         </Modal>
         
-        <KeyboardAvoidingView 
-          style={[styles.keyboardContainer, { backgroundColor: isDark ? '#1A1A1A' : 'transparent' }]} 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-        >
-          {/* Messages */}
-          <FlatList
-            ref={flatListRef}
-            data={combinedMessages}
-            keyExtractor={(item, index) => item.type === 'appointment' ? item.appointmentId : index.toString()}
-            renderItem={renderMessage}
-            contentContainerStyle={{ 
-              padding: 16, 
-              paddingBottom: 24,
-              backgroundColor: isDark ? '#1A1A1A' : 'transparent'
-            }}
-            showsVerticalScrollIndicator={false}
-            style={{ backgroundColor: isDark ? '#1A1A1A' : 'transparent' }}
-          />
-          
-          {/* Input Bar */}
-          <View style={[styles.inputWrapper, { 
-            backgroundColor: isDark ? 'rgba(42,42,42,0.9)' : 'rgba(255,255,255,0.9)',
-            borderTopColor: isDark ? '#454545' : '#ddd'
-          }]}>
-            <View style={[styles.inputContainer, { backgroundColor: isDark ? '#353535' : '#fff' }]}>
-              <TextInput
-                style={[styles.textInput, { 
-                  color: isDark ? '#E8E8E8' : '#303030',
-                  backgroundColor: isDark ? '#353535' : '#fff'
-                }]}
-                value={input}
-                onChangeText={setInput}
-                placeholder="Type a message..."
-                placeholderTextColor={isDark ? '#B0B0B0' : "#888"}
-                multiline
-                textAlignVertical="top"
-              />
-              <TouchableOpacity 
-                onPress={sendMessage}
-                style={[
-                  styles.sendButton,
-                  { backgroundColor: isDark ? '#4BBE8A' : '#075E54' },
-                  (!input.trim() || isLoading) && { opacity: 0.5 }
-                ]}
-                disabled={!input.trim() || isLoading}
-              >
-                {isLoading ? (
-                  <Text style={{ color: '#fff', fontSize: 12 }}>...</Text>
-                ) : (
-                <Ionicons name="send" size={24} color="#fff" />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
+        {/* Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={combinedMessages}
+          keyExtractor={(item, index) => item.type === 'appointment' ? item.appointmentId : index.toString()}
+          renderItem={renderMessage}
+          contentContainerStyle={{ 
+            padding: 16, 
+            paddingBottom: 100, // Increased padding to account for input area
+            backgroundColor: isDark ? '#1A1A1A' : 'transparent'
+          }}
+          showsVerticalScrollIndicator={false}
+          style={{ backgroundColor: isDark ? '#1A1A1A' : 'transparent' }}
+        />
 
         {/* Appointment Approval Modal */}
         <AppointmentApprovalModal
@@ -641,7 +640,7 @@ export default function ChatWithTherapist() {
           onAppointmentUpdated={handleAppointmentUpdated}
         />
       </LinearGradient>
-    </View>
+    </KeyboardShift>
   );
 }
 
@@ -740,8 +739,6 @@ const styles = StyleSheet.create({
     marginTop: 4 
   },
   inputWrapper: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     backgroundColor: 'rgba(255,255,255,0.9)',
