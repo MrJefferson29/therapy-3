@@ -797,9 +797,9 @@ const generateContent = async (req, res) => {
       // If no therapist available, still provide crisis response
       let crisisResponse;
       if (crisisAnalysis.level >= 5) {
-        crisisResponse = `I'm extremely concerned about your safety. This is a critical situation. Please call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately. You're not alone, and help is available right now.`;
+        crisisResponse = `I'm extremely concerned about your safety. This is a critical situation. Please visit the therapist section of the app, call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately. You're not alone, and help is available right now.`;
       } else {
-        crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. Please reach out to a crisis helpline immediately: National Suicide Prevention Lifeline: 988. You're not alone, and help is available right now.`;
+        crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. Please visit the therapist section of the app and reach out to a crisis helpline immediately: National Suicide Prevention Lifeline: 988. You're not alone, and help is available right now.`;
       }
       
       const newAiEntry = new Ai({
