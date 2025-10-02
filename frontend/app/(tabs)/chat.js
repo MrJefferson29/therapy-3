@@ -25,7 +25,6 @@ import moment from "moment";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
-import KeyboardShift from "../../components/KeyboardShift";
 
 const API_BASE_URL = "https://therapy-3.onrender.com";
 const TOKEN_KEY = "token";
@@ -66,6 +65,11 @@ export default function Chat() {
   const [hasWelcomeMessage, setHasWelcomeMessage] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
+  // Keyboard handling
+  const flatListRef = useRef(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
+
   // User-specific storage keys
   const getChatHistoryKey = () => {
     const userId = user?.id || user?._id || 'anonymous';
@@ -91,10 +95,6 @@ export default function Chat() {
       console.error('Failed to save messages to storage:', error);
     }
   };
-  
-  const flatListRef = useRef(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
 
   useEffect(() => {
     // Check if user is authenticated
@@ -144,6 +144,40 @@ export default function Chat() {
       }
     })();
     }
+
+    // keyboard listeners - account for text suggestion panel
+    const subShow = Keyboard.addListener('keyboardDidShow', (e) => {
+      console.log('Keyboard height:', e.endCoordinates.height);
+      // Add extra height for text suggestion panel (typically 40-60px on Android)
+      const suggestionPanelHeight = Platform.OS === 'android' ? 50 : 0;
+      const totalHeight = e.endCoordinates.height + suggestionPanelHeight;
+      
+      Animated.timing(keyboardHeight, {
+        toValue: totalHeight,
+        duration: 250,
+        easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
+        useNativeDriver: false,
+      }).start();
+    });
+    const subHide = Keyboard.addListener('keyboardDidHide', () => {
+      console.log('Keyboard hiding');
+      Animated.timing(keyboardHeight, {
+        toValue: 0,
+        duration: 250,
+        easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
+        useNativeDriver: false,
+      }).start();
+      // scroll to bottom when keyboard hides
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: true }),
+        100
+      );
+    });
+
+    return () => {
+      subShow.remove();
+      subHide.remove();
+    };
   }, [token, router, user]);
 
   // fade in new messages
@@ -429,57 +463,8 @@ export default function Chat() {
     );
   }
 
-  // Create the input component for KeyboardShift
-  const inputComponent = (
-    <View
-      style={[styles.inputWrapper, {
-        borderTopColor: colors.border,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-      }]}
-    >
-      <View
-        style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
-        onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
-      >
-        <TextInput
-          style={[styles.textInput, {
-            color: colors.textPrimary,
-            backgroundColor: colors.chatInput,
-            lineHeight: 20,
-            maxHeight: 128
-          }]}
-          value={inputMessage}
-          onChangeText={setInputMessage}
-          placeholder="Type a message..."
-          placeholderTextColor={colors.textTertiary}
-          multiline
-          textAlignVertical="top"
-          blurOnSubmit={false}
-          returnKeyType="default"
-          numberOfLines={6}
-          scrollEnabled
-          autoCorrect={false}
-          autoCapitalize="sentences"
-          onFocus={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)}
-        />
-        <TouchableOpacity
-          onPress={sendMessage}
-          style={[
-            styles.sendButton,
-            { backgroundColor: colors.chatSend },
-            (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
-          ]}
-          disabled={!inputMessage.trim() || isLoading}
-        >
-          <Ionicons name="send" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
-    <KeyboardShift inputComponent={inputComponent} style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient colors={isDark ? colors.gradientSecondary : ["#ece5dd", "#f2fff6"]} style={styles.container}>
         {/* Mood Modal */}
         <Modal visible={showMoodModal} transparent animationType="fade">
@@ -603,8 +588,61 @@ export default function Chat() {
           contentContainerStyle={{ paddingBottom: 100 }} // Fixed padding to account for input area
           showsVerticalScrollIndicator={false}
         />
+
+        {/* Input Bar */}
+        <Animated.View
+          style={[styles.inputWrapper, { 
+            bottom: keyboardHeight.interpolate({
+              inputRange: [0, 1],
+              outputRange: [insets.bottom, 30],
+              extrapolate: 'clamp',
+            }),
+            borderTopColor: colors.border,
+          }]}
+        >
+          <View
+            style={[styles.inputContainer, { backgroundColor: colors.chatInput }]}
+            onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
+          >
+            <TextInput
+              style={[styles.textInput, { 
+                color: colors.textPrimary,
+                backgroundColor: colors.chatInput 
+              }]}
+              value={inputMessage}
+              onChangeText={setInputMessage}
+              placeholder="Type a message..."
+              placeholderTextColor={colors.textTertiary}
+              multiline
+              textAlignVertical="top"
+              autoCorrect={false}
+              autoCapitalize="sentences"
+              blurOnSubmit={false}
+              returnKeyType="default"
+              numberOfLines={6}
+              scrollEnabled
+              keyboardType="default"
+              enablesReturnKeyAutomatically={false}
+              onFocus={() => {
+                // Ensure input stays positioned correctly when focused
+                setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+              }}
+            />
+            <TouchableOpacity 
+              onPress={sendMessage}
+              style={[
+                styles.sendButton,
+                { backgroundColor: colors.chatSend },
+                (!inputMessage.trim() || isLoading) && { opacity: 0.5 },
+              ]}
+              disabled={!inputMessage.trim() || isLoading}
+            >
+              <Ionicons name="send" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </LinearGradient>
-    </KeyboardShift>
+    </View>
   );
 }
 

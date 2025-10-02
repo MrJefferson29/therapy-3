@@ -37,7 +37,7 @@ export default function KeyboardShift({ children, inputComponent, style }) {
     
     Animated.timing(keyboardHeight, {
       toValue: height,
-      duration: Platform.OS === 'ios' ? 250 : 200,
+      duration: Platform.OS === 'ios' ? 250 : 150,
       useNativeDriver: false,
     }).start();
   };
@@ -47,24 +47,19 @@ export default function KeyboardShift({ children, inputComponent, style }) {
     
     Animated.timing(keyboardHeight, {
       toValue: 0,
-      duration: Platform.OS === 'ios' ? 250 : 200,
+      duration: Platform.OS === 'ios' ? 250 : 150,
       useNativeDriver: false,
     }).start();
   };
 
   return (
     <View style={[styles.container, style]}>
-      {/* Content area that adjusts when keyboard appears */}
-      <Animated.View style={[
-        styles.content,
-        {
-          paddingBottom: keyboardHeight,
-        }
-      ]}>
+      {/* Content area - stays in place */}
+      <View style={styles.content}>
         {children}
-      </Animated.View>
+      </View>
       
-      {/* Input component - Telegram style positioning */}
+      {/* Input component - moves up with keyboard */}
       <Animated.View 
         style={[
           styles.inputContainer,

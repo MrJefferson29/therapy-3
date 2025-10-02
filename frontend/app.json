@@ -16,10 +16,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "package": "com.j.f.s.n.zensui",
-      "softwareKeyboardLayoutMode": "pan",
-      "windowSoftInputMode": "adjustPan",
+      "softwareKeyboardLayoutMode": "resize",
+      "windowSoftInputMode": "adjustResize",
       "allowBackup": false,
       "permissions": [
         "android.permission.INTERNET",
