@@ -54,29 +54,26 @@ export default function KeyboardShift({ children, inputComponent, style }) {
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.content}>
+      {/* Content area that adjusts when keyboard appears */}
+      <Animated.View style={[
+        styles.content,
+        {
+          paddingBottom: keyboardHeight,
+        }
+      ]}>
         {children}
-      </View>
+      </Animated.View>
       
-      {/* Input component that moves with keyboard */}
+      {/* Input component - Telegram style positioning */}
       <Animated.View 
         style={[
           styles.inputContainer,
           {
-            paddingBottom: keyboardHeight.interpolate({
+            bottom: keyboardHeight.interpolate({
               inputRange: [0, 1],
               outputRange: [insets.bottom, 0],
               extrapolate: 'clamp',
             }),
-            transform: [
-              {
-                translateY: keyboardHeight.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, -1],
-                  extrapolate: 'clamp',
-                }),
-              },
-            ],
           },
         ]}
       >
