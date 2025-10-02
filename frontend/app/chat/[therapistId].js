@@ -557,6 +557,9 @@ export default function ChatWithTherapist() {
           placeholderTextColor={isDark ? '#B0B0B0' : "#888"}
           multiline
           textAlignVertical="top"
+          autoCorrect={false}
+          autoCapitalize="sentences"
+          blurOnSubmit={false}
         />
         <TouchableOpacity 
           onPress={sendMessage}

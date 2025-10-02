@@ -459,6 +459,8 @@ export default function Chat() {
           returnKeyType="default"
           numberOfLines={6}
           scrollEnabled
+          autoCorrect={false}
+          autoCapitalize="sentences"
           onFocus={() => setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50)}
         />
         <TouchableOpacity
