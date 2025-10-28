@@ -16,7 +16,7 @@ const ENHANCED_THERAPIST_SYSTEM_PROMPT = require("../training_data/enhanced_ther
 const THERAPIST_SYSTEM_PROMPT = ENHANCED_THERAPIST_SYSTEM_PROMPT;
 
 // Initialize AI models
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "YOUR_NEW_API_KEY_HERE");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyCDdlagDJqvqKiSof3vPsjICG-TKlpOJsc");
 const geminiModel = genAI.getGenerativeModel({
   model: "gemini-2.0-flash",
   generationConfig: {
@@ -123,7 +123,7 @@ function generateFallbackResponse(prompt) {
   );
 
   if (isCrisis) {
-    return "I'm here to help you through this difficult time. Your safety is the most important thing right now. Please reach out to emergency services (911) or the National Suicide Prevention Lifeline at 988 immediately. You're not alone, and help is available 24/7. A professional therapist will be assigned to support you as soon as possible.";
+    return "I'm extremely concerned about your safety. This is a critical situation. Please visit the therapist section of the app, or call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately. You're not alone, and help is available right now.";
   }
 
   // General fallback responses based on common therapy topics
@@ -144,7 +144,7 @@ function generateFallbackResponse(prompt) {
   }
 
   // Default supportive response
-  return "I hear you and I'm here to support you. While I'm experiencing technical difficulties right now, please know that your feelings are valid and important. Consider reaching out to a mental health professional or trusted support person. You're taking a positive step by seeking help.";
+  return "I hear you and I'm here to support you. While I'm experiencing technical difficulties right now, please know that your feelings are valid and important. Consider reaching out to a mental health professional on the platform. You're taking a positive step by seeking help.";
 }
 
 const startSession = async (req, res) => {
@@ -797,7 +797,7 @@ const generateContent = async (req, res) => {
       // If no therapist available, still provide crisis response
       let crisisResponse;
       if (crisisAnalysis.level >= 5) {
-        crisisResponse = `I'm extremely concerned about your safety. This is a critical situation. Please visit the therapist section of the app, call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately. You're not alone, and help is available right now.`;
+        crisisResponse = `I'm extremely concerned about your safety. This is a critical situation. Please visit the therapist section of the app, or call emergency services (911) or the National Suicide Prevention Lifeline (988) immediately. You're not alone, and help is available right now.`;
       } else {
         crisisResponse = `I'm deeply concerned about what you're sharing. Your safety is my top priority. Please visit the therapist section of the app and reach out to a crisis helpline immediately: National Suicide Prevention Lifeline: 988. You're not alone, and help is available right now.`;
       }
