@@ -1,0 +1,12 @@
+{"text": "I want to book a therapy session tomorrow", "intent": "book_appointment"}
+{"text": "Can you connect me to a therapist now?", "intent": "book_appointment"}
+{"text": "Thanks for your help, I feel better", "intent": "gratitude"}
+{"text": "I appreciate your support", "intent": "gratitude"}
+{"text": "What services do you offer?", "intent": "general_question"}
+{"text": "How does this app protect my privacy?", "intent": "general_question"}
+{"text": "I want to kill myself", "intent": "crisis"}
+{"text": "I'm thinking about suicide", "intent": "crisis"}
+{"text": "What did I talk about with you last time?", "intent": "check_status"}
+{"text": "Do you remember our last conversation?", "intent": "check_status"}
+
+
