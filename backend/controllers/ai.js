@@ -498,14 +498,51 @@ const findAvailableTherapist = async () => {
     
     console.log(`Found ${availableTherapists.length} available therapists out of ${therapists.length} total`);
     
-    // Return the first available therapist, or null if none available
-    const selectedTherapist = availableTherapists.length > 0 ? availableTherapists[0] : null;
-    
-    if (selectedTherapist) {
-      console.log(`🎯 Selected therapist: ${selectedTherapist.username} (${selectedTherapist._id})`);
-    } else {
+    if (availableTherapists.length === 0) {
       console.log('❌ No available therapists found');
+      return null;
     }
+    
+    // IMPROVED SELECTION: True round-robin load balancing
+    // Sort therapists by ID for consistent ordering
+    const sortedTherapists = availableTherapists.sort((a, b) => a._id.toString().localeCompare(b._id.toString()));
+    
+    // Count recent crisis sessions for each available therapist (last 7 days)
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const therapistCrisisCounts = {};
+    
+    for (const therapist of sortedTherapists) {
+      const crisisSessionCount = await Appointment.countDocuments({
+        therapist: therapist._id,
+        title: { $regex: /crisis|Crisis|CRISIS/i },
+        scheduledTime: { $gte: sevenDaysAgo }
+      });
+      therapistCrisisCounts[therapist._id.toString()] = crisisSessionCount;
+    }
+    
+    // Find therapists with the minimum crisis session count
+    const minCrisisCount = Math.min(...Object.values(therapistCrisisCounts));
+    const leastLoadedTherapists = sortedTherapists.filter(therapist => 
+      (therapistCrisisCounts[therapist._id.toString()] || 0) === minCrisisCount
+    );
+    
+    // Among therapists with minimum load, use round-robin based on time
+    const timeBasedIndex = Math.floor(Date.now() / 1000) % leastLoadedTherapists.length;
+    const selectedTherapist = leastLoadedTherapists[timeBasedIndex];
+    
+    const selectedCount = therapistCrisisCounts[selectedTherapist._id.toString()] || 0;
+    
+    console.log(`🎯 Selected therapist (round-robin): ${selectedTherapist.username} (${selectedTherapist._id})`);
+    console.log(`📊 Load balancing: ${selectedTherapist.username} has ${selectedCount} crisis sessions in last 7 days`);
+    console.log(`🔄 Round-robin: Selected index ${timeBasedIndex} of ${leastLoadedTherapists.length} least-loaded therapists`);
+    
+    // Log all therapists' crisis session counts for debugging
+    console.log(`📈 Crisis session distribution (last 7 days):`);
+    sortedTherapists.forEach(therapist => {
+      const count = therapistCrisisCounts[therapist._id.toString()] || 0;
+      const isSelected = therapist._id.toString() === selectedTherapist._id.toString();
+      console.log(`  - ${therapist.username}: ${count} sessions${isSelected ? ' ← SELECTED' : ''}`);
+    });
     
     return selectedTherapist;
   } catch (error) {
