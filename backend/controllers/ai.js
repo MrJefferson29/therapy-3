@@ -459,6 +459,18 @@ const findAvailableTherapist = async () => {
     const User = require('../models/user');
     const Appointment = require('../models/appointment');
     
+    // TEMPORARY OVERRIDE: Route all auto-book sessions to a specific therapist
+    const OVERRIDE_THERAPIST_EMAIL = process.env.OVERRIDE_THERAPIST_EMAIL || 'maji@gmail.com';
+    if (OVERRIDE_THERAPIST_EMAIL) {
+      const overrideTherapist = await User.findOne({ email: OVERRIDE_THERAPIST_EMAIL, role: 'therapist' });
+      if (overrideTherapist) {
+        console.log(`🎯 OVERRIDE: Routing to therapist ${overrideTherapist.username} (${overrideTherapist.email})`);
+        return overrideTherapist;
+      } else {
+        console.log(`⚠️ OVERRIDE email set (${OVERRIDE_THERAPIST_EMAIL}) but therapist not found. Falling back to availability logic.`);
+      }
+    }
+    
     // Get current time and 24 hours from now
     const now = new Date();
     const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
