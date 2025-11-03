@@ -340,7 +340,8 @@ export default function Chat() {
       if (data.danger) {
         let alertMsg = "We detected you may need urgent support. Redirecting you to a therapist.";
         if (data.appointment && data.appointment.scheduledTime) {
-          alertMsg = `We detected you may need urgent support. An appointment has been auto-booked for you with a therapist at ${new Date(data.appointment.scheduledTime).toLocaleString()}.`;
+          const tName = data.therapistName || data.therapistAssigned || "a therapist";
+          alertMsg = `We detected you may need urgent support. An appointment has been auto-booked for you with ${tName} at ${new Date(data.appointment.scheduledTime).toLocaleString()}.`;
         }
         Alert.alert(
           "Urgent Support",
